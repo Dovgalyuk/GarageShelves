@@ -14,3 +14,7 @@ CREATE TABLE collection (
   title TEXT NOT NULL,
   description TEXT NOT NULL
 );
+
+-- default data
+INSERT INTO user (username, password)
+  VALUES ("admin", "pbkdf2:sha256:50000$g307uMdl$7da6a054398f31081232bae9b62883a660b74fa4444c571db546a200dd18415b");
