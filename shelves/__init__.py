@@ -1,7 +1,6 @@
 import os
 
-from flask import Flask
-
+from flask import (Flask, render_template)
 
 def create_app(test_config=None):
     # create and configure the app
@@ -32,12 +31,14 @@ def create_app(test_config=None):
 
     from . import collection
     app.register_blueprint(collection.bp)
-    # TODO: there will be another one
-    app.add_url_rule('/', endpoint='index')
 
-    # a simple page that says hello
-    @app.route('/hello')
-    def hello():
-        return 'Hello, World!'
+    from . import concept
+    app.register_blueprint(concept.bp)
+
+    @app.route('/')
+    def base():
+        return render_template('index.html')
+
+    app.add_url_rule('/', endpoint='index')
 
     return app

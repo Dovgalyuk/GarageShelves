@@ -6,7 +6,7 @@ from werkzeug.exceptions import abort
 from shelves.auth import login_required
 from shelves.db import get_db
 
-bp = Blueprint('collection', __name__)
+bp = Blueprint('collection', __name__, url_prefix='/collection')
 
 # All collections of all users
 @bp.route('/')

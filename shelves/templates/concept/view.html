@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}{{ concept['type_title'] }} : {{ concept['title'] }}{% endblock %}</h1>
+  {% if g.user.admin %}
+    <a class="action" href="{{ url_for('concept.update', id=concept['id']) }}">Edit</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <article class="collection">
+    <p class="description">{{ concept['description'] }}</p>
+  </article>
+{% endblock %}

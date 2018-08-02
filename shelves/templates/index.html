@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('collection.index') }}"><h1>All collections</h1></a>
+<a href="{{ url_for('concept.index') }}"><h1>All concepts</h1></a>
+{% endblock %}

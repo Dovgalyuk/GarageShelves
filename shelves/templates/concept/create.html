@@ -1,13 +1,20 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}New collection{% endblock %}</h1>
+  <h1>{% block title %}New concept{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
   <form method="post">
     <label for="title">Title</label>
     <input name="title" id="title" value="{{ request.form['title'] }}" required>
+    <select name="type_id" id="type_id">
+      {% for ct in concept_types %}
+        <option value="{{ct['id']}}"{% if ct['id']==request.form['type_id'] %} SELECTED{% endif %}>
+            {{ct['title']}}
+       	</option>
+      {% endfor %}
+    </select>
     <label for="description">Description</label>
     <textarea name="description" id="description">{{ request.form['description'] }}</textarea>
     <input type="submit" value="Save">
