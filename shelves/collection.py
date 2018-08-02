@@ -5,6 +5,7 @@ from werkzeug.exceptions import abort
 
 from shelves.auth import login_required
 from shelves.db import get_db
+#from shelves.item import get_items
 
 bp = Blueprint('collection', __name__, url_prefix='/collection')
 
@@ -19,30 +20,30 @@ def index():
     ).fetchall()
     return render_template('collection/index.html', collections=collections)
 
-@bp.route('/create', methods=('GET', 'POST'))
-@login_required
-def create():
-    if request.method == 'POST':
-        title = request.form['title']
-        description = request.form['description']
-        error = None
+# @bp.route('/create', methods=('GET', 'POST'))
+# @login_required
+# def create():
+#     if request.method == 'POST':
+#         title = request.form['title']
+#         description = request.form['description']
+#         error = None
 
-        if not title:
-            error = 'Title is required.'
+#         if not title:
+#             error = 'Title is required.'
 
-        if error is not None:
-            flash(error)
-        else:
-            db = get_db()
-            db.execute(
-                'INSERT INTO collection (title, description, owner_id)'
-                ' VALUES (?, ?, ?)',
-                (title, description, g.user['id'])
-            )
-            db.commit()
-            return redirect(url_for('collection.index'))
+#         if error is not None:
+#             flash(error)
+#         else:
+#             db = get_db()
+#             db.execute(
+#                 'INSERT INTO collection (title, description, owner_id)'
+#                 ' VALUES (?, ?, ?)',
+#                 (title, description, g.user['id'])
+#             )
+#             db.commit()
+#             return redirect(url_for('collection.index'))
 
-    return render_template('collection/create.html')
+#     return render_template('collection/create.html')
 
 def get_collection(id, check_author=True):
     collection = get_db().execute(
@@ -59,6 +60,27 @@ def get_collection(id, check_author=True):
         abort(403)
 
     return collection
+
+def get_user_collection(id):
+    collection = get_db().execute(
+        'SELECT id, title, description, created, owner_id'
+        ' FROM collection'
+        ' WHERE owner_id = ?',
+        (id,)
+    ).fetchone()
+
+    if collection is None:
+        abort(404, "Collection id {0} doesn't exist.".format(id))
+
+    return collection
+
+@bp.route('/<int:id>')
+def view(id):
+    collection = get_collection(id)
+    items = get_items(id)
+
+    return render_template('collection/view.html',
+        collection=collection, items=items)
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required

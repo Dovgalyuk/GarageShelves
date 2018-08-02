@@ -2,9 +2,6 @@
 
 {% block header %}
   <h1>{% block title %}Collections{% endblock %}</h1>
-  {% if g.user %}
-    <a class="action" href="{{ url_for('collection.create') }}">New</a>
-  {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -12,12 +9,11 @@
     <article class="collection">
       <header>
         <div>
-          <h1>{{ collection['title'] }}</h1>
-          <div class="about">by {{ collection['username'] }} on {{ collection['created'].strftime('%Y-%m-%d') }}</div>
+          <a class="action" href="{{ url_for('collection.view', id=collection['id']) }}">
+            <h1>{{ collection['title'] }}</h1>
+          </a>
+          <div class="about">{{ collection['username'] }}</div>
         </div>
-        {% if g.user['id'] == collection['owner_id'] %}
-          <a class="action" href="{{ url_for('collection.update', id=collection['id']) }}">Edit</a>
-        {% endif %}
       </header>
       <p class="description">{{ collection['description'] }}</p>
     </article>

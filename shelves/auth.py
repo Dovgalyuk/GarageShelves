@@ -14,6 +14,8 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        collection_title = request.form['collection_title']
+        collection_description = request.form['collection_description']
         db = get_db()
         error = None
 
@@ -21,6 +23,8 @@ def register():
             error = 'Username is required.'
         elif not password:
             error = 'Password is required.'
+        elif not collection_title:
+            error = 'Collection title is required.'
         elif db.execute(
             'SELECT id FROM user WHERE username = ?', (username,)
         ).fetchone() is not None:
@@ -30,6 +34,14 @@ def register():
             db.execute(
                 'INSERT INTO user (username, password) VALUES (?, ?)',
                 (username, generate_password_hash(password))
+            )
+            id = db.execute(
+                    'SELECT id FROM user WHERE username = ?', (username,)
+                ).fetchone()
+            db.execute(
+                'INSERT INTO collection (title, description, owner_id)'
+                ' VALUES (?, ?, ?)',
+                (collection_title, collection_description, id['id'])
             )
             db.commit()
             return redirect(url_for('auth.login'))

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Collection {{ collection['title'] }}{% endblock %}</h1>
+  {% if g.user['id'] == collection['owner_id'] %}
+    <a class="action" href="{{ url_for('collection.update', id=collection['id']) }}">Edit</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <article class="collection">
+    <div class="about">{{ collection['username'] }}</div>
+    <p class="description">{{ collection['description'] }}</p>
+  </article>
+  {% for item in items %}
+  <article class="collection">
+    <h1>{{ item['type_title'] }} : {{ item['title'] }}</h1>
+  </article>
+  {% endfor %}
+{% endblock %}

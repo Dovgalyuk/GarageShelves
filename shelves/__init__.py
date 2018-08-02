@@ -35,6 +35,9 @@ def create_app(test_config=None):
     from . import concept
     app.register_blueprint(concept.bp)
 
+    from . import item
+    app.register_blueprint(item.bp)
+
     @app.route('/')
     def base():
         return render_template('index.html')

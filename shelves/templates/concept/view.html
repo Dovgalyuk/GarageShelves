@@ -11,4 +11,12 @@
   <article class="collection">
     <p class="description">{{ concept['description'] }}</p>
   </article>
+  <a class="action" href="{{ url_for('concept.own', id=concept['id']) }}">I own this</a>
+  <h2>Already owned items</h2>
+  {% for item in items %}
+  <article class="collection">
+    <p class="content">{{ item['added'].strftime('%Y-%m-%d') }}</p>
+    <p class="description">{{ item['description'] }}</p>
+  </article>
+  {% endfor %}
 {% endblock %}
