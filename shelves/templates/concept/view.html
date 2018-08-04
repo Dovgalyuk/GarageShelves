@@ -15,8 +15,9 @@
   <h2>Already owned items</h2>
   {% for item in items %}
   <article class="collection">
-    <p class="content">{{ item['added'].strftime('%Y-%m-%d') }}</p>
-    <p class="description">{{ item['description'] }}</p>
+    <div class="content">{{ item['added'].strftime('%Y-%m-%d') }}</div>
+    <div class="description">{{ item['description'] }}</div>
+    <a class="action" href="{{ url_for('item.update', id=item['id']) }}">Edit</a>
   </article>
   {% endfor %}
 {% endblock %}

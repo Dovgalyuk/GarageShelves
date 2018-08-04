@@ -128,9 +128,9 @@ def own(id):
     collection = get_user_collection(g.user['id'])
     db = get_db()
     db.execute(
-        'INSERT INTO item (concept_id, internal_id, description, collection_id)'
-        ' VALUES (?, ?, ?, ?)',
-        (id, '', '', collection['id'])
+        'INSERT INTO item (concept_id, description, collection_id)'
+        ' VALUES (?, ?, ?)',
+        (id, '', collection['id'])
     )
     db.commit()
     return redirect(url_for('concept.view', id=id))

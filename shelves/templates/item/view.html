@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-11">
+        <h3>Item of {{ item['type_title'] }} : {{ item['title'] }}</h3>
+      </div>
+      <div class="col-xs-1">
+        <a class="action" href="{{ url_for('item.update', id=item['id']) }}">Edit</a>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-4">
+        <p>Internal ID {{ item['internal_id'] }}</p>
+      </div>
+      <div class="col-xs-4">
+        <p>In collection since {{ item['added'].strftime('%Y-%m-%d') }}</p>
+      </div>
+    </div>
+    <div class="row"><div class="col-xs-12">
+      <p>{{ item['description'] }}</p>
+    </div></div>
+  </div>
+{% endblock %}

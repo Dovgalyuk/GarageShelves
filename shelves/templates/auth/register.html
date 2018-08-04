@@ -16,7 +16,7 @@
     <input name="collection_title" id="collection_title" required
         value="{{ request.form['collection_title'] }}">
     <label for="collection_description">Description</label>
-    <textarea name="collection_description" id="collection_description" required>{{ request.form['collection_description'] }}</textarea>
+    <textarea name="collection_description" id="collection_description">{{ request.form['collection_description'] }}</textarea>
     <input type="submit" value="Register">
   </form>
 {% endblock %}

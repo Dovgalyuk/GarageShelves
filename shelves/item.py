@@ -32,6 +32,22 @@ def get_concept_items(collection, concept):
 
     return items
 
+def get_item(id):
+    item = get_db().execute(
+        'SELECT i.id, i.description, c.title, ct.title AS type_title, added,'
+        '       col.owner_id, i.internal_id'
+        ' FROM item i JOIN concept c ON i.concept_id = c.id'
+        ' JOIN concept_type ct ON c.type_id = ct.id'
+        ' JOIN collection col ON i.collection_id = col.id'
+        ' WHERE i.id = ?',
+        (id,)
+    ).fetchone()
+
+    if item is None:
+        abort(404, "Item id {0} doesn't exist.".format(id))
+
+    return item
+
 #     if request.method == 'POST':
 #         type_id = request.form['type_id']
 #         title = request.form['title']
@@ -59,42 +75,27 @@ def get_concept_items(collection, concept):
 #     concept_types = get_concept_types()
 #     return render_template('concept/create.html', concept_types = concept_types)
 
-# @bp.route('/<int:id>')
-# def view(id):
-#     concept = get_concept(id)
+@bp.route('/<int:id>')
+def view(id):
+    item = get_item(id)
+    return render_template('item/view.html', item=item)
 
-#     return render_template('concept/view.html',
-#         concept=concept, concept_types=get_concept_types())
+@bp.route('/<int:id>/update', methods=('GET', 'POST'))
+@login_required
+def update(id):
+    item = get_item(id)
+    if item['owner_id'] != g.user['id']:
+        abort(403)
 
-# @bp.route('/<int:id>/update', methods=('GET', 'POST'))
-# @login_required
-# @admin_required
-# def update(id):
-#     concept = get_concept(id)
+    if request.method == 'POST':
+        description = request.form['description']
+        db = get_db()
+        db.execute(
+            'UPDATE item SET description = ?'
+            ' WHERE id = ?',
+            (description, id)
+        )
+        db.commit()
+        return redirect(url_for("item.view", id=id))
 
-#     if request.method == 'POST':
-#         title = request.form['title']
-#         description = request.form['description']
-#         type_id = request.form['type_id']
-#         error = None
-
-#         # assert that concept type exists
-#         get_concept_type(type_id)
-
-#         if not title:
-#             error = 'Title is required.'
-
-#         if error is not None:
-#             flash(error)
-#         else:
-#             db = get_db()
-#             db.execute(
-#                 'UPDATE concept SET title = ?, description = ?, type_id = ?'
-#                 ' WHERE id = ?',
-#                 (title, description, type_id, id)
-#             )
-#             db.commit()
-#             return redirect(url_for("concept.view", id=id))
-
-#     return render_template('concept/update.html',
-#         concept=concept, concept_types=get_concept_types())
+    return render_template('item/update.html', item=item)

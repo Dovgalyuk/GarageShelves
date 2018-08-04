@@ -76,8 +76,9 @@ def get_user_collection(id):
 
 @bp.route('/<int:id>')
 def view(id):
-    collection = get_collection(id)
-    items = get_items(id)
+    from shelves.item import get_collection_items
+    collection = get_collection(id, False)
+    items = get_collection_items(id)
 
     return render_template('collection/view.html',
         collection=collection, items=items)
@@ -85,7 +86,7 @@ def view(id):
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required
 def update(id):
-    collection = get_collection(id)
+    collection = get_collection(id, True)
 
     if request.method == 'POST':
         title = request.form['title']
@@ -105,6 +106,6 @@ def update(id):
                 (title, description, id)
             )
             db.commit()
-            return redirect(url_for('collection.index'))
+            return redirect(url_for('collection.view', id=id))
 
     return render_template('collection/update.html', collection=collection)

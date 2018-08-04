@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container">
+    <div class="row"><div class="col-xs-12">
+      <h3>Edit item of {{ item['type_title'] }} : {{ item['title'] }}</h3>
+    </div></div>
+    <div class="row">
+      <div class="col-xs-4">
+        <p>Internal ID {{ item['internal_id'] }}</p>
+      </div>
+      <div class="col-xs-4">
+        <p>In collection since {{ item['added'].strftime('%Y-%m-%d') }}</p>
+      </div>
+    </div>
+    <div class="row"><div class="col-xs-12">
+      <form method="post">
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea name="description" id="description" class="form-control">{{ request.form['description'] or item['description'] }}</textarea>
+        </div>
+        <input type="submit" value="Save">
+      </form>
+    </div></div>
+  </div>
+{% endblock %}

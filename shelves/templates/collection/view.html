@@ -1,20 +1,40 @@
 {% extends 'base.html' %}
 
-{% block header %}
-  <h1>{% block title %}Collection {{ collection['title'] }}{% endblock %}</h1>
-  {% if g.user['id'] == collection['owner_id'] %}
-    <a class="action" href="{{ url_for('collection.update', id=collection['id']) }}">Edit</a>
-  {% endif %}
-{% endblock %}
-
 {% block content %}
-  <article class="collection">
-    <div class="about">{{ collection['username'] }}</div>
-    <p class="description">{{ collection['description'] }}</p>
-  </article>
-  {% for item in items %}
-  <article class="collection">
-    <h1>{{ item['type_title'] }} : {{ item['title'] }}</h1>
-  </article>
-  {% endfor %}
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-11">
+        <h1>{{ collection['username'] }}'s collection</h1>
+      </div>
+      <div class="col-xs-1">
+        {% if g.user['id'] == collection['owner_id'] %}
+          <a class="action" href="{{ url_for('collection.update', id=collection['id']) }}">Edit</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-12">
+        <p>{{ collection['description'] }}</p>
+      </div>
+    </div>
+    <div class="row">
+      {% for item in items %}
+        <div class="col-xs-4">
+          <div class="row">
+            <div class="col-xs-9">
+              <a class="action" href="{{ url_for('item.view', id=item['id']) }}"><h6>{{ item['type_title'] }} : {{ item['title'] }}</h6></a>
+            </div>
+            <div class="col-xs-3">
+              <a class="action" href="{{ url_for('item.update', id=item['id']) }}">Edit</a>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-xs-12">
+              <p>{{ item['description'] }}</p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
 {% endblock %}
