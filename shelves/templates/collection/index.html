@@ -15,7 +15,7 @@
           <div class="about">{{ collection['username'] }}</div>
         </div>
       </header>
-      <p class="description">{{ collection['description'] }}</p>
+      <p class="description">{{ collection['description'] | markdown }}</p>
     </article>
     {% if not loop.last %}
       <hr>

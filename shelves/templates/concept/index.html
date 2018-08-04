@@ -1,29 +1,36 @@
 {% extends 'base.html' %}
 
-{% block header %}
-  <h1>{% block title %}Concepts{% endblock %}</h1>
-  {% if g.user.admin %}
-    <a class="action" href="{{ url_for('concept.create') }}">New</a>
-  {% endif %}
-{% endblock %}
-
 {% block content %}
-  {% for concept in concepts %}
-    <article class="collection">
-      <header>
-        <div>
-          <a class="action" href="{{ url_for('concept.view', id=concept['id']) }}">
-            <h1>{{ concept['type_title'] }} : {{ concept['title'] }}</h1>
-          </a>
-        </div>
-        {% if g.user.admin %}
-          <a class="action" href="{{ url_for('concept.update', id=concept['id']) }}">Edit</a>
-        {% endif %}
-      </header>
-      <p class="description">{{ concept['description'] }}</p>
-    </article>
-    {% if not loop.last %}
-      <hr>
+  <div class="container">
+    <div class="row">
+      <div class="page-header">
+        <h1>Concepts</h1>
+      </div>
+    </div>
+    {% if g.user.admin %}
+    <div class="row">
+      <div class="col-xs-12">
+        <a href="{{ url_for('concept.create') }}">Add new concept</a>
+      </div>
+    </div>
     {% endif %}
-  {% endfor %}
+    {% for concept in concepts %}
+    <div class="row">
+      <div class="col-xs-12">
+        <h1>
+          {% if g.user.admin %}
+            <a class="action" href="{{ url_for('concept.update', id=concept['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+          {% endif %}
+          <a class="action" href="{{ url_for('concept.view', id=concept['id']) }}">
+            {{ concept['type_title'] }} : {{ concept['title'] }}</a>
+        </h1>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-12">
+        {{ concept['description'] | markdown }}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 {% endblock %}

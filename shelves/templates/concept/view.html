@@ -1,23 +1,31 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}{{ concept['type_title'] }} : {{ concept['title'] }}{% endblock %}</h1>
-  {% if g.user.admin %}
-    <a class="action" href="{{ url_for('concept.update', id=concept['id']) }}">Edit</a>
-  {% endif %}
 {% endblock %}
 
 {% block content %}
-  <article class="collection">
-    <p class="description">{{ concept['description'] }}</p>
-  </article>
+  <div class="container">
+    <div class="row">
+      <div class="page-header">
+        <h3>
+        {% if g.user.admin %}
+          <a class="action" href="{{ url_for('concept.update', id=concept['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+        {% endif %}
+        {{ concept['type_title'] }} : {{ concept['title'] }}</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-12">
+        <p>{{ concept['description'] | markdown }}</p>
+      </div>
+    </div>
   <a class="action" href="{{ url_for('concept.own', id=concept['id']) }}">I own this</a>
-  <h2>Already owned items</h2>
-  {% for item in items %}
-  <article class="collection">
-    <div class="content">{{ item['added'].strftime('%Y-%m-%d') }}</div>
-    <div class="description">{{ item['description'] }}</div>
-    <a class="action" href="{{ url_for('item.update', id=item['id']) }}">Edit</a>
-  </article>
-  {% endfor %}
+    {% if g.user %}
+      <div class="row">
+        <div class="col-xs-12">
+          <h2>Items in your collection</h2>
+        </div>
+      </div>
+      {{ rendered_items | safe }}
+    {% endif %}
 {% endblock %}

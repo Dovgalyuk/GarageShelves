@@ -5,8 +5,6 @@ from werkzeug.exceptions import abort
 
 from shelves.auth import (login_required)
 from shelves.db import get_db
-#from shelves.concept import get_concept
-#from shelves.collection import get_collection
 
 bp = Blueprint('item', __name__, url_prefix='/item')
 
@@ -75,6 +73,9 @@ def get_item(id):
 #     concept_types = get_concept_types()
 #     return render_template('concept/create.html', concept_types = concept_types)
 
+def render_items_list(items):
+    return render_template('item/list.html', items=items)
+
 @bp.route('/<int:id>')
 def view(id):
     item = get_item(id)
@@ -89,11 +90,12 @@ def update(id):
 
     if request.method == 'POST':
         description = request.form['description']
+        internal_id = request.form['internal_id']
         db = get_db()
         db.execute(
-            'UPDATE item SET description = ?'
+            'UPDATE item SET description = ?, internal_id = ?'
             ' WHERE id = ?',
-            (description, id)
+            (description, internal_id, id)
         )
         db.commit()
         return redirect(url_for("item.view", id=id))

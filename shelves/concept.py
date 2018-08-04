@@ -6,7 +6,7 @@ from werkzeug.exceptions import abort
 from shelves.auth import (login_required, admin_required)
 from shelves.db import get_db
 from shelves.collection import get_user_collection
-from shelves.item import get_concept_items
+from shelves.item import (get_concept_items, render_items_list)
 
 bp = Blueprint('concept', __name__, url_prefix='/concept')
 
@@ -87,7 +87,8 @@ def view(id):
         items = get_concept_items(get_user_collection(g.user['id'])['id'], id)
 
     return render_template('concept/view.html',
-        concept=concept, concept_types=get_concept_types(), items=items)
+        concept=concept, concept_types=get_concept_types(),
+        rendered_items=render_items_list(items))
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required

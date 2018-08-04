@@ -1,0 +1,19 @@
+<div class="row">
+{% for item in items %}
+<div class="col-xs-3">
+  <div class="thumbnail">
+    <img width=240 height=240 src="{{ url_for('static', filename='dummy.jpg') }}">
+    <div class="row">
+      <div class="col-xs-12">
+        <a class="action" href="{{ url_for('item.view', id=item['id']) }}"><h6>{{ item['type_title'] }} : {{ item['title'] }}</h6></a>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-12">
+        <p>{{ item['description'] | markdown }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+</div>

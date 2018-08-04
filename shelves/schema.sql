@@ -42,7 +42,7 @@ CREATE TABLE concept (
 CREATE TABLE item (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   concept_id INTEGER NOT NULL,
-  internal_id TEXT NOT NULL DEFAULT "---",
+  internal_id TEXT,
   description TEXT NOT NULL,
   added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   collection_id INTEGER NOT NULL,
