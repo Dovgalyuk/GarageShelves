@@ -1,22 +1,47 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}New concept{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
-  <form method="post">
-    <label for="title">Title</label>
-    <input name="title" id="title" value="{{ request.form['title'] }}" required>
-    <select name="type_id" id="type_id">
-      {% for ct in concept_types %}
-        <option value="{{ct['id']}}"{% if ct['id']==request.form['type_id'] %} SELECTED{% endif %}>
-            {{ct['title']}}
-       	</option>
-      {% endfor %}
-    </select>
-    <label for="description">Description</label>
-    <textarea name="description" id="description">{{ request.form['description'] }}</textarea>
-    <input type="submit" value="Save">
-  </form>
+  <div class="container">
+    <div class="row">
+      <div class="page-header">
+        <h3>New concept</h3>
+      </div>
+    </div>
+    <div class="row"><div class="col-xs-12">
+      <form class="form-horizontal" method="post">
+        <div class="form-group">
+          <label for="title" class="col-xs-2 control-label">Title</label>
+          <div class="col-xs-10">
+            <input class="form-control" id="title" name="title" value="{{ request.form['title'] }}" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="type_id" class="col-xs-2 control-label">Type</label>
+          <div class="col-xs-10">
+            <select name="type_id" id="type_id">
+              {% for ct in concept_types %}
+                <option value="{{ct['id']}}"{% if ct['id']==request.form['type_id'] %} SELECTED{% endif %}>
+                    {{ct['title']}}
+               	</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="description" class="col-xs-2 control-label">Description</label>
+          <div class="col-xs-10">
+            <textarea name="description" id="description" class="form-control" rows="20">{{ request.form['description'] }}</textarea>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-xs-offset-2 col-xs-10">
+            <input type="submit" value="Save">
+          </div>
+        </div>
+      </form>
+    </div></div>
+  </div>
 {% endblock %}

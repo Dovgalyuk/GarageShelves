@@ -19,13 +19,20 @@
         <p>{{ concept['description'] | markdown }}</p>
       </div>
     </div>
-  <a class="action" href="{{ url_for('concept.own', id=concept['id']) }}">I own this</a>
-    {% if g.user %}
+    {% if concept['physical'] %}
       <div class="row">
         <div class="col-xs-12">
-          <h2>Items in your collection</h2>
+          <a class="action" href="{{ url_for('concept.own', id=concept['id']) }}">I own this</a>
         </div>
       </div>
-      {{ rendered_items | safe }}
+      {% if g.user %}
+        <div class="row">
+          <div class="col-xs-12">
+            <h2>Items in your collection</h2>
+          </div>
+        </div>
+        {{ rendered_items | safe }}
+      {% endif %}
     {% endif %}
+  </div>
 {% endblock %}

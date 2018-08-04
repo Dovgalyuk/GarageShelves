@@ -34,7 +34,8 @@ def get_concept_type(id):
 
 def get_concept(id):
     concept = get_db().execute(
-        'SELECT c.id, c.title, description, created, c.type_id, ct.title as type_title'
+        'SELECT c.id, c.title, description, created, c.type_id,'
+        ' ct.title as type_title, ct.physical'
         ' FROM concept c JOIN concept_type ct ON c.type_id = ct.id'
         ' WHERE c.id = ?',
         (id,)
@@ -126,6 +127,11 @@ def update(id):
 @bp.route('/<int:id>/own')
 @login_required
 def own(id):
+    concept = get_concept(id)
+
+    if not concept['physical']:
+        abort(403)
+
     collection = get_user_collection(g.user['id'])
     db = get_db()
     db.execute(
