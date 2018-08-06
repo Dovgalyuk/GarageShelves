@@ -51,6 +51,21 @@ CREATE TABLE item (
   FOREIGN KEY (collection_id) REFERENCES collection (id)
 );
 
+CREATE TABLE image (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ext TEXT NOT NULL,
+  filename TEXT NOT NULL
+);
+
+CREATE TABLE item_attribute (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type INTEGER NOT NULL,
+  item_id INTEGER NOT NULL,
+  value_id INTEGER NOT NULL,
+
+  FOREIGN KEY (item_id) REFERENCES item (id)
+);
+
 -- default user
 INSERT INTO user (username, password, admin)
   -- user admin, password admin

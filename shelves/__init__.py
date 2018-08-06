@@ -12,8 +12,9 @@ def create_app(test_config=None):
     Misaka(app)
 
     app.config.from_mapping(
-        SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'shelves.sqlite'),
+        SECRET_KEY = 'dev',
+        DATABASE = os.path.join(app.instance_path, 'shelves.sqlite'),
+        MAX_CONTENT_LENGTH = 16 * 1024 * 1024,
     )
 
     if test_config is None:
@@ -43,6 +44,9 @@ def create_app(test_config=None):
 
     from . import item
     app.register_blueprint(item.bp)
+
+    from . import uploads
+    app.register_blueprint(uploads.bp)
 
     @app.route('/')
     def base():
