@@ -3,7 +3,12 @@
 {% for item in items4 %}
 <div class="col-xs-3">
   <div class="thumbnail">
-    <img width=240 height=240 src="{{ url_for('static', filename='dummy.jpg') }}">
+    <img width=240 height=240
+    {% if item['img_id'] %}
+        src="{{ url_for('uploads.view', id=item['img_id']) }}">
+    {% else %}
+        src="{{ url_for('static', filename='dummy.jpg') }}">
+    {% endif %}    
     <a class="action" href="{{ url_for('item.view', id=item['id']) }}">
         <h6>{{ item['username'] }}'s {{ item['type_title'] }} : {{ item['title'] }}</h6></a>
     <p>{{ item['description'] | markdown }}</p>

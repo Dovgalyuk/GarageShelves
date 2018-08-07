@@ -16,3 +16,8 @@
 {% block navbar %}
 {{nav.shelvesnavbar.render()}}
 {% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  {{ flask_util_js.js }}
+{% endblock %}

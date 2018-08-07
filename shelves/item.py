@@ -15,13 +15,15 @@ bp = Blueprint('item', __name__, url_prefix='/item')
 def get_collection_items(collection):
     items = get_db().execute(
         'SELECT i.id, i.description, c.title, ct.title AS type_title,'
-        '       col.owner_id, u.username'
+        '       col.owner_id, u.username, a.value_id AS img_id'
         ' FROM item i JOIN concept c ON i.concept_id = c.id'
         ' JOIN concept_type ct ON c.type_id = ct.id'
         ' JOIN collection col ON i.collection_id = col.id'
         ' JOIN user u ON col.owner_id = u.id'
-        ' WHERE i.collection_id = ?',
-        (collection,)
+        ' LEFT JOIN item_attribute a ON i.id = a.item_id'
+        ' WHERE i.collection_id = ? AND (a.type IS NULL OR a.type = ?)'
+        ' GROUP BY i.id',
+        (collection,ATTR_IMAGE,)
     )
 
     return items
@@ -29,13 +31,15 @@ def get_collection_items(collection):
 def get_concept_items(collection, concept):
     items = get_db().execute(
         'SELECT i.id, i.description, c.title, ct.title AS type_title, added,'
-        '       col.owner_id, u.username'
+        '       col.owner_id, u.username, a.value_id AS img_id'
         ' FROM item i JOIN concept c ON i.concept_id = c.id'
         ' JOIN concept_type ct ON c.type_id = ct.id'
         ' JOIN collection col ON i.collection_id = col.id'
         ' JOIN user u ON col.owner_id = u.id'
-        ' WHERE i.collection_id = ? AND c.id = ?',
-        (collection,concept,)
+        ' LEFT JOIN item_attribute a ON i.id = a.item_id'
+        ' WHERE i.collection_id = ? AND c.id = ? AND (a.type IS NULL OR a.type = ?)'
+        ' GROUP BY i.id',
+        (collection,concept,ATTR_IMAGE,)
     )
 
     return items

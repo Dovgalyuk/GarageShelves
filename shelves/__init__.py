@@ -3,6 +3,7 @@ import os
 from flask import (Flask, render_template)
 from flask_bootstrap import Bootstrap
 from flask_misaka import Misaka
+from flask_util_js import FlaskUtilJs
 from .nav import nav
 
 def create_app(test_config=None):
@@ -10,6 +11,7 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     Bootstrap(app)
     Misaka(app)
+    FlaskUtilJs(app)
 
     app.config.from_mapping(
         SECRET_KEY = 'dev',
