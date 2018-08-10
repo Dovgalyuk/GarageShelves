@@ -66,6 +66,15 @@ CREATE TABLE item_attribute (
   FOREIGN KEY (item_id) REFERENCES item (id)
 );
 
+CREATE TABLE concept_attribute (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type INTEGER NOT NULL,
+  concept_id INTEGER NOT NULL,
+  value_id INTEGER NOT NULL,
+
+  FOREIGN KEY (concept_id) REFERENCES concept (id)
+);
+
 -- default user
 INSERT INTO user (username, password, admin)
   -- user admin, password admin

@@ -1,10 +1,8 @@
 {% extends 'base.html' %}
 
-{% block header %}
-  <h1>{% block title %}New collection{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
+  {{ super() }}
+  <h1>{% block title %}New collection{% endblock %}</h1>
   <form method="post">
     <label for="title">Title</label>
     <input name="title" id="title" value="{{ request.form['title'] }}" required>

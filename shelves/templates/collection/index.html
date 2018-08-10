@@ -1,10 +1,7 @@
 {% extends 'base.html' %}
 
-{% block header %}
-  <h1>{% block title %}Collections{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
+  {{ super() }}
   {% for collection in collections %}
     <article class="collection">
       <header>

@@ -7,8 +7,12 @@ from shelves.auth import (login_required, admin_required)
 from shelves.db import get_db
 from shelves.collection import get_user_collection
 from shelves.item import (get_concept_items, render_items_list)
+from shelves.uploads import upload_image
 
 bp = Blueprint('concept', __name__, url_prefix='/concept')
+
+# Concept attributes
+ATTR_IMAGE = 1
 
 # All concepts
 @bp.route('/')
@@ -49,6 +53,20 @@ def get_concept(id):
 def get_concept_types():
     return get_db().execute('SELECT * FROM concept_type')
 
+def get_concept_images(id):
+    images = get_db().execute(
+        'SELECT img.id, img.filename'
+        ' FROM concept c JOIN concept_attribute a ON c.id = a.concept_id'
+        ' JOIN image img ON a.value_id = img.id'
+        ' WHERE a.type = ? AND c.id = ?',
+        (ATTR_IMAGE, id,)
+    ).fetchall()
+    return images
+
+###############################################################################
+# Routes
+###############################################################################
+
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
 @admin_required
@@ -80,16 +98,45 @@ def create():
     concept_types = get_concept_types()
     return render_template('concept/create.html', concept_types = concept_types)
 
-@bp.route('/<int:id>')
+@bp.route('/<int:id>', methods=('GET', 'POST'))
 def view(id):
     concept = get_concept(id)
+
+    if request.method == 'POST':
+        if not g.user['admin']:
+            abort(403)
+
+        if 'concept_photo' not in request.files:
+            flash('No photo selected')
+            return redirect(request.url)
+
+        file = request.files['concept_photo']
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+
+        if file:
+            file_id = upload_image(file)
+            db = get_db()
+            db.execute(
+                'INSERT INTO concept_attribute (type, concept_id, value_id)'
+                ' VALUES (?, ?, ?)',
+                (ATTR_IMAGE, id, file_id,)
+            )
+            db.commit()
+            return redirect(request.url)
+        else:
+            flash('Invalid file')
+            return redirect(request.url)
+
     items = []
     if g.user:
         items = get_concept_items(get_user_collection(g.user['id'])['id'], id)
 
     return render_template('concept/view.html',
         concept=concept, concept_types=get_concept_types(),
-        rendered_items=render_items_list(items))
+        rendered_items=render_items_list(items),
+        images=get_concept_images(id))
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required

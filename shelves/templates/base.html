@@ -1,4 +1,5 @@
 {%- extends "bootstrap/base.html" %}
+{% import "bootstrap/utils.html" as utils %}
 
 {% block title %}Garage shelves{% endblock %}
 
@@ -15,9 +16,47 @@
 
 {% block navbar %}
 {{nav.shelvesnavbar.render()}}
+
+  <div class="modal fade" id="photoModal" tabindex="-1" role="dialog" aria-labelledby="photo" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="width:1060px;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <img src="" id="modal-photo-img" width=auto style="max-width:1024px">
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+  {%- with messages = get_flashed_messages(with_categories=True) %}
+  {%- if messages %}
+    <div class="row">
+      <div class="col-md-12">
+        {{utils.flashed_messages(messages)}}
+      </div>
+    </div>
+  {%- endif %}
+  {%- endwith %}
+  </div>
 {% endblock %}
 
 {% block scripts %}
   {{ super() }}
   {{ flask_util_js.js }}
+  <script type="text/javascript">
+    $('#photoModal').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget) // Button that triggered the modal
+      var id = button.data('whatever') // Extract info from data-* attributes
+      var modal = $(this)
+      var img = modal.find('#modal-photo-img')
+      img.attr('src', flask_util.url_for('uploads.view', {id:id}) )
+    });
+  </script>
 {% endblock %}

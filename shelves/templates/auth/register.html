@@ -1,10 +1,8 @@
 {% extends 'base.html' %}
 
-{% block header %}
-  <h1>{% block title %}Register{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
+  {{ super() }}
+  <h1>{% block title %}Register{% endblock %}</h1>
   <form method="post">
     <h2>Login information</h2>
     <label for="username">Username</label>
