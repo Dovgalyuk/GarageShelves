@@ -8,6 +8,7 @@ nav = Nav()
 
 @nav.navigation()
 def shelvesnavbar():
+    concepts = View("All concepts", "concept.index")
     if g.user is None:
         collection = View("All collections", "collection.index")
         register = View("Register", "auth.register")
@@ -20,6 +21,7 @@ def shelvesnavbar():
         'Garage shelves',
         View('Home', 'index'),
         collection,
+        concepts,
         register,
         login,
     )
