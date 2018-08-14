@@ -10,6 +10,7 @@
     </div>
     <div class="row"><div class="col-xs-12">
       <form class="form-horizontal" method="post">
+        <input type="hidden" id="parent" name="parent" value="{{ request.form['parent'] or parent }}">
         <div class="form-group">
           <label for="title" class="col-xs-2 control-label">Title</label>
           <div class="col-xs-10">

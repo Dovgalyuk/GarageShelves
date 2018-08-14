@@ -12,7 +12,10 @@ from shelves.uploads import upload_image
 bp = Blueprint('concept', __name__, url_prefix='/concept')
 
 # Concept attributes
-ATTR_IMAGE = 1
+ATTR_IMAGE    = 1
+
+# Concept relations
+REL_INCLUDES = 1
 
 # All concepts
 @bp.route('/')
@@ -63,14 +66,26 @@ def get_concept_images(id):
     ).fetchall()
     return images
 
+def get_concept_parents(id):
+    parents = get_db().execute(
+        'SELECT c1.id, c1.title, ct.title as type_title'
+        ' FROM concept c1 JOIN concept_relation r ON c1.id = r.concept_id1'
+        ' JOIN concept_type ct ON c1.type_id = ct.id'
+        ' JOIN concept c2 ON c2.id = r.concept_id2'
+        ' WHERE r.type = ? AND c2.id = ?',
+        (REL_INCLUDES, id,)
+    ).fetchall()
+    return parents
+
 ###############################################################################
 # Routes
 ###############################################################################
 
 @bp.route('/create', methods=('GET', 'POST'))
+@bp.route('/create/<int:parent>', methods=('GET', 'POST'))
 @login_required
 @admin_required
-def create():
+def create(parent = -1):
     if request.method == 'POST':
         type_id = request.form['type_id']
         title = request.form['title']
@@ -86,17 +101,27 @@ def create():
         if error is not None:
             flash(error)
         else:
+            parent = request.form['parent']
             db = get_db()
-            db.execute(
+            cursor = db.cursor()
+            cursor.execute(
                 'INSERT INTO concept (type_id, title, description)'
                 ' VALUES (?, ?, ?)',
                 (type_id, title, description)
             )
+            concept_id = cursor.lastrowid
+            if parent and int(parent) > 0:
+                db.execute(
+                    'INSERT INTO concept_relation'
+                    ' (concept_id1, concept_id2, type)'
+                    ' VALUES (?, ?, ?)',
+                    (parent, concept_id, REL_INCLUDES)
+                )
             db.commit()
             return redirect(url_for('concept.index'))
 
     concept_types = get_concept_types()
-    return render_template('concept/create.html', concept_types = concept_types)
+    return render_template('concept/create.html', parent=parent, concept_types = concept_types)
 
 @bp.route('/<int:id>', methods=('GET', 'POST'))
 def view(id):
@@ -136,7 +161,8 @@ def view(id):
     return render_template('concept/view.html',
         concept=concept, concept_types=get_concept_types(),
         rendered_items=render_items_list(items),
-        images=get_concept_images(id))
+        images=get_concept_images(id),
+        parents=get_concept_parents(id))
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required

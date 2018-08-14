@@ -75,6 +75,16 @@ CREATE TABLE concept_attribute (
   FOREIGN KEY (concept_id) REFERENCES concept (id)
 );
 
+CREATE TABLE concept_relation (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  concept_id1 INTEGER NOT NULL,
+  concept_id2 INTEGER NOT NULL,
+  type INTEGER NOT NULL,
+
+  FOREIGN KEY (concept_id1) REFERENCES concept (id),
+  FOREIGN KEY (concept_id2) REFERENCES concept (id)
+);
+
 -- default user
 INSERT INTO user (username, password, admin)
   -- user admin, password admin
