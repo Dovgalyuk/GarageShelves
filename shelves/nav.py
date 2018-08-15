@@ -13,10 +13,12 @@ def shelvesnavbar():
         collection = View("All collections", "collection.index")
         register = View("Register", "auth.register")
         login = View("Log in", "auth.login")
+        profile = Text("")
     else:
         collection = View("My collection", "collection.view", id=g.user['id'])
         register = Text(g.user['username'])
         login = View("Log out", "auth.logout")
+        profile = View("Profile", "auth.profile")
     return Navbar(
         'Garage shelves',
         View('Home', 'index'),
@@ -24,4 +26,5 @@ def shelvesnavbar():
         concepts,
         register,
         login,
+        profile,
     )

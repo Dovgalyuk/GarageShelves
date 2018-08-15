@@ -9,6 +9,41 @@ from shelves.db import get_db
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
+@bp.before_app_request
+def load_logged_in_user():
+    user_id = session.get('user_id')
+
+    if user_id is None:
+        g.user = None
+    else:
+        g.user = get_db().execute(
+            'SELECT * FROM user WHERE id = ?', (user_id,)
+        ).fetchone()
+
+
+def login_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return redirect(url_for('auth.login'))
+
+        return view(**kwargs)
+
+    return wrapped_view
+
+def admin_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return redirect(url_for('auth.login'))
+
+        if g.user['admin'] == 0:
+            return redirect(url_for('auth.login'))
+
+        return view(**kwargs)
+
+    return wrapped_view
+
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
@@ -50,6 +85,42 @@ def register():
 
     return render_template('auth/register.html')
 
+@bp.route('/profile', methods=('GET', 'POST'))
+@login_required
+def profile():
+    if request.method == 'POST':
+        old_password = request.form['old_password']
+        new_password = request.form['new_password']
+        db = get_db()
+        error = None
+
+        if not old_password:
+            error = 'Password is required.'
+
+        if not new_password:
+            error = 'New password is required.'
+
+        user = db.execute(
+            'SELECT * FROM user WHERE id = ?', (g.user['id'],)
+        ).fetchone()
+
+        if not check_password_hash(user['password'], old_password):
+            error = 'Incorrect password.'
+
+        if error is None:
+            new_password = generate_password_hash(new_password)
+            db.execute(
+                'UPDATE user SET password = ?'
+                ' WHERE id = ?',
+                (new_password, g.user['id'])
+            )
+            db.commit()
+            return redirect(url_for('index'))
+
+        flash(error)
+
+    return render_template('auth/profile.html')
+
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
     if request.method == 'POST':
@@ -75,41 +146,7 @@ def login():
 
     return render_template('auth/login.html')
 
-@bp.before_app_request
-def load_logged_in_user():
-    user_id = session.get('user_id')
-
-    if user_id is None:
-        g.user = None
-    else:
-        g.user = get_db().execute(
-            'SELECT * FROM user WHERE id = ?', (user_id,)
-        ).fetchone()
-
 @bp.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('index'))
-
-def login_required(view):
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        if g.user is None:
-            return redirect(url_for('auth.login'))
-
-        return view(**kwargs)
-
-    return wrapped_view
-
-def admin_required(view):
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        if g.user is None:
-            return redirect(url_for('auth.login'))
-
-        if g.user['admin'] == 0:
-            return redirect(url_for('auth.login'))
-
-        return view(**kwargs)
-
-    return wrapped_view
