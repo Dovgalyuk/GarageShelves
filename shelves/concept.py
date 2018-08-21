@@ -4,7 +4,7 @@ from flask import (
 from werkzeug.exceptions import abort
 
 from shelves.auth import (login_required, admin_required)
-from shelves.db import get_db
+from shelves.db import get_db_cursor, db_commit
 from shelves.collection import get_user_collection
 from shelves.item import (get_concept_items, render_items_list)
 from shelves.uploads import upload_image
@@ -20,19 +20,22 @@ REL_INCLUDES = 1
 # All concepts
 @bp.route('/')
 def index():
-    db = get_db()
-    concepts = db.execute(
+    cursor = get_db_cursor()
+    cursor.execute(
         'SELECT c.id, c.title, description, created, c.type_id, ct.title as type_title'
         ' FROM concept c JOIN concept_type ct ON c.type_id = ct.id'
         ' ORDER BY created DESC'
-    ).fetchall()
+    )
+    concepts = cursor.fetchall()
     return render_template('concept/index.html', concepts=concepts)
 
 def get_concept_type(id):
-    ct = get_db().execute(
-        'SELECT * FROM concept_type WHERE id = ?',
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT * FROM concept_type WHERE id = %s',
         (id)
-    ).fetchone()
+    )
+    ct = cursor.fetchone()
 
     if ct is None:
         abort(404, "Concept type id {0} doesn't exist.".format(id))
@@ -40,13 +43,15 @@ def get_concept_type(id):
     return ct
 
 def get_concept(id):
-    concept = get_db().execute(
+    cursor = get_db_cursor()
+    cursor.execute(
         'SELECT c.id, c.title, description, created, c.type_id,'
         ' ct.title as type_title, ct.physical'
         ' FROM concept c JOIN concept_type ct ON c.type_id = ct.id'
-        ' WHERE c.id = ?',
+        ' WHERE c.id = %s',
         (id,)
-    ).fetchone()
+    )
+    concept = cursor.fetchone()
 
     if concept is None:
         abort(404, "Concept id {0} doesn't exist.".format(id))
@@ -54,27 +59,33 @@ def get_concept(id):
     return concept
 
 def get_concept_types():
-    return get_db().execute('SELECT * FROM concept_type')
+    cursor = get_db_cursor()
+    cursor.execute('SELECT * FROM concept_type')
+    return cursor.fetchall()
 
 def get_concept_images(id):
-    images = get_db().execute(
+    cursor = get_db_cursor()
+    cursor.execute(
         'SELECT img.id, img.filename'
         ' FROM concept c JOIN concept_attribute a ON c.id = a.concept_id'
         ' JOIN image img ON a.value_id = img.id'
-        ' WHERE a.type = ? AND c.id = ?',
+        ' WHERE a.type = %s AND c.id = %s',
         (ATTR_IMAGE, id,)
-    ).fetchall()
+    )
+    images = cursor.fetchall()
     return images
 
 def get_concept_parents(id):
-    parents = get_db().execute(
+    cursor = get_db_cursor()
+    cursor.execute(
         'SELECT c1.id, c1.title, ct.title as type_title'
         ' FROM concept c1 JOIN concept_relation r ON c1.id = r.concept_id1'
         ' JOIN concept_type ct ON c1.type_id = ct.id'
         ' JOIN concept c2 ON c2.id = r.concept_id2'
-        ' WHERE r.type = ? AND c2.id = ?',
+        ' WHERE r.type = %s AND c2.id = %s',
         (REL_INCLUDES, id,)
-    ).fetchall()
+    )
+    parents = cursor.fetchall()
     return parents
 
 ###############################################################################
@@ -102,22 +113,21 @@ def create(parent = -1):
             flash(error)
         else:
             parent = request.form['parent']
-            db = get_db()
-            cursor = db.cursor()
+            cursor = get_db_cursor()
             cursor.execute(
                 'INSERT INTO concept (type_id, title, description)'
-                ' VALUES (?, ?, ?)',
+                ' VALUES (%s, %s, %s)',
                 (type_id, title, description)
             )
             concept_id = cursor.lastrowid
             if parent and int(parent) > 0:
-                db.execute(
+                cursor.execute(
                     'INSERT INTO concept_relation'
                     ' (concept_id1, concept_id2, type)'
-                    ' VALUES (?, ?, ?)',
+                    ' VALUES (%s, %s, %s)',
                     (parent, concept_id, REL_INCLUDES)
                 )
-            db.commit()
+            db_commit()
             return redirect(url_for('concept.index'))
 
     concept_types = get_concept_types()
@@ -142,13 +152,13 @@ def view(id):
 
         if file:
             file_id = upload_image(file)
-            db = get_db()
+            db = get_db_cursor()
             db.execute(
                 'INSERT INTO concept_attribute (type, concept_id, value_id)'
-                ' VALUES (?, ?, ?)',
+                ' VALUES (%s, %s, %s)',
                 (ATTR_IMAGE, id, file_id,)
             )
-            db.commit()
+            db_commit()
             return redirect(request.url)
         else:
             flash('Invalid file')
@@ -185,13 +195,13 @@ def update(id):
         if error is not None:
             flash(error)
         else:
-            db = get_db()
+            db = get_db_cursor()
             db.execute(
-                'UPDATE concept SET title = ?, description = ?, type_id = ?'
-                ' WHERE id = ?',
+                'UPDATE concept SET title = %s, description = %s, type_id = %s'
+                ' WHERE id = %s',
                 (title, description, type_id, id)
             )
-            db.commit()
+            db_commit()
             return redirect(url_for("concept.view", id=id))
 
     return render_template('concept/update.html',
@@ -206,11 +216,11 @@ def own(id):
         abort(403)
 
     collection = get_user_collection(g.user['id'])
-    db = get_db()
+    db = get_db_cursor()
     db.execute(
         'INSERT INTO item (concept_id, description, collection_id)'
-        ' VALUES (?, ?, ?)',
+        ' VALUES (%s, %s, %s)',
         (id, '', collection['id'])
     )
-    db.commit()
+    db_commit()
     return redirect(url_for('concept.view', id=id))

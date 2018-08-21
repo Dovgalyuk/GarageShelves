@@ -3,7 +3,7 @@ import os
 from flask import (Flask, render_template)
 from flask_bootstrap import Bootstrap
 from flask_misaka import Misaka
-from flask_util_js import FlaskUtilJs
+from .flask_util_js import FlaskUtilJs
 from .nav import nav
 
 def create_app(test_config=None):
@@ -17,6 +17,11 @@ def create_app(test_config=None):
         SECRET_KEY = 'dev',
         DATABASE = os.path.join(app.instance_path, 'shelves.sqlite'),
         MAX_CONTENT_LENGTH = 16 * 1024 * 1024,
+
+        MYSQL_USER = 'root',
+        MYSQL_PASSWORD = 'root',
+        MYSQL_DB = 'GarageShelves',
+        MYSQL_HOST = 'localhost',
     )
 
     if test_config is None:

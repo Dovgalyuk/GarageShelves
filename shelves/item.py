@@ -4,7 +4,7 @@ from flask import (
 from werkzeug.exceptions import abort
 
 from shelves.auth import (login_required)
-from shelves.db import get_db
+from shelves.db import get_db_cursor, db_commit
 from shelves.uploads import upload_image
 
 # item attributes' ids
@@ -13,58 +13,70 @@ ATTR_IMAGE = 1
 bp = Blueprint('item', __name__, url_prefix='/item')
 
 def get_collection_items(collection):
-    items = get_db().execute(
+    cursor = get_db_cursor()
+    cursor.execute(
         'SELECT i.id, i.description, c.title, ct.title AS type_title,'
-        '       col.owner_id, u.username, a.value_id AS img_id'
+        '       col.owner_id, u.username,'
+        ' NULL AS img_id'
+#        ' a.value_id AS img_id'
         ' FROM item i JOIN concept c ON i.concept_id = c.id'
         ' JOIN concept_type ct ON c.type_id = ct.id'
         ' JOIN collection col ON i.collection_id = col.id'
         ' JOIN user u ON col.owner_id = u.id'
-        ' LEFT JOIN item_attribute a ON i.id = a.item_id'
-        ' WHERE i.collection_id = ? AND (a.type IS NULL OR a.type = ?)'
-        ' GROUP BY i.id',
-        (collection,ATTR_IMAGE,)
+#        ' LEFT JOIN item_attribute a ON i.id = a.item_id'
+        ' WHERE i.collection_id = %s'#' AND (a.type IS NULL OR a.type = %s)'
+#        ' GROUP BY i.id',
+#        (collection,ATTR_IMAGE,)
+        ,(collection,)
     )
 
-    return items
+    return cursor.fetchall()
 
 def get_concept_items(collection, concept):
-    items = get_db().execute(
+    cursor = get_db_cursor()
+    cursor.execute(
         'SELECT i.id, i.description, c.title, ct.title AS type_title, added,'
-        '       col.owner_id, u.username, a.value_id AS img_id'
+        '       col.owner_id, u.username,'
+        ' NULL AS img_id'
+#        ' a.value_id AS img_id'
         ' FROM item i JOIN concept c ON i.concept_id = c.id'
         ' JOIN concept_type ct ON c.type_id = ct.id'
         ' JOIN collection col ON i.collection_id = col.id'
         ' JOIN user u ON col.owner_id = u.id'
-        ' LEFT JOIN item_attribute a ON i.id = a.item_id'
-        ' WHERE i.collection_id = ? AND c.id = ? AND (a.type IS NULL OR a.type = ?)'
-        ' GROUP BY i.id',
-        (collection,concept,ATTR_IMAGE,)
+#        ' LEFT JOIN item_attribute a ON i.id = a.item_id'
+        ' WHERE i.collection_id = %s AND c.id = %s'#' AND (a.type IS NULL OR a.type = %s)'
+#        ' GROUP BY i.id',
+#        (collection,concept,ATTR_IMAGE,)
+        , (collection,concept,)
     )
 
-    return items
+    return cursor.fetchall()
 
 def get_item_images(id):
-    images = get_db().execute(
+    cursor = get_db_cursor()
+    cursor.execute(
         'SELECT img.id, img.filename'
         ' FROM item i JOIN item_attribute a ON i.id = a.item_id'
         ' JOIN image img ON a.value_id = img.id'
-        ' WHERE a.type = ? AND i.id = ?',
+        ' WHERE a.type = %s AND i.id = %s',
         (ATTR_IMAGE, id,)
-    ).fetchall()
-    return images
+    )
+    return cursor.fetchall()
 
 def get_item(id):
-    item = get_db().execute(
+    cursor = get_db_cursor()
+    cursor.execute(
         'SELECT i.id, i.description, c.id AS concept_id,'
         ' c.title, ct.title AS type_title, added,'
         '       col.owner_id, i.internal_id'
         ' FROM item i JOIN concept c ON i.concept_id = c.id'
         ' JOIN concept_type ct ON c.type_id = ct.id'
         ' JOIN collection col ON i.collection_id = col.id'
-        ' WHERE i.id = ?',
+        ' WHERE i.id = %s',
         (id,)
-    ).fetchone()
+    )
+
+    item = cursor.fetchone()
 
     if item is None:
         abort(404, "Item id {0} doesn't exist.".format(id))
@@ -97,13 +109,13 @@ def view(id):
 
         if file:
             file_id = upload_image(file)
-            db = get_db()
+            db = get_db_cursor()
             db.execute(
                 'INSERT INTO item_attribute (type, item_id, value_id)'
-                ' VALUES (?, ?, ?)',
+                ' VALUES (%s, %s, %s)',
                 (ATTR_IMAGE, id, file_id,)
             )
-            db.commit()
+            db_commit()
             return redirect(request.url)
         else:
             flash('Invalid file')
@@ -122,13 +134,13 @@ def update(id):
     if request.method == 'POST':
         description = request.form['description']
         internal_id = request.form['internal_id']
-        db = get_db()
+        db = get_db_cursor()
         db.execute(
-            'UPDATE item SET description = ?, internal_id = ?'
-            ' WHERE id = ?',
+            'UPDATE item SET description = %s, internal_id = %s'
+            ' WHERE id = %s',
             (description, internal_id, id)
         )
-        db.commit()
+        db_commit()
         return redirect(url_for("item.view", id=id))
 
     return render_template('item/update.html', item=item)

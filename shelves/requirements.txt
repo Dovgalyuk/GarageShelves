@@ -2,3 +2,4 @@ flask-bootstrap
 flask-nav
 flask-misaka
 flask-uploads
+flask-mysqldb

@@ -3,6 +3,7 @@ from flask_nav.elements import Navbar, View, Separator, Text, Subgroup
 from flask import (
     g
 )
+import sys
 
 nav = Nav()
 

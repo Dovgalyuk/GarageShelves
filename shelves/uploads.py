@@ -7,7 +7,7 @@ from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
 
 from shelves.auth import (login_required)
-from shelves.db import get_db
+from shelves.db import get_db_cursor, db_commit
 
 bp = Blueprint('uploads', __name__, url_prefix='/uploads')
 
@@ -23,26 +23,25 @@ def upload_image(file):
 
     filename = secure_filename(file.filename)
     ext = filename.rsplit('.', 1)[1].lower()
-    db = get_db()
-    cursor = db.cursor()
+    cursor = get_db_cursor()
     cursor.execute(
-        'INSERT INTO image (ext, filename) VALUES (?, ?)',
+        'INSERT INTO image (ext, filename) VALUES (%s, %s)',
         (ext, filename,)
     )
     file_id = cursor.lastrowid
     file.save(os.path.join(
         os.path.join(current_app.instance_path, 'uploads'),
         '%d.%s' % (file_id, ext)))
-    db.commit()
     return file_id
 
 @bp.route('/<int:id>')
 def view(id):
-    db = get_db();
-    image = db.execute(
-        'SELECT * FROM image WHERE id = ?',
+    cursor = get_db_cursor();
+    cursor.execute(
+        'SELECT * FROM image WHERE id = %s',
         (id,)
-        ).fetchone()
+        )
+    image = cursor.fetchone()
 
     return send_from_directory(os.path.join(current_app.instance_path,
         'uploads'), '%d.%s' % (id, image['ext']))
@@ -56,10 +55,10 @@ def view(id):
 #     if request.method == 'POST':
 #         description = request.form['description']
 #         internal_id = request.form['internal_id']
-#         db = get_db()
+#         db = get_db_cursor()
 #         db.execute(
-#             'UPDATE item SET description = ?, internal_id = ?'
-#             ' WHERE id = ?',
+#             'UPDATE item SET description = %s, internal_id = %s'
+#             ' WHERE id = %s',
 #             (description, internal_id, id)
 #         )
 #         db.commit()
