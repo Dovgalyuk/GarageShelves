@@ -6,56 +6,56 @@ from werkzeug.exceptions import abort
 from shelves.auth import (login_required, admin_required)
 from shelves.db import get_db_cursor, db_commit
 from shelves.collection import get_user_collection
-from shelves.item import (get_concept_items, render_items_list)
+from shelves.item import (get_catalog_items, render_items_list)
 from shelves.uploads import upload_image
 
 bp = Blueprint('catalog', __name__, url_prefix='/catalog')
 
-# Concept attributes
+# Catalog attributes
 ATTR_IMAGE    = 1
 
-# Concept relations
+# Catalog relations
 REL_INCLUDES = 1
 
-def get_concept_type(id):
+def get_catalog_type(id):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT * FROM concept_type WHERE id = %s',
+        'SELECT * FROM catalog_type WHERE id = %s',
         (id)
     )
     ct = cursor.fetchone()
 
     if ct is None:
-        abort(404, "Concept type id {0} doesn't exist.".format(id))
+        abort(404, "Catalog type id {0} doesn't exist.".format(id))
 
     return ct
 
-def get_concept(id):
+def get_catalog(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT c.id, c.title, description, created, c.type_id,'
         ' ct.title as type_title, ct.physical'
-        ' FROM concept c JOIN concept_type ct ON c.type_id = ct.id'
+        ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
         ' WHERE c.id = %s',
         (id,)
     )
-    concept = cursor.fetchone()
+    catalog = cursor.fetchone()
 
-    if concept is None:
-        abort(404, "Concept id {0} doesn't exist.".format(id))
+    if catalog is None:
+        abort(404, "Catalog id {0} doesn't exist.".format(id))
 
-    return concept
+    return catalog
 
-def get_concept_types():
+def get_catalog_types():
     cursor = get_db_cursor()
-    cursor.execute('SELECT * FROM concept_type')
+    cursor.execute('SELECT * FROM catalog_type')
     return cursor.fetchall()
 
-def get_concept_images(id):
+def get_catalog_images(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT img.id, img.filename'
-        ' FROM concept c JOIN concept_attribute a ON c.id = a.concept_id'
+        ' FROM catalog c JOIN catalog_attribute a ON c.id = a.catalog_id'
         ' JOIN image img ON a.value_id = img.id'
         ' WHERE a.type = %s AND c.id = %s',
         (ATTR_IMAGE, id,)
@@ -63,13 +63,13 @@ def get_concept_images(id):
     images = cursor.fetchall()
     return images
 
-def get_concept_parents(id):
+def get_catalog_parents(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT c1.id, c1.title, ct.title as type_title'
-        ' FROM concept c1 JOIN concept_relation r ON c1.id = r.concept_id1'
-        ' JOIN concept_type ct ON c1.type_id = ct.id'
-        ' JOIN concept c2 ON c2.id = r.concept_id2'
+        ' FROM catalog c1 JOIN catalog_relation r ON c1.id = r.catalog_id1'
+        ' JOIN catalog_type ct ON c1.type_id = ct.id'
+        ' JOIN catalog c2 ON c2.id = r.catalog_id2'
         ' WHERE r.type = %s AND c2.id = %s',
         (REL_INCLUDES, id,)
     )
@@ -80,17 +80,17 @@ def get_concept_parents(id):
 # Routes
 ###############################################################################
 
-# All concepts
+# All catalogs
 @bp.route('/')
 def index():
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT c.id, c.title, description, created, c.type_id, ct.title as type_title'
-        ' FROM concept c JOIN concept_type ct ON c.type_id = ct.id'
+        ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
         ' ORDER BY created DESC'
     )
-    concepts = cursor.fetchall()
-    return render_template('catalog/index.html', concepts=concepts)
+    catalogs = cursor.fetchall()
+    return render_template('catalog/index.html', catalogs=catalogs)
 
 
 @bp.route('/create', methods=('GET', 'POST'))
@@ -104,8 +104,8 @@ def create(parent = -1):
         description = request.form['description']
         error = None
 
-        # assert that concept type exists
-        get_concept_type(type_id)
+        # assert that catalog type exists
+        get_catalog_type(type_id)
 
         if not title:
             error = 'Title is required.'
@@ -116,42 +116,42 @@ def create(parent = -1):
             parent = request.form['parent']
             cursor = get_db_cursor()
             cursor.execute(
-                'INSERT INTO concept (type_id, title, description)'
+                'INSERT INTO catalog (type_id, title, description)'
                 ' VALUES (%s, %s, %s)',
                 (type_id, title, description)
             )
-            concept_id = cursor.lastrowid
+            catalog_id = cursor.lastrowid
             if parent and int(parent) > 0:
-                get_concept(parent) # validate the parent
+                get_catalog(parent) # validate the parent
                 cursor.execute(
-                    'INSERT INTO concept_relation'
-                    ' (concept_id1, concept_id2, type)'
+                    'INSERT INTO catalog_relation'
+                    ' (catalog_id1, catalog_id2, type)'
                     ' VALUES (%s, %s, %s)',
-                    (parent, concept_id, REL_INCLUDES)
+                    (parent, catalog_id, REL_INCLUDES)
                 )
             db_commit()
             return redirect(url_for('catalog.index'))
 
-    concept_types = get_concept_types()
+    catalog_types = get_catalog_types()
     p = None
     if parent != -1:
-        p = get_concept(parent)
+        p = get_catalog(parent)
     return render_template('catalog/create.html',
-        parent=p, concept_types=concept_types)
+        parent=p, catalog_types=catalog_types)
 
 @bp.route('/<int:id>', methods=('GET', 'POST'))
 def view(id):
-    concept = get_concept(id)
+    catalog = get_catalog(id)
 
     if request.method == 'POST':
         if not g.user['admin']:
             abort(403)
 
-        if 'concept_photo' not in request.files:
+        if 'catalog_photo' not in request.files:
             flash('No photo selected')
             return redirect(request.url)
 
-        file = request.files['concept_photo']
+        file = request.files['catalog_photo']
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
@@ -160,7 +160,7 @@ def view(id):
             file_id = upload_image(file)
             db = get_db_cursor()
             db.execute(
-                'INSERT INTO concept_attribute (type, concept_id, value_id)'
+                'INSERT INTO catalog_attribute (type, catalog_id, value_id)'
                 ' VALUES (%s, %s, %s)',
                 (ATTR_IMAGE, id, file_id,)
             )
@@ -172,19 +172,19 @@ def view(id):
 
     items = []
     if g.user:
-        items = get_concept_items(get_user_collection(g.user['id'])['id'], id)
+        items = get_catalog_items(get_user_collection(g.user['id'])['id'], id)
 
     return render_template('catalog/view.html',
-        concept=concept, concept_types=get_concept_types(),
+        catalog=catalog, catalog_types=get_catalog_types(),
         rendered_items=render_items_list(items),
-        images=get_concept_images(id),
-        parents=get_concept_parents(id))
+        images=get_catalog_images(id),
+        parents=get_catalog_parents(id))
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required
 @admin_required
 def update(id):
-    concept = get_concept(id)
+    catalog = get_catalog(id)
 
     if request.method == 'POST':
         title = request.form['title']
@@ -192,8 +192,8 @@ def update(id):
         type_id = request.form['type_id']
         error = None
 
-        # assert that concept type exists
-        get_concept_type(type_id)
+        # assert that catalog type exists
+        get_catalog_type(type_id)
 
         if not title:
             error = 'Title is required.'
@@ -203,7 +203,7 @@ def update(id):
         else:
             db = get_db_cursor()
             db.execute(
-                'UPDATE concept SET title = %s, description = %s, type_id = %s'
+                'UPDATE catalog SET title = %s, description = %s, type_id = %s'
                 ' WHERE id = %s',
                 (title, description, type_id, id)
             )
@@ -211,20 +211,20 @@ def update(id):
             return redirect(url_for('catalog.view', id=id))
 
     return render_template('catalog/update.html',
-        concept=concept, concept_types=get_concept_types())
+        catalog=catalog, catalog_types=get_catalog_types())
 
 @bp.route('/<int:id>/own')
 @login_required
 def own(id):
-    concept = get_concept(id)
+    catalog = get_catalog(id)
 
-    if not concept['physical']:
+    if not catalog['physical']:
         abort(403)
 
     collection = get_user_collection(g.user['id'])
     db = get_db_cursor()
     db.execute(
-        'INSERT INTO item (concept_id, description, collection_id)'
+        'INSERT INTO item (catalog_id, description, collection_id)'
         ' VALUES (%s, %s, %s)',
         (id, '', collection['id'])
     )

@@ -9,7 +9,7 @@
         {% if g.user['id'] == collection['owner_id'] %}
           <a href="{{ url_for('collection.update', id=collection['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
         {% endif %}
-        {{ collection['username'] }}'s collection</h2>
+        {{ collection['title'] }} <small>owned by {{ collection['username'] }}</h2>
       </div>
     </div>
     <div class="row">

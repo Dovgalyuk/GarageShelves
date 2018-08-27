@@ -7,9 +7,9 @@
       <div class="page-header">
         <h2>
         {% if g.user.admin %}
-          <a class="action" href="{{ url_for('catalog.update', id=concept['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+          <a class="action" href="{{ url_for('catalog.update', id=catalog['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
         {% endif %}
-        {{ concept['type_title'] }} : {{ concept['title'] }}</h2>
+        {{ catalog['type_title'] }} : {{ catalog['title'] }}</h2>
 
       {% for parent in parents %}
       <div class="row">
@@ -26,13 +26,13 @@
     {% if g.user.admin %}
     <div class="row">
       <div class="col-xs-12">
-        <a href="{{ url_for('catalog.create', parent=concept['id']) }}"><h4><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Create catalog sub-item</h4></a>
+        <a href="{{ url_for('catalog.create', parent=catalog['id']) }}"><h4><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Create catalog sub-item</h4></a>
       </div>
     </div>
     {% endif %}
     <div class="row">
       <div class="col-xs-12">
-        <p>{{ concept['description'] | markdown }}</p>
+        <p>{{ catalog['description'] | markdown }}</p>
       </div>
     </div>
     <div class="row">
@@ -44,8 +44,8 @@
       <div class="col-xs-4">
         <form class="form-inline" method="post" enctype="multipart/form-data">
           <div class="form-group">
-            <label for="concept_photo">Add image</label>
-            <input type="file" id="concept_photo" name="concept_photo">
+            <label for="catalog_photo">Add image</label>
+            <input type="file" id="catalog_photo" name="catalog_photo">
           </div>
           <button type="submit" class="btn btn-default">Upload</button>
         </form>
@@ -67,10 +67,10 @@
     </div>
     {% endfor %}
 
-    {% if concept['physical'] %}
+    {% if catalog['physical'] %}
       <div class="row">
         <div class="col-xs-12">
-          <a class="action" href="{{ url_for('catalog.own', id=concept['id']) }}">I own this</a>
+          <a class="action" href="{{ url_for('catalog.own', id=catalog['id']) }}">I own this</a>
         </div>
       </div>
       {% if g.user %}

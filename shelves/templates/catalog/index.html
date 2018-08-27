@@ -15,21 +15,21 @@
       </div>
     </div>
     {% endif %}
-    {% for concept in concepts %}
+    {% for catalog in catalogs %}
     <div class="row">
       <div class="col-xs-12">
         <h1>
           {% if g.user.admin %}
-            <a class="action" href="{{ url_for('catalog.update', id=concept['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+            <a class="action" href="{{ url_for('catalog.update', id=catalog['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
           {% endif %}
-          <a class="action" href="{{ url_for('catalog.view', id=concept['id']) }}">
-            {{ concept['type_title'] }} : {{ concept['title'] }}</a>
+          <a class="action" href="{{ url_for('catalog.view', id=catalog['id']) }}">
+            {{ catalog['type_title'] }} : {{ catalog['title'] }}</a>
         </h1>
       </div>
     </div>
     <div class="row">
       <div class="col-xs-12">
-        {{ concept['description'] | markdown }}
+        {{ catalog['description'] | markdown }}
       </div>
     </div>
     {% endfor %}

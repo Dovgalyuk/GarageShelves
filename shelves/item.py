@@ -19,8 +19,8 @@ def get_collection_items(collection):
         '       col.owner_id, u.username,'
         ' NULL AS img_id'
 #        ' a.value_id AS img_id'
-        ' FROM item i JOIN concept c ON i.concept_id = c.id'
-        ' JOIN concept_type ct ON c.type_id = ct.id'
+        ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
+        ' JOIN catalog_type ct ON c.type_id = ct.id'
         ' JOIN collection col ON i.collection_id = col.id'
         ' JOIN user u ON col.owner_id = u.id'
 #        ' LEFT JOIN item_attribute a ON i.id = a.item_id'
@@ -32,22 +32,22 @@ def get_collection_items(collection):
 
     return cursor.fetchall()
 
-def get_concept_items(collection, concept):
+def get_catalog_items(collection, catalog):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT i.id, i.description, c.title, ct.title AS type_title, added,'
         '       col.owner_id, u.username,'
         ' NULL AS img_id'
 #        ' a.value_id AS img_id'
-        ' FROM item i JOIN concept c ON i.concept_id = c.id'
-        ' JOIN concept_type ct ON c.type_id = ct.id'
+        ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
+        ' JOIN catalog_type ct ON c.type_id = ct.id'
         ' JOIN collection col ON i.collection_id = col.id'
         ' JOIN user u ON col.owner_id = u.id'
 #        ' LEFT JOIN item_attribute a ON i.id = a.item_id'
         ' WHERE i.collection_id = %s AND c.id = %s'#' AND (a.type IS NULL OR a.type = %s)'
 #        ' GROUP BY i.id',
-#        (collection,concept,ATTR_IMAGE,)
-        , (collection,concept,)
+#        (collection,catalog,ATTR_IMAGE,)
+        , (collection,catalog,)
     )
 
     return cursor.fetchall()
@@ -66,11 +66,11 @@ def get_item_images(id):
 def get_item(id):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT i.id, i.description, c.id AS concept_id,'
+        'SELECT i.id, i.description, c.id AS catalog_id,'
         ' c.title, ct.title AS type_title, added,'
         '       col.owner_id, i.internal_id'
-        ' FROM item i JOIN concept c ON i.concept_id = c.id'
-        ' JOIN concept_type ct ON c.type_id = ct.id'
+        ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
+        ' JOIN catalog_type ct ON c.type_id = ct.id'
         ' JOIN collection col ON i.collection_id = col.id'
         ' WHERE i.id = %s',
         (id,)

@@ -1,10 +1,10 @@
-DROP TABLE IF EXISTS concept_attribute;
-DROP TABLE IF EXISTS concept_relation;
+DROP TABLE IF EXISTS catalog_attribute;
+DROP TABLE IF EXISTS catalog_relation;
 DROP TABLE IF EXISTS item_attribute;
 DROP TABLE IF EXISTS image;
 DROP TABLE IF EXISTS item;
-DROP TABLE IF EXISTS concept;
-DROP TABLE IF EXISTS concept_type;
+DROP TABLE IF EXISTS catalog;
+DROP TABLE IF EXISTS catalog_type;
 DROP TABLE IF EXISTS collection;
 DROP TABLE IF EXISTS user;
 
@@ -25,13 +25,13 @@ CREATE TABLE collection (
   FOREIGN KEY (owner_id) REFERENCES user (id)
 );
 
-CREATE TABLE concept_type (
+CREATE TABLE catalog_type (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
   title TEXT NOT NULL,
   physical BOOLEAN NOT NULL DEFAULT 1
 );
 
-CREATE TABLE concept (
+CREATE TABLE catalog (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
   type_id INTEGER NOT NULL,
   title TEXT NOT NULL,
@@ -39,19 +39,19 @@ CREATE TABLE concept (
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   owner_id INTEGER NULL DEFAULT NULL,
 
-  FOREIGN KEY (type_id) REFERENCES concept_type (id),
+  FOREIGN KEY (type_id) REFERENCES catalog_type (id),
   FOREIGN KEY (owner_id) REFERENCES user (id)
 );
 
 CREATE TABLE item (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  concept_id INTEGER NOT NULL,
+  catalog_id INTEGER NOT NULL,
   internal_id TEXT,
   description TEXT NOT NULL,
   added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   collection_id INTEGER NOT NULL,
 
-  FOREIGN KEY (concept_id) REFERENCES concept (id),
+  FOREIGN KEY (catalog_id) REFERENCES catalog (id),
   FOREIGN KEY (collection_id) REFERENCES collection (id)
 );
 
@@ -70,23 +70,23 @@ CREATE TABLE item_attribute (
   FOREIGN KEY (item_id) REFERENCES item (id)
 );
 
-CREATE TABLE concept_attribute (
+CREATE TABLE catalog_attribute (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
   type INTEGER NOT NULL,
-  concept_id INTEGER NOT NULL,
+  catalog_id INTEGER NOT NULL,
   value_id INTEGER NOT NULL,
 
-  FOREIGN KEY (concept_id) REFERENCES concept (id)
+  FOREIGN KEY (catalog_id) REFERENCES catalog (id)
 );
 
-CREATE TABLE concept_relation (
+CREATE TABLE catalog_relation (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  concept_id1 INTEGER NOT NULL,
-  concept_id2 INTEGER NOT NULL,
+  catalog_id1 INTEGER NOT NULL,
+  catalog_id2 INTEGER NOT NULL,
   type INTEGER NOT NULL,
 
-  FOREIGN KEY (concept_id1) REFERENCES concept (id),
-  FOREIGN KEY (concept_id2) REFERENCES concept (id)
+  FOREIGN KEY (catalog_id1) REFERENCES catalog (id),
+  FOREIGN KEY (catalog_id2) REFERENCES catalog (id)
 );
 
 -- default user
@@ -99,16 +99,16 @@ INSERT INTO user (username, password, admin)
 INSERT INTO collection (owner_id, title, description)
   VALUES (1, "Admin's collection", "");
 
--- default concept types
-INSERT INTO concept_type (title) VALUES ("Nothing");
-INSERT INTO concept_type (title, physical) VALUES ("Computer Family", 0);
-INSERT INTO concept_type (title) VALUES ("Computer");
-INSERT INTO concept_type (title) VALUES ("Computer kit");
-INSERT INTO concept_type (title) VALUES ("Mainboard");
-INSERT INTO concept_type (title) VALUES ("Peripheral device");
-INSERT INTO concept_type (title) VALUES ("Peripheral device kit");
-INSERT INTO concept_type (title) VALUES ("Manual");
-INSERT INTO concept_type (title) VALUES ("Software");
-INSERT INTO concept_type (title) VALUES ("Software kit");
+-- default catalog types
+INSERT INTO catalog_type (title) VALUES ("Nothing");
+INSERT INTO catalog_type (title, physical) VALUES ("Computer Family", 0);
+INSERT INTO catalog_type (title) VALUES ("Computer");
+INSERT INTO catalog_type (title) VALUES ("Computer kit");
+INSERT INTO catalog_type (title) VALUES ("Mainboard");
+INSERT INTO catalog_type (title) VALUES ("Peripheral device");
+INSERT INTO catalog_type (title) VALUES ("Peripheral device kit");
+INSERT INTO catalog_type (title) VALUES ("Manual");
+INSERT INTO catalog_type (title) VALUES ("Software");
+INSERT INTO catalog_type (title) VALUES ("Software kit");
 
--- default concepts
+-- default catalogs

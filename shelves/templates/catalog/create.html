@@ -25,7 +25,7 @@
           <label for="type_id" class="col-xs-2 control-label">Type</label>
           <div class="col-xs-10">
             <select name="type_id" id="type_id">
-              {% for ct in concept_types %}
+              {% for ct in catalog_types %}
                 <option value="{{ct['id']}}"{% if ct['id']==request.form['type_id'] %} SELECTED{% endif %}>
                     {{ct['title']}}
                	</option>

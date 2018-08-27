@@ -4,22 +4,22 @@
   {{ super() }}
   <div class="container">
     <div class="row"><div class="page-header">
-      <h3>Edit {{ concept['type_title'] }} : {{ concept['title'] }}</h3>
+      <h3>Edit {{ catalog['type_title'] }} : {{ catalog['title'] }}</h3>
     </div></div>
     <div class="row"><div class="col-xs-12">
       <form class="form-horizontal" method="post">
         <div class="form-group">
           <label for="title" class="col-xs-2 control-label">Title</label>
           <div class="col-xs-10">
-            <input class="form-control" id="title" name="title" value="{{ request.form['title'] or concept['title'] }}" required>
+            <input class="form-control" id="title" name="title" value="{{ request.form['title'] or catalog['title'] }}" required>
           </div>
         </div>
         <div class="form-group">
           <label for="type_id" class="col-xs-2 control-label">Type</label>
           <div class="col-xs-10">
             <select name="type_id" id="type_id">
-              {% for ct in concept_types %}
-                <option value="{{ct['id']}}"{% if ct['id']==(request.form['type_id'] or concept['type_id']) %} SELECTED{% endif %}>
+              {% for ct in catalog_types %}
+                <option value="{{ct['id']}}"{% if ct['id']==(request.form['type_id'] or catalog['type_id']) %} SELECTED{% endif %}>
                     {{ct['title']}}
                 </option>
               {% endfor %}
@@ -29,7 +29,7 @@
         <div class="form-group">
           <label for="description" class="col-xs-2 control-label">Description</label>
           <div class="col-xs-10">
-            <textarea name="description" id="description" class="form-control" rows="20">{{ request.form['description'] or concept['description'] }}</textarea>
+            <textarea name="description" id="description" class="form-control" rows="20">{{ request.form['description'] or catalog['description'] }}</textarea>
           </div>
         </div>
         <div class="form-group">
