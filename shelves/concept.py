@@ -121,6 +121,7 @@ def create(parent = -1):
             )
             concept_id = cursor.lastrowid
             if parent and int(parent) > 0:
+                get_concept(parent) # validate the parent
                 cursor.execute(
                     'INSERT INTO concept_relation'
                     ' (concept_id1, concept_id2, type)'
@@ -131,7 +132,11 @@ def create(parent = -1):
             return redirect(url_for('concept.index'))
 
     concept_types = get_concept_types()
-    return render_template('concept/create.html', parent=parent, concept_types = concept_types)
+    p = None
+    if parent != -1:
+        p = get_concept(parent)
+    return render_template('concept/create.html',
+        parent=p, concept_types=concept_types)
 
 @bp.route('/<int:id>', methods=('GET', 'POST'))
 def view(id):

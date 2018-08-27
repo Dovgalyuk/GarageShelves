@@ -5,12 +5,16 @@
   <div class="container">
     <div class="row">
       <div class="page-header">
-        <h3>New concept</h3>
+        <h3>New concept
+        {% if parent %}
+            in {{ parent['type_title'] }} : {{ parent['title'] }}
+        {% endif %}
+        </h3>
       </div>
     </div>
     <div class="row"><div class="col-xs-12">
       <form class="form-horizontal" method="post">
-        <input type="hidden" id="parent" name="parent" value="{{ request.form['parent'] or parent }}">
+        <input type="hidden" id="parent" name="parent" value="{{ request.form['parent'] or parent['id'] }}">
         <div class="form-group">
           <label for="title" class="col-xs-2 control-label">Title</label>
           <div class="col-xs-10">
