@@ -90,7 +90,7 @@ def index():
         ' ORDER BY created DESC'
     )
     concepts = cursor.fetchall()
-    return render_template('concept/index.html', concepts=concepts)
+    return render_template('catalog/index.html', concepts=concepts)
 
 
 @bp.route('/create', methods=('GET', 'POST'))
@@ -136,7 +136,7 @@ def create(parent = -1):
     p = None
     if parent != -1:
         p = get_concept(parent)
-    return render_template('concept/create.html',
+    return render_template('catalog/create.html',
         parent=p, concept_types=concept_types)
 
 @bp.route('/<int:id>', methods=('GET', 'POST'))
@@ -174,7 +174,7 @@ def view(id):
     if g.user:
         items = get_concept_items(get_user_collection(g.user['id'])['id'], id)
 
-    return render_template('concept/view.html',
+    return render_template('catalog/view.html',
         concept=concept, concept_types=get_concept_types(),
         rendered_items=render_items_list(items),
         images=get_concept_images(id),
@@ -210,7 +210,7 @@ def update(id):
             db_commit()
             return redirect(url_for('catalog.view', id=id))
 
-    return render_template('concept/update.html',
+    return render_template('catalog/update.html',
         concept=concept, concept_types=get_concept_types())
 
 @bp.route('/<int:id>/own')
