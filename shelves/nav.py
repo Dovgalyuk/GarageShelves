@@ -9,7 +9,7 @@ nav = Nav()
 
 @nav.navigation()
 def shelvesnavbar():
-    concepts = View("All concepts", "concept.index")
+    concepts = View("Catalog", "catalog.index")
     if g.user is None:
         collection = View("All collections", "collection.index")
         register = View("Register", "auth.register")

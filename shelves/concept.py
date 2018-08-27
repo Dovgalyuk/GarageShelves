@@ -9,25 +9,13 @@ from shelves.collection import get_user_collection
 from shelves.item import (get_concept_items, render_items_list)
 from shelves.uploads import upload_image
 
-bp = Blueprint('concept', __name__, url_prefix='/concept')
+bp = Blueprint('catalog', __name__, url_prefix='/catalog')
 
 # Concept attributes
 ATTR_IMAGE    = 1
 
 # Concept relations
 REL_INCLUDES = 1
-
-# All concepts
-@bp.route('/')
-def index():
-    cursor = get_db_cursor()
-    cursor.execute(
-        'SELECT c.id, c.title, description, created, c.type_id, ct.title as type_title'
-        ' FROM concept c JOIN concept_type ct ON c.type_id = ct.id'
-        ' ORDER BY created DESC'
-    )
-    concepts = cursor.fetchall()
-    return render_template('concept/index.html', concepts=concepts)
 
 def get_concept_type(id):
     cursor = get_db_cursor()
@@ -92,6 +80,19 @@ def get_concept_parents(id):
 # Routes
 ###############################################################################
 
+# All concepts
+@bp.route('/')
+def index():
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT c.id, c.title, description, created, c.type_id, ct.title as type_title'
+        ' FROM concept c JOIN concept_type ct ON c.type_id = ct.id'
+        ' ORDER BY created DESC'
+    )
+    concepts = cursor.fetchall()
+    return render_template('concept/index.html', concepts=concepts)
+
+
 @bp.route('/create', methods=('GET', 'POST'))
 @bp.route('/create/<int:parent>', methods=('GET', 'POST'))
 @login_required
@@ -129,7 +130,7 @@ def create(parent = -1):
                     (parent, concept_id, REL_INCLUDES)
                 )
             db_commit()
-            return redirect(url_for('concept.index'))
+            return redirect(url_for('catalog.index'))
 
     concept_types = get_concept_types()
     p = None
@@ -207,7 +208,7 @@ def update(id):
                 (title, description, type_id, id)
             )
             db_commit()
-            return redirect(url_for("concept.view", id=id))
+            return redirect(url_for('catalog.view', id=id))
 
     return render_template('concept/update.html',
         concept=concept, concept_types=get_concept_types())
@@ -228,4 +229,4 @@ def own(id):
         (id, '', collection['id'])
     )
     db_commit()
-    return redirect(url_for('concept.view', id=id))
+    return redirect(url_for('catalog.view', id=id))
