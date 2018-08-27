@@ -46,8 +46,8 @@ def create_app(test_config=None):
     from . import collection
     app.register_blueprint(collection.bp)
 
-    from . import concept
-    app.register_blueprint(concept.bp)
+    from . import catalog
+    app.register_blueprint(catalog.bp)
 
     from . import item
     app.register_blueprint(item.bp)
