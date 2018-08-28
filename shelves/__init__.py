@@ -13,20 +13,9 @@ def create_app(test_config=None):
     Misaka(app)
     FlaskUtilJs(app)
 
-    app.config.from_mapping(
-        SECRET_KEY = 'dev',
-        DATABASE = os.path.join(app.instance_path, 'shelves.sqlite'),
-        MAX_CONTENT_LENGTH = 16 * 1024 * 1024,
-
-        MYSQL_USER = 'root',
-        MYSQL_PASSWORD = 'root',
-        MYSQL_DB = 'GarageShelves',
-        MYSQL_HOST = 'localhost',
-    )
-
     if test_config is None:
         # load the instance config, if it exists, when not testing
-        app.config.from_pyfile('config.py', silent=True)
+        app.config.from_pyfile('config.cfg')#, silent=True)
     else:
         # load the test config if passed in
         app.config.from_mapping(test_config)
