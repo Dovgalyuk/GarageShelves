@@ -3,6 +3,21 @@
 {% block content %}
   {{ super() }}
 
-<a href="{{ url_for('collection.index') }}"><h1>All collections</h1></a>
-<a href="{{ url_for('catalog.index') }}"><h1>Catalog</h1></a>
+  <div class="container">
+    <div class="row">
+      <div class="page-header">
+        <h1>Manage your tech collection here</h1>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-12">
+        <p class="lead">Register on this side and start adding your collection items.
+            You can add pictures and descriptions of your items to present
+            your collection.
+        </p>
+        <p class="lead">All items that you own must refer to the catalog items.
+            Catalog items are description of the device classes and managed by admin.
+        </p>
+      </div>
+    </div>
 {% endblock %}
