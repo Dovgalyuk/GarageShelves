@@ -26,6 +26,12 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    # ensure the uploads folder exists
+    try:
+        os.makedirs(os.path.join(app.instance_path, 'uploads'))
+    except OSError:
+        pass
+
     from . import db
     db.init_app(app)
 
