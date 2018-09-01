@@ -63,10 +63,12 @@ def register():
             error = 'Password is required.'
         elif not collection_title:
             error = 'Collection title is required.'
-        elif db.execute(
-            'SELECT id FROM user WHERE username = %s', (username,)
-        ).fetchone() is not None:
-            error = 'User {} is already registered.'.format(username)
+        else:
+            cursor.execute(
+                'SELECT id FROM user WHERE username = %s', (username,)
+            )
+            if cursor.fetchone() is not None:
+                error = 'User {} is already registered.'.format(username)
 
         if error is None:
             cursor.execute(
