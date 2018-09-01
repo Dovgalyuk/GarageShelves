@@ -9,23 +9,27 @@ nav = Nav()
 
 @nav.navigation()
 def shelvesnavbar():
+    caption = 'Garage shelves'
+    home = View('Home', 'index')
     catalogs = View("Catalog", "catalog.index")
+    collections = View("All collections", "collection.index")
     if g.user is None:
-        collection = View("All collections", "collection.index")
-        register = View("Register", "auth.register")
-        login = View("Log in", "auth.login")
-        profile = Text("")
+        return Navbar(
+            caption,
+            home,
+            collections,
+            catalogs,
+            View("Register", "auth.register"),
+            View("Log in", "auth.login")
+        )
     else:
-        collection = View("My collection", "collection.view", id=g.user['id'])
-        register = Text(g.user['username'])
-        login = View("Log out", "auth.logout")
-        profile = View("Profile", "auth.profile")
-    return Navbar(
-        'Garage shelves',
-        View('Home', 'index'),
-        collection,
-        catalogs,
-        register,
-        login,
-        profile,
-    )
+        return Navbar(
+            caption,
+            home,
+            collections,
+            View("My collection", "collection.view", id=g.user['id']),
+            catalogs,
+            Text(g.user['username']),
+            View("Log out", "auth.logout"),
+            View("Profile", "auth.profile")
+        )
