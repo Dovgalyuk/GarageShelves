@@ -70,7 +70,7 @@
     {% if catalog['physical'] %}
       <div class="row">
         <div class="col-xs-12">
-          <a class="action" href="{{ url_for('catalog.own', id=catalog['id']) }}">I own this</a>
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ownModal">I own this</button>
         </div>
       </div>
       {% if g.user %}
@@ -82,5 +82,30 @@
         {{ rendered_items | safe }}
       {% endif %}
     {% endif %}
+
+  <div class="modal fade" id="ownModal" tabindex="-1" role="dialog" aria-labelledby="ownModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="ownModalLabel">Confirm the ownership</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="form-group">
+              <label for="internal-id" class="col-form-label">Internal ID:</label>
+              <input type="text" class="form-control" id="internal-id">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <a role="button" class="btn btn-primary" href="{{ url_for('catalog.own', id=catalog['id']) }}">Add item to collection</a>
+        </div>
+      </div>
+    </div>
+  </div>
   </div>
 {% endblock %}
