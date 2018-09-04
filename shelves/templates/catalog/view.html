@@ -3,13 +3,21 @@
 {% block content %}
   {{ super() }}
   <div class="container">
-    <div class="row">
-      <div class="page-header">
-        <h2>
-        {% if g.user.admin %}
-          <a class="action" href="{{ url_for('catalog.update', id=catalog['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
-        {% endif %}
-        {{ catalog['type_title'] }} : {{ catalog['title'] }}</h2>
+    <div class="page-header">
+      <div class="row">
+        <div class="col-xs-10">
+          <h1>
+          {% if g.user.admin %}
+            <a class="action" href="{{ url_for('catalog.update', id=catalog['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+          {% endif %}
+          {{ catalog['type_title'] }} : {{ catalog['title'] }}</h1>
+        </div>
+        <div class="col-xs-2">
+          {% if g.user and catalog['physical'] %}
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ownModal">I own this</button>
+          {% endif %}
+        </div>
+      </div>
 
       {% for parent in parents %}
       <div class="row">
@@ -21,12 +29,11 @@
         </div>
       </div>
       {% endfor %}
-      </div>
     </div>
     {% if g.user.admin %}
     <div class="row">
       <div class="col-xs-12">
-        <a href="{{ url_for('catalog.create', parent=catalog['id']) }}"><h4><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Create catalog sub-item</h4></a>
+        <a href="{{ url_for('catalog.create', parent=catalog['id']) }}"><h4><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add catalog sub-item</h4></a>
       </div>
     </div>
     {% endif %}
@@ -37,8 +44,7 @@
     </div>
     <div class="row">
       <div class="col-xs-8">
-        <h4>Catalog item images
-        </h4>
+        <h2>Catalog item images</h2>
       </div>
       {% if g.user.admin %}
       <div class="col-xs-4">
@@ -67,20 +73,22 @@
     </div>
     {% endfor %}
 
-    {% if catalog['physical'] %}
+    {% if catalogs %}
       <div class="row">
         <div class="col-xs-12">
-          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ownModal">I own this</button>
+          <h2>Includes the following catalog items</h2>
         </div>
       </div>
-      {% if g.user %}
-        <div class="row">
-          <div class="col-xs-12">
-            <h3>Items in your collection</h3>
-          </div>
+    {% endif %}
+    {% include 'catalog/list.html' %}
+
+    {% if g.user and catalog['physical'] %}
+      <div class="row">
+        <div class="col-xs-12">
+          <h2>Items in your collection</h2>
         </div>
-        {{ rendered_items | safe }}
-      {% endif %}
+      </div>
+      {{ rendered_items | safe }}
     {% endif %}
 
   <div class="modal fade" id="ownModal" tabindex="-1" role="dialog" aria-labelledby="ownModalLabel" aria-hidden="true">
@@ -93,16 +101,16 @@
           </button>
         </div>
         <div class="modal-body">
-          <form>
+          <form class="form-inline" method="post" enctype="multipart/form-data" action="{{ url_for('catalog.own', id=catalog['id']) }}">
             <div class="form-group">
               <label for="internal-id" class="col-form-label">Internal ID:</label>
               <input type="text" class="form-control" id="internal-id">
             </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <input type="submit" class="btn btn-primary" value="Add item to collection">
+            </div>
           </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <a role="button" class="btn btn-primary" href="{{ url_for('catalog.own', id=catalog['id']) }}">Add item to collection</a>
         </div>
       </div>
     </div>

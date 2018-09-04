@@ -76,6 +76,19 @@ def get_catalog_parents(id):
     parents = cursor.fetchall()
     return parents
 
+def get_catalog_children(id):
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT c2.id, c2.title, ct.title as type_title, c2.description'
+        ' FROM catalog c1 JOIN catalog_relation r ON c1.id = r.catalog_id1'
+        ' JOIN catalog c2 ON c2.id = r.catalog_id2'
+        ' JOIN catalog_type ct ON c2.type_id = ct.id'
+        ' WHERE r.type = %s AND c1.id = %s',
+        (REL_INCLUDES, id,)
+    )
+    parents = cursor.fetchall()
+    return parents
+
 ###############################################################################
 # Routes
 ###############################################################################
@@ -178,7 +191,8 @@ def view(id):
         catalog=catalog, catalog_types=get_catalog_types(),
         rendered_items=render_items_list(items),
         images=get_catalog_images(id),
-        parents=get_catalog_parents(id))
+        parents=get_catalog_parents(id),
+        catalogs=get_catalog_children(id))
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required
@@ -213,7 +227,7 @@ def update(id):
     return render_template('catalog/update.html',
         catalog=catalog, catalog_types=get_catalog_types())
 
-@bp.route('/<int:id>/own')
+@bp.route('/<int:id>/own', methods=('POST',))
 @login_required
 def own(id):
     catalog = get_catalog(id)
@@ -229,4 +243,5 @@ def own(id):
         (id, '', collection['id'])
     )
     db_commit()
+
     return redirect(url_for('catalog.view', id=id))

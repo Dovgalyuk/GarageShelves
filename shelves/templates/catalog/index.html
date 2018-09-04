@@ -15,23 +15,7 @@
       </div>
     </div>
     {% endif %}
-    {% for catalog in catalogs %}
-    <div class="row">
-      <div class="col-xs-12">
-        <h1>
-          {% if g.user.admin %}
-            <a class="action" href="{{ url_for('catalog.update', id=catalog['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
-          {% endif %}
-          <a class="action" href="{{ url_for('catalog.view', id=catalog['id']) }}">
-            {{ catalog['type_title'] }} : {{ catalog['title'] }}</a>
-        </h1>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-xs-12">
-        {{ catalog['description'] | markdown }}
-      </div>
-    </div>
-    {% endfor %}
+
+    {% include 'catalog/list.html' %}
   </div>
 {% endblock %}
