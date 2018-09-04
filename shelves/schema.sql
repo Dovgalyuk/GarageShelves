@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS catalog_attribute;
 DROP TABLE IF EXISTS catalog_relation;
+DROP TABLE IF EXITST item_relation;
 DROP TABLE IF EXISTS item_attribute;
 DROP TABLE IF EXISTS image;
 DROP TABLE IF EXISTS item;
