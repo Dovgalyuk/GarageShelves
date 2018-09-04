@@ -257,7 +257,12 @@ def own(id):
                 ' VALUES (%s, %s, %s)',
                 (subitem, '', collection['id'])
             )
-            # TODO: insert relation
+            subitem_id = cursor.lastrowid
+            cursor.execute(
+                'INSERT INTO item_relation (item_id1, item_id2, type)'
+                ' VALUES (%s, %s, %s)',
+                (item_id, subitem_id, REL_INCLUDES)
+            )
 
     db_commit()
 

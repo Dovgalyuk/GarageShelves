@@ -89,6 +89,16 @@ CREATE TABLE catalog_relation (
   FOREIGN KEY (catalog_id2) REFERENCES catalog (id)
 );
 
+CREATE TABLE item_relation (
+  id INTEGER PRIMARY KEY AUTO_INCREMENT,
+  item_id1 INTEGER NOT NULL,
+  item_id2 INTEGER NOT NULL,
+  type INTEGER NOT NULL,
+
+  FOREIGN KEY (item_id1) REFERENCES item (id),
+  FOREIGN KEY (item_id2) REFERENCES item (id)
+);
+
 -- default user
 INSERT INTO user (username, password, admin)
   -- user admin, password admin
