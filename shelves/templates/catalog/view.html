@@ -95,17 +95,40 @@
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="ownModalLabel">Confirm the ownership</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <div class="row">
+            <div class="col-xs-11">
+              <h3 class="modal-title" id="ownModalLabel">Confirm the ownership</h3>
+            </div>
+            <div class="col-xs-1">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          </div>
         </div>
         <div class="modal-body">
-          <form class="form-inline" method="post" enctype="multipart/form-data" action="{{ url_for('catalog.own', id=catalog['id']) }}">
-            <div class="form-group">
-              <label for="internal-id" class="col-form-label">Internal ID:</label>
-              <input type="text" class="form-control" id="internal-id">
-            </div>
+          <form class="form-inline" method="post" enctype="multipart/form-data" action="{{ url_for('catalog.own', id=catalog['id']) }}" method="post">
+            <div class="row"><div class="col-xs-12">
+              <div class="form-group">
+                <label for="internal_id" class="col-form-label">Internal ID:</label>
+                <input type="text" class="form-control" id="internal_id" name="internal_id">
+              </div>
+            </div></div>
+            {% if catalogs %}
+              <div class="row"><div class="col-xs-12">
+                <h4>Also add items from the kit</h4>
+              </div></div>
+              {% for catalog in catalogs %}
+                {% if catalog['physical'] %}
+                  <div class="row"><div class="col-xs-12">
+                    <div class="form-group">
+                      <input type="checkbox" class="form-control" id="subitem{{ catalog['id'] }}" name="subitem{{ catalog['id'] }}" checked="true">
+                      <label for="subitem{{ catalog['id'] }}" class="col-form-label">{{ catalog['type_title'] }} : {{ catalog['title'] }}</label>
+                    </div>
+                  </div></div>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
               <input type="submit" class="btn btn-primary" value="Add item to collection">

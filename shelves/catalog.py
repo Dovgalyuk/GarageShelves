@@ -79,7 +79,8 @@ def get_catalog_parents(id):
 def get_catalog_children(id):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT c2.id, c2.title, ct.title as type_title, c2.description'
+        'SELECT c2.id, c2.title, ct.title as type_title,'
+        '       ct.physical, c2.description'
         ' FROM catalog c1 JOIN catalog_relation r ON c1.id = r.catalog_id1'
         ' JOIN catalog c2 ON c2.id = r.catalog_id2'
         ' JOIN catalog_type ct ON c2.type_id = ct.id'
@@ -236,12 +237,14 @@ def own(id):
         abort(403)
 
     collection = get_user_collection(g.user['id'])
-    db = get_db_cursor()
-    db.execute(
-        'INSERT INTO item (catalog_id, description, collection_id)'
-        ' VALUES (%s, %s, %s)',
-        (id, '', collection['id'])
+    cursor = get_db_cursor()
+    cursor.execute(
+        'INSERT INTO item (catalog_id, internal_id, description, collection_id)'
+        ' VALUES (%s, %s, %s, %s)',
+        (id, request.form['internal_id'], '', collection['id'])
     )
+    item_id = cursor.lastrowid
+
     db_commit()
 
     return redirect(url_for('catalog.view', id=id))
