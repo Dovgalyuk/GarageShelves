@@ -30,7 +30,7 @@ def get_catalog_type(id):
 
     return ct
 
-def get_catalog(id):
+def get_catalog_none(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT c.id, c.title, description, created, c.type_id,'
@@ -39,8 +39,10 @@ def get_catalog(id):
         ' WHERE c.id = %s',
         (id,)
     )
-    catalog = cursor.fetchone()
+    return cursor.fetchone()
 
+def get_catalog(id):
+    catalog = get_catalog_none(id)
     if catalog is None:
         abort(404, "Catalog id {0} doesn't exist.".format(id))
 
@@ -244,6 +246,18 @@ def own(id):
         (id, request.form['internal_id'], '', collection['id'])
     )
     item_id = cursor.lastrowid
+
+    if 'subitem' in request.form:
+        subitems = request.form.getlist('subitem')
+        for subitem in subitems:
+            # assert that catalog item exists
+            get_catalog(subitem)
+            cursor.execute(
+                'INSERT INTO item (catalog_id, description, collection_id)'
+                ' VALUES (%s, %s, %s)',
+                (subitem, '', collection['id'])
+            )
+            # TODO: insert relation
 
     db_commit()
 
