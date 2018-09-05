@@ -118,11 +118,13 @@ INSERT INTO catalog_type (title) VALUES ("Computer kit");
 INSERT INTO catalog_type (title) VALUES ("Mainboard");
 INSERT INTO catalog_type (title) VALUES ("Peripheral device");
 INSERT INTO catalog_type (title) VALUES ("Peripheral device kit");
+INSERT INTO catalog_type (title) VALUES ("Cable/Adapter");
 INSERT INTO catalog_type (title) VALUES ("Book");
 INSERT INTO catalog_type (title) VALUES ("Manual");
 INSERT INTO catalog_type (title) VALUES ("Schematics");
 INSERT INTO catalog_type (title) VALUES ("Software");
 INSERT INTO catalog_type (title) VALUES ("Software kit");
+INSERT INTO catalog_type (title) VALUES ("Data storage");
 INSERT INTO catalog_type (title) VALUES ("Other");
 
 -- default catalogs

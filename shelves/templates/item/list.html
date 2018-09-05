@@ -8,7 +8,10 @@
         src="{{ url_for('uploads.view', id=item['img_id']) }}">
     {% else %}
         src="{{ url_for('static', filename='dummy.jpg') }}">
-    {% endif %}    
+    {% endif %}
+    {% if item['internal_id'] %}
+        {{ item['internal_id'] }}
+    {% endif %}
     <a class="action" href="{{ url_for('item.view', id=item['id']) }}">
         <h6>{{ item['username'] }}'s {{ item['type_title'] }} : {{ item['title'] }}</h6></a>
     <p>{{ item['description'] | markdown }}</p>

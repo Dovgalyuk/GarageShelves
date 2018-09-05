@@ -15,8 +15,8 @@ bp = Blueprint('item', __name__, url_prefix='/item')
 def get_collection_items(collection):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT i.id, i.description, c.title, ct.title AS type_title,'
-        '       col.owner_id, u.username,'
+        'SELECT i.id, i.internal_id,  i.description, c.title,'
+        '       ct.title AS type_title, col.owner_id, u.username,'
         ' NULL AS img_id'
 #        ' a.value_id AS img_id'
         ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
@@ -35,8 +35,8 @@ def get_collection_items(collection):
 def get_catalog_items(collection, catalog):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT i.id, i.description, c.title, ct.title AS type_title, added,'
-        '       col.owner_id, u.username,'
+        'SELECT i.id, i.internal_id,  i.description, c.title,'
+        '       ct.title AS type_title, added, col.owner_id, u.username,'
         ' NULL AS img_id'
 #        ' a.value_id AS img_id'
         ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
