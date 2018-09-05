@@ -21,7 +21,7 @@ def get_catalog_type(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT * FROM catalog_type WHERE id = %s',
-        (id)
+        (id,)
     )
     ct = cursor.fetchone()
 
