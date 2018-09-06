@@ -92,6 +92,42 @@ def get_catalog_children(id):
     parents = cursor.fetchall()
     return parents
 
+def get_catalog_type_id(name):
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT id FROM catalog_type'
+        ' WHERE title = %s',
+        (name,)
+        )
+    ct = cursor.fetchone()
+    if ct is None:
+        abort(404, "Catalog type %s doesn't exist." % name)
+
+    return ct['id']
+
+def get_catalog_items_of_type(id):
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT c.id, c.title, description, created, c.type_id,'
+        ' ct.title as type_title, ct.physical'
+        ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
+        ' WHERE ct.id = %s',
+        (id,)
+    )
+    return cursor.fetchall()
+
+def get_computer_families():
+    return get_catalog_items_of_type(get_catalog_type_id('Computer family'))
+
+def get_computer_kits():
+    return get_catalog_items_of_type(get_catalog_type_id('Computer kit'))
+
+def get_computers():
+    return get_catalog_items_of_type(get_catalog_type_id('Computer'))
+
+def render_catalog_list(items):
+    return render_template('catalog/list.html', catalogs=items, notype=True)
+
 ###############################################################################
 # Routes
 ###############################################################################
@@ -106,7 +142,12 @@ def index():
         ' ORDER BY created DESC'
     )
     catalogs = cursor.fetchall()
-    return render_template('catalog/index.html', catalogs=catalogs)
+    return render_template('catalog/index.html',
+        catalogs=catalogs,
+        rendered_families=render_catalog_list(get_computer_families()),
+        rendered_computer_kits=render_catalog_list(get_computer_kits()),
+        rendered_computers=render_catalog_list(get_computers()),
+        )
 
 
 @bp.route('/create', methods=('GET', 'POST'))

@@ -10,10 +10,6 @@ mysql = MySQL()
 def get_db_cursor():
     if 'db' not in g:
         g.db = mysql.connection
-#            current_app.config['DATABASE'],
-#            detect_types=sqlite3.PARSE_DECLTYPES
-#        )
-#        g.db.row_factory = sqlite3.Row
 
     return g.db.cursor(MySQLdb.cursors.DictCursor)
 
@@ -33,9 +29,6 @@ def init_db():
     with current_app.open_resource('schema.sql') as f:
         query = " ".join(f.readlines())
         db.cursor().execute(query)
-
-#    with current_app.open_resource('schema.sql') as f:
-#        db.cursor().execute(f.read().decode('utf8'))
 
 @click.command('init-db')
 @with_appcontext

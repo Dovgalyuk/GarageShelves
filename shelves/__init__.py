@@ -52,10 +52,12 @@ def create_app(test_config=None):
     from . import uploads
     app.register_blueprint(uploads.bp)
 
+    from . import category
+    app.register_blueprint(category.bp)
+
     @app.route('/')
     def base():
         return render_template('index.html')
-
     app.add_url_rule('/', endpoint='index')
 
     nav.init_app(app)

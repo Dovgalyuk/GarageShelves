@@ -9,17 +9,6 @@ from shelves.item import render_items_list
 
 bp = Blueprint('collection', __name__, url_prefix='/collection')
 
-# All collections of all users
-@bp.route('/')
-def index():
-    db = get_db_cursor()
-    db.execute(
-        'SELECT c.id, title, description, created, owner_id, username'
-        ' FROM collection c JOIN user u ON c.owner_id = u.id'
-        ' ORDER BY created DESC'
-    )
-    collections = db.fetchall()
-    return render_template('collection/index.html', collections=collections)
 
 def get_collection(id, check_author=True):
     cursor = get_db_cursor()
@@ -40,6 +29,7 @@ def get_collection(id, check_author=True):
 
     return collection
 
+
 def get_user_collection(id):
     cursor = get_db_cursor()
     cursor.execute(
@@ -55,6 +45,20 @@ def get_user_collection(id):
         abort(404, "Collection id {0} doesn't exist.".format(id))
 
     return collection
+
+
+# Routes
+
+@bp.route('/')
+def index():
+    db = get_db_cursor()
+    db.execute(
+        'SELECT c.id, title, description, created, owner_id, username'
+        ' FROM collection c JOIN user u ON c.owner_id = u.id'
+        ' ORDER BY created DESC'
+    )
+    collections = db.fetchall()
+    return render_template('collection/index.html', collections=collections)
 
 @bp.route('/<int:id>')
 def view(id):

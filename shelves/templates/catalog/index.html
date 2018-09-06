@@ -16,6 +16,25 @@
     </div>
     {% endif %}
 
-    {% include 'catalog/list.html' %}
+    <div class="row">
+      <div class="col-xs-12">
+        <h2>Computer families</h2>
+      </div>
+    </div>
+    {{ rendered_families | safe }}
+
+    <div class="row">
+      <div class="col-xs-12">
+        <h2>Computer kits</h2>
+      </div>
+    </div>
+    {{ rendered_computer_kits | safe }}
+
+    <div class="row">
+      <div class="col-xs-12">
+        <h2>Computers</h2>
+      </div>
+    </div>
+    {{ rendered_computers | safe }}
   </div>
 {% endblock %}
