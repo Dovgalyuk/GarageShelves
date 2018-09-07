@@ -18,17 +18,13 @@ def get_collection_items(collection):
     cursor.execute(
         'SELECT i.id, i.internal_id,  i.description, c.title,'
         '       ct.title AS type_title, col.owner_id, '
-        ' NULL AS img_id'
-#        ' a.value_id AS img_id'
+        '       (SELECT value_id FROM item_attribute '
+        '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id'
         ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
         ' JOIN catalog_type ct ON c.type_id = ct.id'
         ' JOIN collection col ON i.collection_id = col.id'
-#        ' JOIN user u ON col.owner_id = u.id'
-#        ' LEFT JOIN item_attribute a ON i.id = a.item_id'
-        ' WHERE i.collection_id = %s'#' AND (a.type IS NULL OR a.type = %s)'
-#        ' GROUP BY i.id',
-#        (collection,ATTR_IMAGE,)
-        ,(collection,)
+        ' WHERE i.collection_id = %s'
+        ,(ATTR_IMAGE,collection,)
     )
 
     return cursor.fetchall()
@@ -38,17 +34,14 @@ def get_catalog_items(collection, catalog):
     cursor.execute(
         'SELECT i.id, i.internal_id,  i.description, c.title,'
         '       ct.title AS type_title, added, col.owner_id, u.username,'
-        ' NULL AS img_id'
-#        ' a.value_id AS img_id'
+        '       (SELECT value_id FROM item_attribute '
+        '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id'
         ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
         ' JOIN catalog_type ct ON c.type_id = ct.id'
         ' JOIN collection col ON i.collection_id = col.id'
         ' JOIN user u ON col.owner_id = u.id'
-#        ' LEFT JOIN item_attribute a ON i.id = a.item_id'
-        ' WHERE i.collection_id = %s AND c.id = %s'#' AND (a.type IS NULL OR a.type = %s)'
-#        ' GROUP BY i.id',
-#        (collection,catalog,ATTR_IMAGE,)
-        , (collection,catalog,)
+        ' WHERE i.collection_id = %s AND c.id = %s'
+        , (ATTR_IMAGE,collection,catalog,)
     )
 
     return cursor.fetchall()
@@ -89,13 +82,15 @@ def get_item_children(id):
     cursor.execute(
         'SELECT i.id, i.description, c.id AS catalog_id,'
         ' c.title, ct.title AS type_title, added,'
-        '       col.owner_id, i.internal_id'
+        '       col.owner_id, i.internal_id,'
+        '       (SELECT value_id FROM item_attribute '
+        '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id'
         ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
         ' JOIN catalog_type ct ON c.type_id = ct.id'
         ' JOIN collection col ON i.collection_id = col.id'
         ' JOIN item_relation r ON i.id = r.item_id2'
         ' WHERE r.item_id1 = %s AND r.type = %s',
-        (id,Relation.REL_INCLUDES,)
+        (ATTR_IMAGE,id,Relation.REL_INCLUDES,)
     )
 
     return cursor.fetchall()
