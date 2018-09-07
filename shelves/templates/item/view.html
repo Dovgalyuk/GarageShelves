@@ -52,5 +52,13 @@
       {% endfor %}
     </div>
     {% endfor %}
+
+    <div class="row">
+      <div class="col-xs-12">
+        <h4>Includes the items</h4>
+      </div>
+    </div>
+
+    {{ rendered_children | safe }}
   </div>
 {% endblock %}

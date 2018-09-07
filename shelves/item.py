@@ -6,6 +6,7 @@ from werkzeug.exceptions import abort
 from shelves.auth import (login_required)
 from shelves.db import get_db_cursor, db_commit
 from shelves.uploads import upload_image
+from shelves.relation import Relation
 
 # item attributes' ids
 ATTR_IMAGE = 1
@@ -16,13 +17,13 @@ def get_collection_items(collection):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT i.id, i.internal_id,  i.description, c.title,'
-        '       ct.title AS type_title, col.owner_id, u.username,'
+        '       ct.title AS type_title, col.owner_id, '
         ' NULL AS img_id'
 #        ' a.value_id AS img_id'
         ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
         ' JOIN catalog_type ct ON c.type_id = ct.id'
         ' JOIN collection col ON i.collection_id = col.id'
-        ' JOIN user u ON col.owner_id = u.id'
+#        ' JOIN user u ON col.owner_id = u.id'
 #        ' LEFT JOIN item_attribute a ON i.id = a.item_id'
         ' WHERE i.collection_id = %s'#' AND (a.type IS NULL OR a.type = %s)'
 #        ' GROUP BY i.id',
@@ -83,6 +84,22 @@ def get_item(id):
 
     return item
 
+def get_item_children(id):
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT i.id, i.description, c.id AS catalog_id,'
+        ' c.title, ct.title AS type_title, added,'
+        '       col.owner_id, i.internal_id'
+        ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
+        ' JOIN catalog_type ct ON c.type_id = ct.id'
+        ' JOIN collection col ON i.collection_id = col.id'
+        ' JOIN item_relation r ON i.id = r.item_id2'
+        ' WHERE r.item_id1 = %s AND r.type = %s',
+        (id,Relation.REL_INCLUDES,)
+    )
+
+    return cursor.fetchall()
+
 def render_items_list(items):
     return render_template('item/list.html', items=items)
 
@@ -122,7 +139,8 @@ def view(id):
             return redirect(request.url)
 
     images = get_item_images(id)
-    return render_template('item/view.html', item=item, images=images)
+    return render_template('item/view.html', item=item, images=images,
+        rendered_children=render_items_list(get_item_children(id)))
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required

@@ -8,14 +8,13 @@ from shelves.db import get_db_cursor, db_commit
 from shelves.collection import get_user_collection
 from shelves.item import (get_catalog_items, render_items_list)
 from shelves.uploads import upload_image
+from shelves.relation import Relation
 
 bp = Blueprint('catalog', __name__, url_prefix='/catalog')
 
 # Catalog attributes
 ATTR_IMAGE    = 1
 
-# Catalog relations
-REL_INCLUDES = 1
 
 def get_catalog_type(id):
     cursor = get_db_cursor()
@@ -73,7 +72,7 @@ def get_catalog_parents(id):
         ' JOIN catalog_type ct ON c1.type_id = ct.id'
         ' JOIN catalog c2 ON c2.id = r.catalog_id2'
         ' WHERE r.type = %s AND c2.id = %s',
-        (REL_INCLUDES, id,)
+        (Relation.REL_INCLUDES, id,)
     )
     parents = cursor.fetchall()
     return parents
@@ -87,7 +86,7 @@ def get_catalog_children(id):
         ' JOIN catalog c2 ON c2.id = r.catalog_id2'
         ' JOIN catalog_type ct ON c2.type_id = ct.id'
         ' WHERE r.type = %s AND c1.id = %s',
-        (REL_INCLUDES, id,)
+        (Relation.REL_INCLUDES, id,)
     )
     parents = cursor.fetchall()
     return parents
@@ -184,7 +183,7 @@ def create(parent = -1):
                     'INSERT INTO catalog_relation'
                     ' (catalog_id1, catalog_id2, type)'
                     ' VALUES (%s, %s, %s)',
-                    (parent, catalog_id, REL_INCLUDES)
+                    (parent, catalog_id, Relation.REL_INCLUDES)
                 )
             db_commit()
             return redirect(url_for('catalog.index'))
@@ -302,7 +301,7 @@ def own(id):
             cursor.execute(
                 'INSERT INTO item_relation (item_id1, item_id2, type)'
                 ' VALUES (%s, %s, %s)',
-                (item_id, subitem_id, REL_INCLUDES)
+                (item_id, subitem_id, Relation.REL_INCLUDES)
             )
 
     db_commit()

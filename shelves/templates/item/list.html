@@ -13,7 +13,7 @@
         {{ item['internal_id'] }}
     {% endif %}
     <a class="action" href="{{ url_for('item.view', id=item['id']) }}">
-        <h6>{{ item['username'] }}'s {{ item['type_title'] }} : {{ item['title'] }}</h6></a>
+        <h6>{% if item['username'] %}{{ item['username'] }}'s{% endif %} {{ item['type_title'] }} : {{ item['title'] }}</h6></a>
     <p>{{ item['description'] | markdown }}</p>
   </div>
 </div>
