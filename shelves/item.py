@@ -7,9 +7,7 @@ from shelves.auth import (login_required)
 from shelves.db import get_db_cursor, db_commit
 from shelves.uploads import upload_image
 from shelves.relation import Relation
-
-# item attributes' ids
-ATTR_IMAGE = 1
+from shelves.attribute import Attribute
 
 bp = Blueprint('item', __name__, url_prefix='/item')
 
@@ -24,7 +22,7 @@ def get_collection_items(collection):
         ' JOIN catalog_type ct ON c.type_id = ct.id'
         ' JOIN collection col ON i.collection_id = col.id'
         ' WHERE i.collection_id = %s'
-        ,(ATTR_IMAGE,collection,)
+        ,(Attribute.ATTR_IMAGE,collection,)
     )
 
     return cursor.fetchall()
@@ -41,7 +39,7 @@ def get_catalog_items(collection, catalog):
         ' JOIN collection col ON i.collection_id = col.id'
         ' JOIN user u ON col.owner_id = u.id'
         ' WHERE i.collection_id = %s AND c.id = %s'
-        , (ATTR_IMAGE,collection,catalog,)
+        , (Attribute.ATTR_IMAGE,collection,catalog,)
     )
 
     return cursor.fetchall()
@@ -53,7 +51,7 @@ def get_item_images(id):
         ' FROM item i JOIN item_attribute a ON i.id = a.item_id'
         ' JOIN image img ON a.value_id = img.id'
         ' WHERE a.type = %s AND i.id = %s',
-        (ATTR_IMAGE, id,)
+        (Attribute.ATTR_IMAGE, id,)
     )
     return cursor.fetchall()
 
@@ -90,7 +88,7 @@ def get_item_children(id):
         ' JOIN collection col ON i.collection_id = col.id'
         ' JOIN item_relation r ON i.id = r.item_id2'
         ' WHERE r.item_id1 = %s AND r.type = %s',
-        (ATTR_IMAGE,id,Relation.REL_INCLUDES,)
+        (Attribute.ATTR_IMAGE,id,Relation.REL_INCLUDES,)
     )
 
     return cursor.fetchall()
@@ -125,7 +123,7 @@ def view(id):
             db.execute(
                 'INSERT INTO item_attribute (type, item_id, value_id)'
                 ' VALUES (%s, %s, %s)',
-                (ATTR_IMAGE, id, file_id,)
+                (Attribute.ATTR_IMAGE, id, file_id,)
             )
             db_commit()
             return redirect(request.url)

@@ -9,11 +9,9 @@ from shelves.collection import get_user_collection
 from shelves.item import (get_catalog_items, render_items_list)
 from shelves.uploads import upload_image
 from shelves.relation import Relation
+from shelves.attribute import Attribute
 
 bp = Blueprint('catalog', __name__, url_prefix='/catalog')
-
-# Catalog attributes
-ATTR_IMAGE    = 1
 
 
 def get_catalog_type(id):
@@ -59,7 +57,7 @@ def get_catalog_images(id):
         ' FROM catalog c JOIN catalog_attribute a ON c.id = a.catalog_id'
         ' JOIN image img ON a.value_id = img.id'
         ' WHERE a.type = %s AND c.id = %s',
-        (ATTR_IMAGE, id,)
+        (Attribute.ATTR_IMAGE, id,)
     )
     images = cursor.fetchall()
     return images
@@ -218,7 +216,7 @@ def view(id):
             db.execute(
                 'INSERT INTO catalog_attribute (type, catalog_id, value_id)'
                 ' VALUES (%s, %s, %s)',
-                (ATTR_IMAGE, id, file_id,)
+                (Attribute.ATTR_IMAGE, id, file_id,)
             )
             db_commit()
             return redirect(request.url)
