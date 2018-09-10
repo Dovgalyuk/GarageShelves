@@ -113,21 +113,26 @@ def get_catalog_type_id(name):
 
     return ct['id']
 
-def get_catalog_items_of_type(id):
+def get_catalog_items_of_type(id, noparent = False):
     cursor = get_db_cursor()
-    cursor.execute(
-        'SELECT c.id, c.title, description, created, c.type_id,'
-        ' ct.title as type_title, ct.physical, img.id as logo'
-        ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
-        ' LEFT JOIN catalog_attribute a ON c.id = a.catalog_id'
-        ' LEFT JOIN image img ON a.value_id = img.id'
-        ' WHERE ct.id = %s AND ((a.type IS NULL) OR a.type = %s)',
-        (id, Attribute.ATTR_LOGO,)
-    )
+    query = 'SELECT c.id, c.title, description, created, c.type_id,'   \
+            ' ct.title as type_title, ct.physical, img.id as logo'     \
+            ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'\
+            ' LEFT JOIN catalog_attribute a ON c.id = a.catalog_id'    \
+            ' LEFT JOIN image img ON a.value_id = img.id'              \
+            ' WHERE ct.id = %s AND ((a.type IS NULL) OR a.type = %s)'
+    if noparent:
+        cursor.execute(query
+            + ' AND NOT EXISTS (SELECT 1 FROM catalog_relation'
+              '      WHERE catalog_id2 = c.id AND type = %s)',
+            (id, Attribute.ATTR_LOGO, Relation.REL_INCLUDES,)
+        )
+    else:
+        cursor.execute(query, (id, Attribute.ATTR_LOGO,))
     return cursor.fetchall()
 
 def get_computer_families():
-    return get_catalog_items_of_type(get_catalog_type_id('Computer family'))
+    return get_catalog_items_of_type(get_catalog_type_id('Computer family'), True)
 
 def get_computer_kits():
     return get_catalog_items_of_type(get_catalog_type_id('Computer kit'))
@@ -136,7 +141,7 @@ def get_computers():
     return get_catalog_items_of_type(get_catalog_type_id('Computer'))
 
 def get_console_families():
-    return get_catalog_items_of_type(get_catalog_type_id('Console family'))
+    return get_catalog_items_of_type(get_catalog_type_id('Console family'), True)
 
 def get_console_kits():
     return get_catalog_items_of_type(get_catalog_type_id('Console kit'))
