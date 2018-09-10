@@ -25,6 +25,13 @@
 
     <div class="row">
       <div class="col-xs-12">
+        <h2>Console families</h2>
+      </div>
+    </div>
+    {{ rendered_console_families | safe }}
+
+    <div class="row">
+      <div class="col-xs-12">
         <h2>Computer kits</h2>
       </div>
     </div>
@@ -32,9 +39,23 @@
 
     <div class="row">
       <div class="col-xs-12">
+        <h2>Console kits</h2>
+      </div>
+    </div>
+    {{ rendered_console_kits | safe }}
+
+    <div class="row">
+      <div class="col-xs-12">
         <h2>Computers</h2>
       </div>
     </div>
     {{ rendered_computers | safe }}
+
+    <div class="row">
+      <div class="col-xs-12">
+        <h2>Consoles</h2>
+      </div>
+    </div>
+    {{ rendered_consoles | safe }}
   </div>
 {% endblock %}

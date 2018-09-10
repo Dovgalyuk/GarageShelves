@@ -135,6 +135,15 @@ def get_computer_kits():
 def get_computers():
     return get_catalog_items_of_type(get_catalog_type_id('Computer'))
 
+def get_console_families():
+    return get_catalog_items_of_type(get_catalog_type_id('Console family'))
+
+def get_console_kits():
+    return get_catalog_items_of_type(get_catalog_type_id('Console kit'))
+
+def get_consoles():
+    return get_catalog_items_of_type(get_catalog_type_id('Console'))
+
 def render_catalog_list(items):
     return render_template('catalog/list.html', catalogs=items, notype=True)
 
@@ -155,8 +164,11 @@ def index():
     return render_template('catalog/index.html',
         catalogs=catalogs,
         rendered_families=render_catalog_list(get_computer_families()),
+        rendered_console_families=render_catalog_list(get_console_families()),
         rendered_computer_kits=render_catalog_list(get_computer_kits()),
+        rendered_console_kits=render_catalog_list(get_console_kits()),
         rendered_computers=render_catalog_list(get_computers()),
+        rendered_consoles=render_catalog_list(get_consoles()),
         )
 
 
