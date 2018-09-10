@@ -62,6 +62,17 @@ def get_catalog_images(id):
     images = cursor.fetchall()
     return images
 
+def get_catalog_logo(id):
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT img.id'
+        ' FROM catalog c JOIN catalog_attribute a ON c.id = a.catalog_id'
+        ' JOIN image img ON a.value_id = img.id'
+        ' WHERE a.type = %s AND c.id = %s',
+        (Attribute.ATTR_LOGO, id,)
+    )
+    return cursor.fetchone()
+
 def get_catalog_parents(id):
     cursor = get_db_cursor()
     cursor.execute(
@@ -106,10 +117,12 @@ def get_catalog_items_of_type(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT c.id, c.title, description, created, c.type_id,'
-        ' ct.title as type_title, ct.physical'
+        ' ct.title as type_title, ct.physical, img.id as logo'
         ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
-        ' WHERE ct.id = %s',
-        (id,)
+        ' LEFT JOIN catalog_attribute a ON c.id = a.catalog_id'
+        ' LEFT JOIN image img ON a.value_id = img.id'
+        ' WHERE ct.id = %s AND ((a.type IS NULL) OR a.type = %s)',
+        (id, Attribute.ATTR_LOGO,)
     )
     return cursor.fetchall()
 
@@ -153,6 +166,9 @@ def index():
 @admin_required
 def create(parent = -1):
     if request.method == 'POST':
+        if not g.user['admin']:
+            abort(403)
+
         type_id = request.form['type_id']
         title = request.form['title']
         description = request.form['description']
@@ -233,7 +249,8 @@ def view(id):
         rendered_items=render_items_list(items),
         images=get_catalog_images(id),
         parents=get_catalog_parents(id),
-        catalogs=get_catalog_children(id))
+        catalogs=get_catalog_children(id),
+        logo=get_catalog_logo(id))
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required
@@ -242,6 +259,9 @@ def update(id):
     catalog = get_catalog(id)
 
     if request.method == 'POST':
+        if not g.user['admin']:
+            abort(403)
+
         title = request.form['title']
         description = request.form['description']
         type_id = request.form['type_id']
@@ -253,11 +273,30 @@ def update(id):
         if not title:
             error = 'Title is required.'
 
+        cursor = get_db_cursor()
+        if 'catalog_logo' in request.files:
+            file = request.files['catalog_logo']
+            if file.filename != '':
+                file_id = upload_image(file, 64, 64)
+                if file_id is None:
+                    flash('Only 64x64 images can be used as a logo')
+                    return redirect(request.url)
+
+                cursor.execute(
+                    'DELETE FROM catalog_attribute'
+                    ' WHERE type=%s AND catalog_id=%s',
+                    (Attribute.ATTR_LOGO, id,)
+                )
+                cursor.execute(
+                    'INSERT INTO catalog_attribute (type, catalog_id, value_id)'
+                    ' VALUES (%s, %s, %s)',
+                    (Attribute.ATTR_LOGO, id, file_id,)
+                )
+
         if error is not None:
             flash(error)
         else:
-            db = get_db_cursor()
-            db.execute(
+            cursor.execute(
                 'UPDATE catalog SET title = %s, description = %s, type_id = %s'
                 ' WHERE id = %s',
                 (title, description, type_id, id)

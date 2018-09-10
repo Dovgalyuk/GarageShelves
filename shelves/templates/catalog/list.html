@@ -3,6 +3,9 @@
 {% for catalog in row %}
   <div class="col-xs-4">
     <h3>
+      {% if catalog['logo'] %}
+          <img src="{{ url_for('uploads.view', id=catalog['logo']) }}">
+      {% endif %}
       <a class="action" href="{{ url_for('catalog.view', id=catalog['id']) }}">
         {% if not notype %}
           {{ catalog['type_title'] }} : 

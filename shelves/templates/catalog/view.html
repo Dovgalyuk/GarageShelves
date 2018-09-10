@@ -7,10 +7,14 @@
       <div class="row">
         <div class="col-xs-10">
           <h1>
-          {% if g.user.admin %}
-            <a class="action" href="{{ url_for('catalog.update', id=catalog['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
-          {% endif %}
-          {{ catalog['type_title'] }} : {{ catalog['title'] }}</h1>
+            {% if logo and 'id' in logo %}
+              <img src="{{ url_for('uploads.view', id=logo['id']) }}">
+            {% endif %}
+            {{ catalog['type_title'] }} : {{ catalog['title'] }}
+            {% if g.user.admin %}
+              <a class="action" href="{{ url_for('catalog.update', id=catalog['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+            {% endif %}
+          </h1>
         </div>
         <div class="col-xs-2">
           {% if g.user and catalog['physical'] %}
