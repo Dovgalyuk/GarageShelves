@@ -22,6 +22,9 @@ def upload_image(file,width=-1,height=-1):
     if not allowed_image(file.filename):
         abort(403)
 
+    if not g.user:
+        abort(403)
+
     img = Image.open(file)
     if width != -1:
         if img.width != width or img.height != height:
@@ -32,8 +35,8 @@ def upload_image(file,width=-1,height=-1):
 
     cursor = get_db_cursor()
     cursor.execute(
-        'INSERT INTO image (ext, filename) VALUES (%s, %s)',
-        (ext, filename,)
+        'INSERT INTO image (ext, filename, owner_id) VALUES (%s, %s, %s)',
+        (ext, filename, g.user['id'],)
     )
     file_id = cursor.lastrowid
     img.save(os.path.join(

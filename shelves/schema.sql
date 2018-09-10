@@ -59,7 +59,10 @@ CREATE TABLE item (
 CREATE TABLE image (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
   ext TEXT NOT NULL,
-  filename TEXT NOT NULL
+  filename TEXT NOT NULL,
+  owner_id INTEGER NULL DEFAULT NULL,
+
+  FOREIGN KEY (owner_id) REFERENCES user (id)
 );
 
 CREATE TABLE item_attribute (
