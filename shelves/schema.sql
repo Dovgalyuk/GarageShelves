@@ -118,6 +118,8 @@ INSERT INTO catalog_type (title) VALUES ("Nothing");
 INSERT INTO catalog_type (title, physical) VALUES ("Computer Family", 0);
 INSERT INTO catalog_type (title) VALUES ("Computer");
 INSERT INTO catalog_type (title) VALUES ("Computer kit");
+INSERT INTO catalog_type (title) VALUES ("Console");
+INSERT INTO catalog_type (title) VALUES ("Console kit");
 INSERT INTO catalog_type (title) VALUES ("Mainboard");
 INSERT INTO catalog_type (title) VALUES ("Peripheral device");
 INSERT INTO catalog_type (title) VALUES ("Peripheral device kit");
