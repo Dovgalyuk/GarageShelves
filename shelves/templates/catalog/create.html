@@ -34,6 +34,12 @@
           </div>
         </div>
         <div class="form-group">
+          <label for="year" class="col-xs-2 control-label">Start of production year</label>
+          <div class="col-xs-10">
+            <input type="text" name="year" id="year" class="form-control" pattern="[1-2][0-9]{3}" value="{{ request.form['year'] or catalog['year'] }}">
+          </div>
+        </div>
+        <div class="form-group">
           <label for="description" class="col-xs-2 control-label">Description</label>
           <div class="col-xs-10">
             <textarea name="description" id="description" class="form-control" rows="10">{{ request.form['description'] }}</textarea>
