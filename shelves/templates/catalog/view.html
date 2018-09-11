@@ -7,6 +7,9 @@
       <div class="row">
         <div class="col-xs-10">
           <h1>
+            {% if catalog['year'] %}
+              <span class="badge">{{ catalog['year'] }}</span>
+            {% endif %}
             {% if logo and 'id' in logo %}
               <img src="{{ url_for('uploads.view', id=logo['id']) }}">
             {% endif %}

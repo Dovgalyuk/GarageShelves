@@ -31,7 +31,7 @@ def get_catalog_none(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT c.id, c.title, description, created, c.type_id,'
-        ' ct.title as type_title, ct.physical'
+        ' ct.title as type_title, ct.physical, year'
         ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
         ' WHERE c.id = %s',
         (id,)
@@ -116,7 +116,8 @@ def get_catalog_type_id(name):
 def get_catalog_items_of_type(id, noparent = False):
     cursor = get_db_cursor()
     query = 'SELECT c.id, c.title, description, created, c.type_id,'   \
-            ' ct.title as type_title, ct.physical, img.id as logo'     \
+            ' ct.title as type_title, ct.physical, img.id as logo,'    \
+            ' year'                                                    \
             ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'\
             ' LEFT JOIN catalog_attribute a ON c.id = a.catalog_id'    \
             ' LEFT JOIN image img ON a.value_id = img.id'              \
@@ -159,15 +160,7 @@ def render_catalog_list(items):
 # All catalogs
 @bp.route('/')
 def index():
-    cursor = get_db_cursor()
-    cursor.execute(
-        'SELECT c.id, c.title, description, created, c.type_id, ct.title as type_title'
-        ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
-        ' ORDER BY created DESC'
-    )
-    catalogs = cursor.fetchall()
     return render_template('catalog/index.html',
-        catalogs=catalogs,
         rendered_families=render_catalog_list(get_computer_families()),
         rendered_computers=render_catalog_list(get_computers()),
         rendered_console_families=render_catalog_list(get_console_families()),
@@ -186,10 +179,16 @@ def create(parent = -1):
         if not g.user['admin']:
             abort(403)
 
+        error = None
         type_id = request.form['type_id']
         title = request.form['title']
         description = request.form['description']
-        error = None
+        try:
+            year = int(request.form['year'])
+            if year < 1500 or year > 2100:
+                error = 'Invalid year.'
+        except:
+            year = None
 
         # assert that catalog type exists
         get_catalog_type(type_id)
@@ -203,9 +202,9 @@ def create(parent = -1):
             parent = request.form['parent']
             cursor = get_db_cursor()
             cursor.execute(
-                'INSERT INTO catalog (type_id, title, description)'
-                ' VALUES (%s, %s, %s)',
-                (type_id, title, description)
+                'INSERT INTO catalog (type_id, title, description, year)'
+                ' VALUES (%s, %s, %s, %s)',
+                (type_id, title, description, year)
             )
             catalog_id = cursor.lastrowid
             if parent and int(parent) > 0:
@@ -279,10 +278,16 @@ def update(id):
         if not g.user['admin']:
             abort(403)
 
+        error = None
         title = request.form['title']
         description = request.form['description']
         type_id = request.form['type_id']
-        error = None
+        try:
+            year = int(request.form['year'])
+            if year < 1500 or year > 2100:
+                error = 'Invalid year.'
+        except:
+            year = None
 
         # assert that catalog type exists
         get_catalog_type(type_id)
@@ -314,9 +319,10 @@ def update(id):
             flash(error)
         else:
             cursor.execute(
-                'UPDATE catalog SET title = %s, description = %s, type_id = %s'
+                'UPDATE catalog SET title = %s, description = %s, type_id = %s,'
+                ' year = %s'
                 ' WHERE id = %s',
-                (title, description, type_id, id)
+                (title, description, type_id, year, id)
             )
             db_commit()
             return redirect(url_for('catalog.view', id=id))

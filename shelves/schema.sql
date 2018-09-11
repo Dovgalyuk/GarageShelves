@@ -32,16 +32,25 @@ CREATE TABLE catalog_type (
   physical BOOLEAN NOT NULL DEFAULT 1
 );
 
+CREATE TABLE company (
+  id INTEGER PRIMARY KEY AUTO_INCREMENT,
+  title TEXT NOT NULL
+);
+
 CREATE TABLE catalog (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
   type_id INTEGER NOT NULL,
   title TEXT NOT NULL,
   description TEXT NOT NULL,
+  company_id INTEGER NULL DEFAULT NULL,
+  year INTEGER NULL DEFAULT NULL,
+
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   owner_id INTEGER NULL DEFAULT NULL,
 
   FOREIGN KEY (type_id) REFERENCES catalog_type (id),
-  FOREIGN KEY (owner_id) REFERENCES user (id)
+  FOREIGN KEY (owner_id) REFERENCES user (id),
+  FOREIGN KEY (company_id) REFERENCES company (id)
 );
 
 CREATE TABLE item (
