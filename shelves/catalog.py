@@ -134,20 +134,20 @@ def get_catalog_items_of_type(id, noparent = False):
 def get_computer_families():
     return get_catalog_items_of_type(get_catalog_type_id('Computer family'), True)
 
-def get_computer_kits():
-    return get_catalog_items_of_type(get_catalog_type_id('Computer kit'))
-
 def get_computers():
     return get_catalog_items_of_type(get_catalog_type_id('Computer'))
 
 def get_console_families():
     return get_catalog_items_of_type(get_catalog_type_id('Console family'), True)
 
-def get_console_kits():
-    return get_catalog_items_of_type(get_catalog_type_id('Console kit'))
-
 def get_consoles():
     return get_catalog_items_of_type(get_catalog_type_id('Console'))
+
+def get_calculator_families():
+    return get_catalog_items_of_type(get_catalog_type_id('Calculator family'), True)
+
+def get_calculators():
+    return get_catalog_items_of_type(get_catalog_type_id('Calculator'))
 
 def render_catalog_list(items):
     return render_template('catalog/list.html', catalogs=items, notype=True)
@@ -169,11 +169,11 @@ def index():
     return render_template('catalog/index.html',
         catalogs=catalogs,
         rendered_families=render_catalog_list(get_computer_families()),
-        rendered_console_families=render_catalog_list(get_console_families()),
-        rendered_computer_kits=render_catalog_list(get_computer_kits()),
-        rendered_console_kits=render_catalog_list(get_console_kits()),
         rendered_computers=render_catalog_list(get_computers()),
+        rendered_console_families=render_catalog_list(get_console_families()),
         rendered_consoles=render_catalog_list(get_consoles()),
+        rendered_calculator_families=render_catalog_list(get_calculator_families()),
+        rendered_calculators=render_catalog_list(get_calculators()),
         )
 
 
@@ -217,7 +217,7 @@ def create(parent = -1):
                     (parent, catalog_id, Relation.REL_INCLUDES)
                 )
             db_commit()
-            return redirect(url_for('catalog.index'))
+            return redirect(url_for('catalog.view', id=catalog_id))
 
     catalog_types = get_catalog_types()
     p = None
