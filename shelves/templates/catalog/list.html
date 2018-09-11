@@ -3,6 +3,9 @@
 {% for catalog in row %}
   <div class="col-xs-4">
     <h3>
+      {% if catalog['year'] %}
+        <span class="badge">{{ catalog['year'] }}</span>
+      {% endif %}
       {% if catalog['logo'] %}
           <img src="{{ url_for('uploads.view', id=catalog['logo']) }}">
       {% endif %}
