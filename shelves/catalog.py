@@ -94,7 +94,8 @@ def get_catalog_children(id):
         ' FROM catalog c1 JOIN catalog_relation r ON c1.id = r.catalog_id1'
         ' JOIN catalog c2 ON c2.id = r.catalog_id2'
         ' JOIN catalog_type ct ON c2.type_id = ct.id'
-        ' WHERE r.type = %s AND c1.id = %s',
+        ' WHERE r.type = %s AND c1.id = %s'
+        ' ORDER BY c2.title',
         (Relation.REL_INCLUDES, id,)
     )
     parents = cursor.fetchall()
@@ -122,14 +123,15 @@ def get_catalog_items_of_type(id, noparent = False):
             ' LEFT JOIN catalog_attribute a ON c.id = a.catalog_id'    \
             ' LEFT JOIN image img ON a.value_id = img.id'              \
             ' WHERE ct.id = %s AND ((a.type IS NULL) OR a.type = %s)'
+    suffix = ' ORDER BY c.title'
     if noparent:
         cursor.execute(query
             + ' AND NOT EXISTS (SELECT 1 FROM catalog_relation'
-              '      WHERE catalog_id2 = c.id AND type = %s)',
+              '      WHERE catalog_id2 = c.id AND type = %s)' + suffix,
             (id, Attribute.ATTR_LOGO, Relation.REL_INCLUDES,)
         )
     else:
-        cursor.execute(query, (id, Attribute.ATTR_LOGO,))
+        cursor.execute(query + suffix, (id, Attribute.ATTR_LOGO,))
     return cursor.fetchall()
 
 def get_computer_families():
