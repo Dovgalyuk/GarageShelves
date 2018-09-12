@@ -12,6 +12,7 @@ def shelvesnavbar():
     caption = 'Garage shelves'
     home = View('Home', 'index')
     catalogs = View("Catalog", "catalog.index")
+    companies = View("Companies", "company.index")
     collections = View("All collections", "collection.index")
     if g.user is None:
         return Navbar(
@@ -19,6 +20,7 @@ def shelvesnavbar():
             home,
             collections,
             catalogs,
+            companies,
             View("Register", "auth.register"),
             View("Log in", "auth.login")
         )
@@ -29,6 +31,7 @@ def shelvesnavbar():
             collections,
             View("My collection", "collection.view", id=g.user['id']),
             catalogs,
+            companies,
             Text(g.user['username']),
             View("Log out", "auth.logout"),
             View("Profile", "auth.profile")

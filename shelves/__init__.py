@@ -55,6 +55,9 @@ def create_app(test_config=None):
     from . import category
     app.register_blueprint(category.bp)
 
+    from . import company
+    app.register_blueprint(company.bp)
+
     @app.route('/')
     def base():
         return render_template('index.html')

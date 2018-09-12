@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  {{ super() }}
+  <div class="container">
+    <div class="row">
+      <div class="page-header">
+        <h1>Companies</h1>
+      </div>
+    </div>
+    {% if g.user.admin %}
+    <div class="row">
+      <div class="col-xs-12">
+        <a href="{{ url_for('company.create') }}"><h4><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add new company</h4></a>
+      </div>
+    </div>
+    {% endif %}
+
+    {% for row in companies | batch(3) %}
+    <div class="row">
+    {% for company in row %}
+      <div class="col-xs-4">
+        <h3>
+          {% if company['logo'] %}
+              <img src="{{ url_for('uploads.view', id=company['logo']) }}">
+          {% endif %}
+          <a class="action" href="{{ url_for('company.view', id=company['id']) }}">
+            {{ company['title'] }}</a>
+        </h3>
+      </div>
+    {% endfor %}
+    </div>
+    {% endfor %}
+
+  </div>
+{% endblock %}
