@@ -27,7 +27,7 @@ def upload_image(file,width=-1,height=-1):
 
     img = Image.open(file)
     if width != -1:
-        if img.width != width or img.height != height:
+        if (img.width != width and img.height != height) or img.width > width or img.height > height:
             return None
 
     filename = secure_filename(file.filename)
