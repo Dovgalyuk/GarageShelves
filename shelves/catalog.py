@@ -97,7 +97,7 @@ def get_catalog_children(id):
         ' FROM catalog c1 JOIN catalog_relation r ON c1.id = r.catalog_id1'
         ' JOIN catalog c2 ON c2.id = r.catalog_id2'
         ' JOIN catalog_type ct ON c2.type_id = ct.id'
-        ' JOIN company com ON com.id = c2.company_id'
+        ' LEFT JOIN company com ON com.id = c2.company_id'
         ' WHERE r.type = %s AND c1.id = %s'
         ' ORDER BY c2.title',
         (Relation.REL_INCLUDES, id,)
@@ -126,7 +126,7 @@ def get_catalog_items_of_type(id, noparent = False):
             ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'\
             ' LEFT JOIN (SELECT * FROM catalog_attribute WHERE type = %s) a ON c.id = a.catalog_id'    \
             ' LEFT JOIN image img ON a.value_id = img.id'              \
-            ' JOIN company com ON com.id = c.company_id'               \
+            ' LEFT JOIN company com ON com.id = c.company_id'          \
             ' WHERE ct.id = %s'
     suffix = ' ORDER BY c.title'
     if noparent:
