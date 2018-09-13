@@ -3,9 +3,6 @@
 {% for catalog in row %}
   <div class="col-xs-4">
     <h3>
-      {% if catalog['year'] %}
-        <span class="badge">{{ catalog['year'] }}</span>
-      {% endif %}
       {% if catalog['logo'] %}
           <img src="{{ url_for('uploads.view', id=catalog['logo']) }}">
       {% endif %}
@@ -13,8 +10,17 @@
         {% if not notype %}
           {{ catalog['type_title'] }} : 
         {% endif %}
-        {{ catalog['title'] }}</a>
-    </h3>
+        {{ catalog['title'] }}
+      </a>
+      </h3>
+      <p>
+        {% if catalog['year'] %}
+          <span class="badge">{{ catalog['year'] }}</span>
+        {% endif %}
+        {% if catalog['company'] %}
+          <a class="text-secondary" href="{{ url_for('company.view', id=catalog['company_id']) }}">{{ catalog['company'] }}</a>
+        {% endif %}
+      </p>
   </div>
 {% endfor %}
 </div>

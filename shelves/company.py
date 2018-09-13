@@ -6,6 +6,7 @@ from werkzeug.exceptions import abort
 from shelves.auth import (login_required, admin_required)
 from shelves.db import get_db_cursor, db_commit
 from shelves.uploads import upload_image
+from shelves.catalog import get_catalog_items_of_company, render_catalog_list
 
 bp = Blueprint('company', __name__, url_prefix='/company')
 
@@ -64,7 +65,8 @@ def create():
 @bp.route('/<int:id>')
 def view(id):
     return render_template('company/view.html',
-        company=get_company(id))
+        company=get_company(id),
+        rendered_catalog_items=render_catalog_list(get_catalog_items_of_company(id)))
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required

@@ -31,8 +31,10 @@ def get_catalog_none(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT c.id, c.title, description, created, c.type_id,'
-        ' ct.title as type_title, ct.physical, year'
+        ' ct.title as type_title, ct.physical, year, com.title as company,'
+        ' c.company_id'
         ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
+        ' LEFT JOIN company com ON com.id = c.company_id'
         ' WHERE c.id = %s',
         (id,)
     )
@@ -90,10 +92,12 @@ def get_catalog_children(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT c2.id, c2.title, ct.title as type_title,'
-        '       ct.physical, c2.description, c2.year'
+        '       ct.physical, c2.description, c2.year, com.title as company,'
+        '       c2.company_id'
         ' FROM catalog c1 JOIN catalog_relation r ON c1.id = r.catalog_id1'
         ' JOIN catalog c2 ON c2.id = r.catalog_id2'
         ' JOIN catalog_type ct ON c2.type_id = ct.id'
+        ' JOIN company com ON com.id = c2.company_id'
         ' WHERE r.type = %s AND c1.id = %s'
         ' ORDER BY c2.title',
         (Relation.REL_INCLUDES, id,)
@@ -118,10 +122,11 @@ def get_catalog_items_of_type(id, noparent = False):
     cursor = get_db_cursor()
     query = 'SELECT c.id, c.title, description, created, c.type_id,'   \
             ' ct.title as type_title, ct.physical, img.id as logo,'    \
-            ' year'                                                    \
+            ' year, com.title as company, c.company_id'                \
             ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'\
             ' LEFT JOIN (SELECT * FROM catalog_attribute WHERE type = %s) a ON c.id = a.catalog_id'    \
             ' LEFT JOIN image img ON a.value_id = img.id'              \
+            ' JOIN company com ON com.id = c.company_id'               \
             ' WHERE ct.id = %s'
     suffix = ' ORDER BY c.title'
     if noparent:
@@ -132,6 +137,22 @@ def get_catalog_items_of_type(id, noparent = False):
         )
     else:
         cursor.execute(query + suffix, (Attribute.ATTR_LOGO,id,))
+    return cursor.fetchall()
+
+def get_catalog_items_of_company(id):
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT c.id, c.title, description, created, c.type_id,'
+        ' ct.title as type_title, ct.physical, img.id as logo,'
+        ' year'
+        ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
+        ' LEFT JOIN (SELECT * FROM catalog_attribute WHERE type = %s) a ON c.id = a.catalog_id'
+        ' LEFT JOIN image img ON a.value_id = img.id'
+        ' JOIN company com ON com.id = c.company_id'
+        ' WHERE c.company_id = %s'
+        ' ORDER BY c.title',
+        (Attribute.ATTR_LOGO, id,)
+    )
     return cursor.fetchall()
 
 def get_computer_families():
