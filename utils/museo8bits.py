@@ -77,9 +77,25 @@ def out_sql():
                 print('INSERT INTO catalog (type_id, title, description, company_id, year)' \
                     ' VALUES (%s, "%s", "%s", @comp, "%s");' % (t, params['title'], params['desc'], params['year']) )
 
+def out_sql_null_year():
+    print('SET @computer = (SELECT id FROM catalog_type WHERE title="Computer");')
+    print('SET @console = (SELECT id FROM catalog_type WHERE title="Console");')
+    for company, items in companies.items():
+        print('SET @comp = (SELECT id FROM company WHERE title = "%s");' % items['_name'])
+        for name, params in items.items():
+            if name != '_name':
+                t = '@computer'
+                if 'console' in params:
+                    t = '@console'
+                if params['year'] is None or params['year'] == 'NULL' or not re.match('[0-9]{4}', params['year']):
+                    print('; %s'  % params['year'])
+                    print('INSERT INTO catalog (type_id, title, description, company_id)' \
+                        ' VALUES (%s, "%s", "%s", @comp);' % (t, params['title'], params['desc']) )
+
 museo8()
 old_computers('http://www.old-computers.com/museum/name.asp?st=1&l=', False)
 old_computers('http://www.old-computers.com/museum/name.asp?st=2&l=', True)
 old_computers('http://www.old-computers.com/museum/name.asp?st=3&l=', True)
 #print(companies)
-out_sql()
+#out_sql()
+out_sql_null_year()
