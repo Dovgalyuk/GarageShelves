@@ -31,16 +31,13 @@
         </div>
       </div>
 
-      {% for parent in parents %}
       <div class="row">
         <div class="col-xs-1"></div>
         <div class="col-xs-11">
-          <a href="{{ url_for('catalog.view', id=parent['id']) }}"><h5>
-            {{ parent['type_title'] }} : {{ parent['title'] }}
-          </h5></a>
+          <ul id="familiesEditor" class="list-group">
+          </ul>
         </div>
       </div>
-      {% endfor %}
     </div>
     {% if g.user.admin %}
     <div class="row">
@@ -151,4 +148,170 @@
     </div>
   </div>
   </div>
+
+<div class="modal fade" id="modalAddFamily" tabindex="-1" role="dialog" aria-labelledby="modalAddFamilyTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAddFamilyTitle">Add {{ catalog['type_title'] }} : {{ catalog['title'] }} to the catalog items family</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <select class="form-control" id="modalFamiliesList">
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary btnAddCommit">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+
+<script type="text/javascript">
+
+function FamiliesEditor(idSelector, options) {
+    var $main = $("#" + idSelector);
+    var settings = {
+        labelRemove: '<i class="glyphicon glyphicon-remove clickable"></i>',
+        labelAdd: '<i class="glyphicon glyphicon-plus clickable"></i>',
+        textConfirmDelete: 'This item will be deleted. Are you sure?',
+        listOptions: { hintCss: {border: '1px dashed #13981D'},
+        placeholderCss: {'background-color': 'gray'} }
+    };
+    $.extend(true, settings, options);
+    var options = settings.listOptions;
+    /* EVENTS */
+    {% if g.user.admin %}
+    $(document).on('click', '.btnRemove', function (e) {
+        e.preventDefault();
+        if (confirm(settings.textConfirmDelete)) {
+            var data = $(this).closest('li').data()
+            $.post(flask_util.url_for('catalog._family_remove'),
+                {id:{{ catalog['id'] }}, family:data.id })
+            $(this).closest('li').remove();
+        }
+    });
+
+    $(document).on('click', '.btnAdd', function (e) {
+        e.preventDefault();
+        $('#modalAddFamily').modal('show');
+    });
+
+    $(document).on('click', '.btnAddCommit', function (e) {
+        e.preventDefault();
+        $('#modalAddFamily').modal('hide');
+        var $list = $('#modalFamiliesList');
+        $.post(flask_util.url_for('catalog._family_add'),
+            {id:{{ catalog['id'] }}, family:$list.val() })
+        editor.loadData();
+    });
+    {% endif %}
+
+    /* PRIVATE METHODS */
+
+    function TButton(attr) {
+        return $("<a>").addClass(attr.classCss).addClass('clickable').attr("href", "#").html(attr.text);
+    }
+
+    function TButtonGroup() {
+        var $divbtn = $('<div>').addClass('btn-group pull-right');
+        {% if g.user.admin %}
+          var $btnRemv = TButton({classCss: 'btn btn-danger btn-xs btnRemove', text: settings.labelRemove});
+          $divbtn.append($btnRemv);
+        {% endif %}
+        return $divbtn;
+    }
+
+    function createItem(data) {
+        var $li = $('<li>').addClass('list-group-item');
+        $li.data(data);
+        return $li
+    }
+
+    /**
+     * @param {array} arrayItem Object Array
+     * @return {object} jQuery Object
+     * */
+    function createMenu(arrayItem) {
+        $.each(arrayItem, function (k, v) {
+            var itemObject = $.extend({}, v);
+            var $li = createItem(itemObject);
+            var $div = $('<div>');
+            var $span = $('<a>').addClass('action')
+              .attr('href', flask_util.url_for('catalog.view', {id:v.id}))
+              .append(v.type_title + ' : ' + v.title);
+            var $divbtn = TButtonGroup();
+            $div.append($divbtn).append("&nbsp;").append($span);
+            $li.append($div);
+            $main.append($li);
+        });
+        {% if g.user.admin %}
+          var $divbtn = $('<div>').addClass('btn-group');
+          var $btnadd = TButton({classCss: 'btn btn-primary btn-xs btnAdd', text: settings.labelAdd});
+          $divbtn.append($btnadd);
+          var $li = createItem({});
+          var $div = $('<div>');
+          var $span = $('<span>').append('Add to family');
+          $div.append($divbtn).append('&nbsp;').append($span)
+          $li.append($div);
+          $main.append($li);
+        {% endif %}
+    }
+
+    /* PUBLIC METHODS */
+    this.add = function(){
+        var data = {};
+        $form.find('.item-menu').each(function(){
+            data[$(this).attr('name')] = $(this).val();
+        });
+        var btnGroup = TButtonGroup();
+        var textItem = $('<span>').addClass('txt').text(data.text);
+        var iconItem = $('<i>').addClass(data.icon);
+        var div = $('<div>').append(iconItem).append("&nbsp;").append(textItem).append(btnGroup);
+        var $li = $("<li>").data(data);
+        $li.addClass('list-group-item').append(div);
+        $main.append($li);
+    };
+
+    this.loadData = function () {
+        $main.empty();
+        $.getJSON(flask_util.url_for('catalog._families'), {id:{{ catalog['id'] }} },
+            function(response) {
+                createMenu(response.result);
+            }
+        )
+    };
+};
+
+var editor = new FamiliesEditor('familiesEditor', {});
+
+/* Load data into the families editor */
+$(function() {
+    editor.loadData();
+
+    /* Load families into modal window */
+    $('#modalAddFamily').on('show.bs.modal', function (event) {
+        $.getJSON(flask_util.url_for('catalog._all_families'),
+            function(response) {
+                var $list = $('#modalFamiliesList');
+                $list.empty();
+                $.each(response.result, function(k, v) {
+                    $opt = $('<option>').val(v.id).append(v.title);
+                    $list.append($opt);
+                });
+            }
+        );
+    });
+
+});
+
+</script>
 {% endblock %}

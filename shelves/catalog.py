@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify
 )
 from werkzeug.exceptions import abort
 
@@ -155,26 +155,40 @@ def get_catalog_items_of_company(id):
     )
     return cursor.fetchall()
 
-def get_computer_families():
-    return get_catalog_items_of_type(get_catalog_type_id('Computer family'), True)
+def get_computer_families(noparent=True):
+    return get_catalog_items_of_type(get_catalog_type_id('Computer family'), noparent)
 
 def get_computers():
     return get_catalog_items_of_type(get_catalog_type_id('Computer'))
 
-def get_console_families():
-    return get_catalog_items_of_type(get_catalog_type_id('Console family'), True)
+def get_console_families(noparent=True):
+    return get_catalog_items_of_type(get_catalog_type_id('Console family'), noparent)
 
 def get_consoles():
     return get_catalog_items_of_type(get_catalog_type_id('Console'))
 
-def get_calculator_families():
-    return get_catalog_items_of_type(get_catalog_type_id('Calculator family'), True)
+def get_calculator_families(noparent=True):
+    return get_catalog_items_of_type(get_catalog_type_id('Calculator family'), noparent)
 
 def get_calculators():
     return get_catalog_items_of_type(get_catalog_type_id('Calculator'))
 
 def render_catalog_list(items):
     return render_template('catalog/list.html', catalogs=items, notype=True)
+
+def get_catalog_families():
+    f1 = get_catalog_type_id('Computer family')
+    f2 = get_catalog_type_id('Console family')
+    f3 = get_catalog_type_id('Calculator family')
+    cursor = get_db_cursor()
+    cursor.execute(
+            'SELECT c.id, c.title, ct.title as type_title'
+            ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
+            ' WHERE ct.id IN (%s, %s, %s)'
+            ' ORDER BY c.title',
+            (f1, f2, f3,)
+        )
+    return cursor.fetchall()
 
 ###############################################################################
 # Routes
@@ -390,3 +404,40 @@ def own(id):
     db_commit()
 
     return redirect(url_for('catalog.view', id=id))
+
+@bp.route('/_families')
+def _families():
+    id = request.args.get('id', 0, type=int)
+    return jsonify(result=get_catalog_parents(id))
+
+@bp.route('/_all_families')
+def _all_families():
+    return jsonify(result=get_catalog_families())
+
+@bp.route('/_family_remove', methods=('POST',))
+@admin_required
+def _family_remove():
+    id = int(request.form['id'])
+    family = int(request.form['family'])
+    cursor = get_db_cursor()
+    cursor.execute(
+        'DELETE FROM catalog_relation'
+        ' WHERE catalog_id1=%s AND catalog_id2=%s AND type=%s',
+        (family, id, Relation.REL_INCLUDES,)
+    )
+    db_commit()
+    return ('', 204)
+
+@bp.route('/_family_add', methods=('POST',))
+@admin_required
+def _family_add():
+    id = int(request.form['id'])
+    family = int(request.form['family'])
+    cursor = get_db_cursor()
+    cursor.execute(
+        'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
+        ' VALUES (%s, %s, %s)',
+        (family, id, Relation.REL_INCLUDES,)
+    )
+    db_commit()
+    return ('', 204)
