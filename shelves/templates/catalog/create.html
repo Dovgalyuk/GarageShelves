@@ -34,6 +34,19 @@
           </div>
         </div>
         <div class="form-group">
+          <label for="type_id" class="col-xs-2 control-label">Company</label>
+          <div class="col-xs-10">
+            <select name="company_id" id="company_id">
+                <option value="-1">Unknown</option>
+                {% for c in companies %}
+                <option value="{{c['id']}}"{% if c['id']==request.form['company_id'] %} SELECTED{% endif %}>
+                    {{c['title']}}
+                </option>
+                {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
           <label for="year" class="col-xs-2 control-label">Start of production year</label>
           <div class="col-xs-10">
             <input type="text" name="year" id="year" class="form-control" pattern="[1-2][0-9]{3}" value="{{ request.form['year'] }}">

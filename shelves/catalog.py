@@ -7,6 +7,7 @@ from shelves.auth import (login_required, admin_required)
 from shelves.db import get_db_cursor, db_commit
 from shelves.collection import get_user_collection
 from shelves.item import (get_catalog_items, render_items_list)
+from shelves.company import get_companies, get_company
 from shelves.uploads import upload_image
 from shelves.relation import Relation
 from shelves.attribute import Attribute
@@ -220,6 +221,9 @@ def create(parent = -1):
         type_id = request.form['type_id']
         title = request.form['title']
         description = request.form['description']
+        company_id = int(request.form['company_id'])
+        if company_id == -1:
+            company_id = None
         try:
             year = int(request.form['year'])
             if year < 1500 or year > 2100:
@@ -229,6 +233,9 @@ def create(parent = -1):
 
         # assert that catalog type exists
         get_catalog_type(type_id)
+        # assert that company exists
+        if (company_id is not None) and (get_company(company_id) is None):
+            error = 'Invalid company.'
 
         if not title:
             error = 'Title is required.'
@@ -239,9 +246,9 @@ def create(parent = -1):
             parent = request.form['parent']
             cursor = get_db_cursor()
             cursor.execute(
-                'INSERT INTO catalog (type_id, title, description, year)'
-                ' VALUES (%s, %s, %s, %s)',
-                (type_id, title, description, year)
+                'INSERT INTO catalog (type_id, title, description, year, company_id)'
+                ' VALUES (%s, %s, %s, %s, %s)',
+                (type_id, title, description, year, company_id)
             )
             catalog_id = cursor.lastrowid
             if parent and int(parent) > 0:
@@ -260,7 +267,8 @@ def create(parent = -1):
     if parent != -1:
         p = get_catalog(parent)
     return render_template('catalog/create.html',
-        parent=p, catalog_types=catalog_types)
+        parent=p, catalog_types=catalog_types,
+        companies=get_companies())
 
 @bp.route('/<int:id>', methods=('GET', 'POST'))
 def view(id):
@@ -319,6 +327,9 @@ def update(id):
         title = request.form['title']
         description = request.form['description']
         type_id = request.form['type_id']
+        company_id = int(request.form['company_id'])
+        if company_id == -1:
+            company_id = None
         try:
             year = int(request.form['year'])
             if year < 1500 or year > 2100:
@@ -328,6 +339,9 @@ def update(id):
 
         # assert that catalog type exists
         get_catalog_type(type_id)
+        # assert that company exists
+        if (company_id is not None) and (get_company(company_id) is None):
+            error = 'Invalid company.'
 
         if not title:
             error = 'Title is required.'
@@ -357,15 +371,16 @@ def update(id):
         else:
             cursor.execute(
                 'UPDATE catalog SET title = %s, description = %s, type_id = %s,'
-                ' year = %s'
+                ' year = %s, company_id = %s'
                 ' WHERE id = %s',
-                (title, description, type_id, year, id)
+                (title, description, type_id, year, company_id, id)
             )
             db_commit()
             return redirect(url_for('catalog.view', id=id))
 
     return render_template('catalog/update.html',
-        catalog=catalog, catalog_types=get_catalog_types())
+        catalog=catalog, catalog_types=get_catalog_types(),
+        companies=get_companies())
 
 @bp.route('/<int:id>/own', methods=('POST',))
 @login_required

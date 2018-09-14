@@ -127,22 +127,18 @@ INSERT INTO collection (owner_id, title, description)
 INSERT INTO catalog_type (title) VALUES ("Nothing");
 INSERT INTO catalog_type (title, physical) VALUES ("Computer Family", 0);
 INSERT INTO catalog_type (title) VALUES ("Computer");
-INSERT INTO catalog_type (title) VALUES ("Computer kit");
 INSERT INTO catalog_type (title, physical) VALUES ("Console family", 0);
 INSERT INTO catalog_type (title) VALUES ("Console");
-INSERT INTO catalog_type (title) VALUES ("Console kit");
 INSERT INTO catalog_type (title, physical) VALUES ("Calculator Family", 0);
 INSERT INTO catalog_type (title) VALUES ("Calculator");
-INSERT INTO catalog_type (title) VALUES ("Calculator kit");
+INSERT INTO catalog_type (title) VALUES ("Kit");
 INSERT INTO catalog_type (title) VALUES ("Mainboard");
 INSERT INTO catalog_type (title) VALUES ("Peripheral device");
-INSERT INTO catalog_type (title) VALUES ("Peripheral device kit");
 INSERT INTO catalog_type (title) VALUES ("Cable/Adapter");
 INSERT INTO catalog_type (title) VALUES ("Book");
 INSERT INTO catalog_type (title) VALUES ("Manual");
 INSERT INTO catalog_type (title) VALUES ("Schematics");
 INSERT INTO catalog_type (title) VALUES ("Software");
-INSERT INTO catalog_type (title) VALUES ("Software kit");
 INSERT INTO catalog_type (title) VALUES ("Data storage");
 INSERT INTO catalog_type (title) VALUES ("Other");
 
