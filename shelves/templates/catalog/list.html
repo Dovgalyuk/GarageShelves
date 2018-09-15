@@ -20,9 +20,13 @@
       <p>
         {% if catalog['year'] %}
           <span class="badge badge-secondary">{{ catalog['year'] }}</span>
+        {% else %}
+          <span>&nbsp;</span>          
         {% endif %}
         {% if catalog['company'] %}
           <a class="text-secondary" href="{{ url_for('company.view', id=catalog['company_id']) }}">{{ catalog['company'] }}</a>
+        {% else %}
+          <span>&nbsp;</span>          
         {% endif %}
       </p>
   </div>
