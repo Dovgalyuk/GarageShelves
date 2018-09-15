@@ -67,6 +67,21 @@
       </div>
       {% endif %}
     </div>
+
+    {% for image4 in images | batch(4) %}
+    <div class="row">
+      {% for image in image4 %}
+        <div class="col-3">
+          <button type="button" class="btn btn-link" data-toggle="modal" data-target="#photoModal" data-whatever="{{ image['id'] }}">
+            <div class="thumbnail">
+              <img width=230 height=230 class="figure-img img-fluid rounded" src="{{ url_for('uploads.view', id=image['id']) }}">
+            </div>
+          </button>
+        </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+
     <div class="row">
       <div class="col-12">
         <h3>Includes catalog items (TODO)</h3>
@@ -79,20 +94,6 @@
       </div>
     </div>
     {% endif %}
-
-    {% for image4 in images | batch(4) %}
-    <div class="row">
-      {% for image in image4 %}
-        <div class="col-3">
-          <button type="button" class="btn btn-link" data-toggle="modal" data-target="#photoModal" data-whatever="{{ image['id'] }}">
-            <div class="thumbnail">
-              <img width=230 height=230 src="{{ url_for('uploads.view', id=image['id']) }}">
-            </div>
-          </button>
-        </div>
-      {% endfor %}
-    </div>
-    {% endfor %}
 
     {% if catalogs %}
       <div class="row">
