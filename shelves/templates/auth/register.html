@@ -3,49 +3,45 @@
 {% block content %}
   {{ super() }}
   <div class="container">
-    <div class="row">
-      <div class="page-header">
-        <h1>Register</h1>
+    <div class="page-header">
+      <h1>Register</h1>
+    </div>
+    <form method="post">
+      <div class="col-12">
+        <h2>Login information</h2>
       </div>
-    </div>
-    <div class="row">
-      <form method="post">
-        <div class="col-12">
-          <h2>Login information</h2>
+      <div class="form-group row">
+        <label class="col-2 control-label" for="username">Username</label>
+        <div class="col-10">
+          <input class="form-control" name="username" id="username" required>
         </div>
-        <div class="form-group row">
-          <label class="col-2 control-label" for="username">Username</label>
-          <div class="col-10">
-            <input class="form-control" name="username" id="username" required>
-          </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-2 control-label" for="password">Password</label>
+        <div class="col-10">
+          <input class="form-control" type="password" name="password" id="password" required>
         </div>
-        <div class="form-group row">
-          <label class="col-2 control-label" for="password">Password</label>
-          <div class="col-10">
-            <input class="form-control" type="password" name="password" id="password" required>
-          </div>
+      </div>
+      <div class="col-12">
+        <h2>Collection information</h2>
+      </div>
+      <div class="form-group row">
+        <label class="col-2 control-label" for="collection_title">Title</label>
+        <div class="col-10">
+          <input class="form-control" name="collection_title" id="collection_title" required value="{{ request.form['collection_title'] }}">
         </div>
-        <div class="col-12">
-          <h2>Collection information</h2>
+      </div>
+      <div class="form-group row">
+        <label class="col-2 control-label" for="collection_description">Description</label>
+        <div class="col-10">
+          <textarea name="collection_description" id="collection_description" class="form-control" rows="10">{{ request.form['collection_description'] }}</textarea>
         </div>
-        <div class="form-group row">
-          <label class="col-2 control-label" for="collection_title">Title</label>
-          <div class="col-10">
-            <input class="form-control" name="collection_title" id="collection_title" required value="{{ request.form['collection_title'] }}">
-          </div>
+      </div>
+      <div class="form-group row">
+        <div class="offset-2 col-10">
+          <input type="submit" value="Register">
         </div>
-        <div class="form-group row">
-          <label class="col-2 control-label" for="collection_description">Description</label>
-          <div class="col-10">
-            <textarea name="collection_description" id="collection_description" class="form-control" rows="10">{{ request.form['collection_description'] }}</textarea>
-          </div>
-        </div>
-        <div class="form-group row">
-          <div class="offset-2 col-10">
-            <input type="submit" value="Register">
-          </div>
-        </div>
-      </form>
-    </div>
+      </div>
+    </form>
   </div>
 {% endblock %}
