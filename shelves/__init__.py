@@ -1,10 +1,10 @@
 import os
 
 from flask import (Flask, render_template)
-from flask_bootstrap import Bootstrap
+#from flask_bootstrap import Bootstrap
 from flask_misaka import Misaka
 from .flask_util_js import FlaskUtilJs
-from .nav import nav
+#from .nav import nav
 
 def create_app(test_config=None):
     # create and configure the app
@@ -18,7 +18,7 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
     # init all after config
-    Bootstrap(app)
+    #Bootstrap(app)
     Misaka(app)
     FlaskUtilJs(app)
 
@@ -63,6 +63,6 @@ def create_app(test_config=None):
         return render_template('index.html')
     app.add_url_rule('/', endpoint='index')
 
-    nav.init_app(app)
+    #nav.init_app(app)
 
     return app

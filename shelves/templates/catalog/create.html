@@ -12,18 +12,18 @@
         </h3>
       </div>
     </div>
-    <div class="row"><div class="col-xs-12">
+    <div class="row"><div class="col-12">
       <form class="form-horizontal" method="post">
         <input type="hidden" id="parent" name="parent" value="{{ request.form['parent'] or parent['id'] }}">
         <div class="form-group">
-          <label for="title" class="col-xs-2 control-label">Title</label>
-          <div class="col-xs-10">
+          <label for="title" class="col-2 control-label">Title</label>
+          <div class="col-10">
             <input class="form-control" id="title" name="title" value="{{ request.form['title'] }}" required>
           </div>
         </div>
         <div class="form-group">
-          <label for="type_id" class="col-xs-2 control-label">Type</label>
-          <div class="col-xs-10">
+          <label for="type_id" class="col-2 control-label">Type</label>
+          <div class="col-10">
             <select name="type_id" id="type_id">
               {% for ct in catalog_types %}
                 <option value="{{ct['id']}}"{% if ct['id']==request.form['type_id'] %} SELECTED{% endif %}>
@@ -34,8 +34,8 @@
           </div>
         </div>
         <div class="form-group">
-          <label for="type_id" class="col-xs-2 control-label">Company</label>
-          <div class="col-xs-10">
+          <label for="type_id" class="col-2 control-label">Company</label>
+          <div class="col-10">
             <select name="company_id" id="company_id">
                 <option value="-1">Unknown</option>
                 {% for c in companies %}
@@ -47,19 +47,19 @@
           </div>
         </div>
         <div class="form-group">
-          <label for="year" class="col-xs-2 control-label">Start of production year</label>
-          <div class="col-xs-10">
+          <label for="year" class="col-2 control-label">Start of production year</label>
+          <div class="col-10">
             <input type="text" name="year" id="year" class="form-control" pattern="[1-2][0-9]{3}" value="{{ request.form['year'] }}">
           </div>
         </div>
         <div class="form-group">
-          <label for="description" class="col-xs-2 control-label">Description</label>
-          <div class="col-xs-10">
+          <label for="description" class="col-2 control-label">Description</label>
+          <div class="col-10">
             <textarea name="description" id="description" class="form-control" rows="10">{{ request.form['description'] }}</textarea>
           </div>
         </div>
         <div class="form-group">
-          <div class="col-xs-offset-2 col-xs-10">
+          <div class="col-offset-2 col-10">
             <input type="submit" value="Save">
           </div>
         </div>

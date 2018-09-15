@@ -5,14 +5,14 @@
   <div class="container">
     <div class="page-header">
       <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
           <h1>
             {% if logo and 'id' in logo %}
               <img src="{{ url_for('uploads.view', id=logo['id']) }}">
             {% endif %}
             {{ company['title'] }}
             {% if g.user.admin %}
-              <a class="action" href="{{ url_for('company.update', id=company['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+              <a class="action" href="{{ url_for('company.update', id=company['id']) }}"><i class="fas fa-edit"></i></a>
             {% endif %}
           </h1>
         </div>

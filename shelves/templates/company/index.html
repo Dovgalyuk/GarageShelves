@@ -10,8 +10,8 @@
     </div>
     {% if g.user.admin %}
     <div class="row">
-      <div class="col-xs-12">
-        <a href="{{ url_for('company.create') }}"><h4><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add new company</h4></a>
+      <div class="col-12">
+        <a href="{{ url_for('company.create') }}"><h4><i class="fas fa-plus"></i> Add new company</h4></a>
       </div>
     </div>
     {% endif %}
@@ -19,7 +19,7 @@
     {% for row in companies | batch(3) %}
     <div class="row">
     {% for company in row %}
-      <div class="col-xs-4">
+      <div class="col-4">
         <h3>
           {% if company['logo'] %}
               <img src="{{ url_for('uploads.view', id=company['logo']) }}">

@@ -5,58 +5,58 @@
   <div class="container">
     <div class="page-header">
       <div class="row">
-        <div class="col-xs-10">
-          <h1>
+        <div class="col-10">
+          <h1 class="display-4">
             {% if logo and 'id' in logo %}
               <img src="{{ url_for('uploads.view', id=logo['id']) }}">
             {% endif %}
             {{ catalog['type_title'] }} : {{ catalog['title'] }}
             {% if g.user.admin %}
-              <a class="action" href="{{ url_for('catalog.update', id=catalog['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+              <a class="action" href="{{ url_for('catalog.update', id=catalog['id']) }}"><i class="fas fa-edit"></i></a>
             {% endif %}
           </h1>
           <p>
             {% if catalog['year'] %}
-              <span class="badge">{{ catalog['year'] }}</span>
+              <span class="badge badge-secondary">{{ catalog['year'] }}</span>
             {% endif %}
             {% if catalog['company'] %}
               <a class="text-secondary" href="{{ url_for('company.view', id=catalog['company_id']) }}">{{ catalog['company'] }}</a>
             {% endif %}
           </p>
         </div>
-        <div class="col-xs-2">
+        <div class="col-2">
           {% if g.user and catalog['physical'] %}
             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ownModal">I own this</button>
           {% endif %}
         </div>
       </div>
 
+    {% if g.user.admin %}
       <div class="row">
-        <div class="col-xs-1"><h5>In families</h5></div>
-        <div class="col-xs-5">
-          <ul id="familiesEditor" class="list-group">
+        <div class="col-1">In families</div>
+        <div class="col-5">
+          <ul id="familiesEditor" class="list-group list-group-flush">
           </ul>
         </div>
       </div>
     </div>
-    {% if g.user.admin %}
-    <div class="row">
-      <div class="col-xs-12">
-        <a href="{{ url_for('catalog.create', parent=catalog['id']) }}"><h4><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add catalog sub-item</h4></a>
-      </div>
-    </div>
     {% endif %}
     <div class="row">
-      <div class="col-xs-12">
+      <div class="col-12">
+        <h3>Description</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
         <p>{{ catalog['description'] | markdown }}</p>
       </div>
     </div>
     <div class="row">
-      <div class="col-xs-8">
-        <h2>Catalog item images</h2>
+      <div class="col-8">
+        <h3>Catalog item images</h3>
       </div>
       {% if g.user.admin %}
-      <div class="col-xs-4">
+      <div class="col-4">
         <form class="form-inline" method="post" enctype="multipart/form-data">
           <div class="form-group">
             <label for="catalog_photo">Add image</label>
@@ -67,11 +67,23 @@
       </div>
       {% endif %}
     </div>
+    <div class="row">
+      <div class="col-12">
+        <h3>Includes catalog items (TODO)</h3>
+      </div>
+    </div>
+    {% if g.user.admin %}
+    <div class="row">
+      <div class="col-12">
+        <a href="{{ url_for('catalog.create', parent=catalog['id']) }}"><i class="fas fa-plus"></i> Add catalog sub-item</a>
+      </div>
+    </div>
+    {% endif %}
 
     {% for image4 in images | batch(4) %}
     <div class="row">
       {% for image in image4 %}
-        <div class="col-xs-3">
+        <div class="col-3">
           <button type="button" class="btn btn-link" data-toggle="modal" data-target="#photoModal" data-whatever="{{ image['id'] }}">
             <div class="thumbnail">
               <img width=230 height=230 src="{{ url_for('uploads.view', id=image['id']) }}">
@@ -84,8 +96,8 @@
 
     {% if catalogs %}
       <div class="row">
-        <div class="col-xs-12">
-          <h2>Includes the following catalog items</h2>
+        <div class="col-12">
+          <h3>Includes the following catalog items</h3>
         </div>
       </div>
     {% endif %}
@@ -93,8 +105,8 @@
 
     {% if g.user and catalog['physical'] %}
       <div class="row">
-        <div class="col-xs-12">
-          <h2>Items in your collection</h2>
+        <div class="col-12">
+          <h3>Items in your collection</h3>
         </div>
       </div>
       {{ rendered_items | safe }}
@@ -105,10 +117,10 @@
       <div class="modal-content">
         <div class="modal-header">
           <div class="row">
-            <div class="col-xs-11">
+            <div class="col-11">
               <h3 class="modal-title" id="ownModalLabel">Confirm the ownership</h3>
             </div>
-            <div class="col-xs-1">
+            <div class="col-1">
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
@@ -117,19 +129,19 @@
         </div>
         <div class="modal-body">
           <form class="form-inline" method="post" enctype="multipart/form-data" action="{{ url_for('catalog.own', id=catalog['id']) }}" method="post">
-            <div class="row"><div class="col-xs-12">
+            <div class="row"><div class="col-12">
               <div class="form-group">
                 <label for="internal_id" class="col-form-label">Internal ID:</label>
                 <input type="text" class="form-control" id="internal_id" name="internal_id">
               </div>
             </div></div>
             {% if catalogs %}
-              <div class="row"><div class="col-xs-12">
+              <div class="row"><div class="col-12">
                 <h4>Also add items from the kit</h4>
               </div></div>
               {% for catalog in catalogs %}
                 {% if catalog['physical'] %}
-                  <div class="row"><div class="col-xs-12">
+                  <div class="row"><div class="col-12">
                     <div class="form-group">
                       <input type="checkbox" class="form-control" id="subitem{{ catalog['id'] }}" name="subitem" value="{{ catalog['id'] }}" checked>
                       <label for="subitem{{ catalog['id'] }}" class="col-form-label">{{ catalog['type_title'] }} : {{ catalog['title'] }}</label>
@@ -180,8 +192,8 @@
 function FamiliesEditor(idSelector, options) {
     var $main = $("#" + idSelector);
     var settings = {
-        labelRemove: '<i class="glyphicon glyphicon-remove clickable"></i>',
-        labelAdd: '<i class="glyphicon glyphicon-plus clickable"></i>',
+        labelRemove: '<i class="fas fa-trash-alt"></i>',
+        labelAdd: '<i class="fas fa-plus"></i>',
         textConfirmDelete: 'This link will be deleted. Are you sure?',
         listOptions: { hintCss: {border: '1px dashed #13981D'},
         placeholderCss: {'background-color': 'gray'} }
@@ -210,8 +222,10 @@ function FamiliesEditor(idSelector, options) {
         $('#modalAddFamily').modal('hide');
         var $list = $('#modalFamiliesList');
         $.post(flask_util.url_for('catalog._family_add'),
-            {id:{{ catalog['id'] }}, family:$list.val() })
-        editor.loadData();
+            {id:{{ catalog['id'] }}, family:$list.val() },
+            function() {
+                editor.loadData();
+            })
     });
     {% endif %}
 
@@ -231,7 +245,7 @@ function FamiliesEditor(idSelector, options) {
     }
 
     function createItem(data) {
-        var $li = $('<li>').addClass('list-group-item');
+        var $li = $('<li>').addClass('list-group-item d-flex justify-content-between align-items-center');
         $li.data(data);
         return $li
     }

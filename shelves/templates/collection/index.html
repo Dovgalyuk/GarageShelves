@@ -10,13 +10,13 @@
     </div>
   {% for collection in collections %}
     <div class="row">
-      <div class="col-xs-12">
+      <div class="col-12">
         <h2><a class="action" href="{{ url_for('collection.view', id=collection['id']) }}">
           {{ collection['title'] }}</a> <small>owned by {{ collection['username'] }}</small></h2>
       </div>
     </div>
     <div class="row">
-      <div class="col-xs-12">
+      <div class="col-12">
         <p>{{ collection['description'] | markdown }}</p>
       </div>
     </div>

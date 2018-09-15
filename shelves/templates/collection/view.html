@@ -7,13 +7,13 @@
       <div class="page-header">
         <h2>
         {% if g.user['id'] == collection['owner_id'] %}
-          <a href="{{ url_for('collection.update', id=collection['id']) }}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+          <a href="{{ url_for('collection.update', id=collection['id']) }}"><i class="fas fa-edit"></i></a>
         {% endif %}
         {{ collection['title'] }} <small>owned by {{ collection['username'] }}</h2>
       </div>
     </div>
     <div class="row">
-      <div class="col-xs-12">
+      <div class="col-12">
         <p>{{ collection['description'] | markdown }}</p>
       </div>
     </div>
