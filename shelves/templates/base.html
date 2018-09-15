@@ -30,16 +30,32 @@
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('company.index') }}">Companies</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('collection.index') }}">All collections</a>
+          </li>
           {% if g.user %}
           <li class="nav-item">
             <span class="nav-link disabled">{{ g.user['username'] }}</span>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('auth.profile') }}">Profile</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('auth.logout') }}">Log out</a>
+          </li>
+          {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+          </li>
           {% endif %}
         </ul>
-        <form class="form-inline my-2 my-lg-0">
+        {#<form class="form-inline my-2 my-lg-0">
           <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
           <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-        </form>
+        </form>#}
       </div>
     </nav>
 

@@ -3,12 +3,13 @@
 {% for item in items4 %}
 <div class="col-3">
   <div class="thumbnail">
-    <img width=240 height=240
     {% if item['img_id'] %}
+    <img width=240 height=240 class="figure-img img-fluid rounded" 
         src="{{ url_for('uploads.view', id=item['img_id']) }}">
     {% else %}
-        src="{{ url_for('static', filename='dummy.jpg') }}">
+        <span class="text-muted"><i class="fas fa-laptop fa-10x"></i></span>
     {% endif %}
+
     {% if item['internal_id'] %}
         {{ item['internal_id'] }}
     {% endif %}

@@ -9,28 +9,28 @@
       </div>
     </div>
     <div class="row">
-      <form class="form-horizontal" method="post">
-        <div class="col-12">
-          <h2>Change password</h2>
-        </div>
-        <div class="form-group">
-          <label class="col-2 control-label" for="password">Old password</label>
-          <div class="col-10">
-            <input class="form-control" type="password" name="old_password" id="old_password" required>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-2 control-label" for="password">New password</label>
-          <div class="col-10">
-            <input class="form-control" type="password" name="new_password" id="new_password" required>
-          </div>
-        </div>
-        <div class="form-group">
-          <div class="col-offset-2 col-10">
-            <input type="submit" value="Update">
-          </div>
-        </div>
-      </form>
+      <div class="col-12">
+        <h2>Change password</h2>
+      </div>
     </div>
+    <form method="post">
+      <div class="form-group row">
+        <label class="col-2 control-label" for="password">Old password</label>
+        <div class="col-10">
+          <input class="form-control" type="password" name="old_password" id="old_password" required>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-2 control-label" for="password">New password</label>
+        <div class="col-10">
+          <input class="form-control" type="password" name="new_password" id="new_password" required>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="offset-2 col-10">
+          <input type="submit" value="Update">
+        </div>
+      </div>
+    </form>
   </div>
 {% endblock %}
