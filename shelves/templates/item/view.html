@@ -45,7 +45,7 @@
         <div class="col-3">
           <button type="button" class="btn btn-link" data-toggle="modal" data-target="#photoModal" data-whatever="{{ image['id'] }}">
             <div class="thumbnail">
-              <img width=230 height=230 src="{{ url_for('uploads.view', id=image['id']) }}">
+              <img width=230 height=230 class="figure-img img-fluid rounded" src="{{ url_for('uploads.view', id=image['id']) }}">
             </div>
           </button>
         </div>
