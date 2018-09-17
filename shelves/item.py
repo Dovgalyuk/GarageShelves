@@ -133,6 +133,7 @@ def _get_images(id):
     return jsonify(result=get_item_images(id))
 
 @bp.route('/<int:id>/_upload_image', methods=('POST',))
+@login_required
 def _upload_image(id):
     item = get_item(id)
     if item['owner_id'] != g.user['id']:

@@ -41,7 +41,7 @@
         <div class="form-group row">
           <label for="catalog_logo" class="col-2 control-label">Logo</label>
           <div class="col-10">
-            <input type="file" id="catalog_logo" name="catalog_logo">
+            {{ select_files_control('catalog_logo', 'Browse&hellip;') }}
           </div>
         </div>
         <div class="form-group row">

@@ -270,36 +270,9 @@ def create(parent = -1):
         parent=p, catalog_types=catalog_types,
         companies=get_companies())
 
-@bp.route('/<int:id>', methods=('GET', 'POST'))
+@bp.route('/<int:id>')
 def view(id):
     catalog = get_catalog(id)
-
-    if request.method == 'POST':
-        if not g.user['admin']:
-            abort(403)
-
-        if 'catalog_photo' not in request.files:
-            flash('No photo selected')
-            return redirect(request.url)
-
-        file = request.files['catalog_photo']
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-
-        if file:
-            file_id = upload_image(file)
-            db = get_db_cursor()
-            db.execute(
-                'INSERT INTO catalog_attribute (type, catalog_id, value_id)'
-                ' VALUES (%s, %s, %s)',
-                (Attribute.ATTR_IMAGE, id, file_id,)
-            )
-            db_commit()
-            return redirect(request.url)
-        else:
-            flash('Invalid file')
-            return redirect(request.url)
 
     items = []
     if g.user:
@@ -308,7 +281,6 @@ def view(id):
     return render_template('catalog/view.html',
         catalog=catalog, catalog_types=get_catalog_types(),
         rendered_items=render_items_list(items),
-        images=get_catalog_images(id),
         parents=get_catalog_parents(id),
         catalogs=get_catalog_children(id),
         logo=get_catalog_logo(id))
@@ -456,3 +428,30 @@ def _family_add():
     )
     db_commit()
     return ('', 204)
+
+@bp.route('/<int:id>/_get_images')
+def _get_images(id):
+    return jsonify(result=get_catalog_images(id))
+
+@bp.route('/<int:id>/_upload_image', methods=('POST',))
+@login_required
+@admin_required
+def _upload_image(id):
+    if 'img' not in request.files:
+        return ('', 400)
+
+    file = request.files['img']
+    if file:
+        file_id = upload_image(file)
+        cursor = get_db_cursor()
+        cursor.execute(
+            'INSERT INTO catalog_attribute (type, catalog_id, value_id)'
+            ' VALUES (%s, %s, %s)',
+            (Attribute.ATTR_IMAGE, id, file_id,)
+        )
+        db_commit()
+        cursor.execute('SELECT id, filename FROM image WHERE id = %s',
+            (file_id,))
+        return jsonify(result=cursor.fetchone())
+
+    return ('', 400)

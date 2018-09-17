@@ -138,14 +138,74 @@
           }
           input.trigger('fileselect', [numFiles, label]);
       });
-      /*
-        $(document).ready( function() {
-            $(':file').on('fileselect', function(event, numFiles, label) {
-                console.log(numFiles);
-                console.log(label);
-            });
-        });
-      */
+      // append image to the image view
+      function appendImage(id) {
+          var list = $('#imagesList').children();
+          var row;
+          var add = false;
+          if (list.length > 0) {
+              row = list.last("row");
+              if (row.children().length == 4)
+                  add = true;
+          } else {
+              add = true;
+          }
+
+          if (add) {
+              row = $('<div>').addClass('row');
+              $('#imagesList').append(row);
+          }
+          row.append('<div class="col-3"> \
+                        <button type="button" class="btn btn-link" data-toggle="modal" \
+                               data-target="#photoModal" data-whatever="' + id + '"> \
+                          <div class="thumbnail"> \
+                            <img width=230 height=230 class="figure-img img-fluid rounded" src="'
+                                + flask_util.url_for('uploads.view', {id:id}) + '"> \
+                          </div> \
+                        </button> \
+                      </div> \
+          ');
+      }
+      {% if entity %}
+      // Image list support functions
+      $(function() {
+          if ($('#imagesList')) {
+              /* Load images */
+              $.getJSON(flask_util.url_for('{{ entity }}._get_images', {id:{{ params['id'] }} }),
+                  function(response) {
+                      var $list = $('#imagesList');
+                      $list.empty();
+                      var count = 0;
+                      $.each(response.result, function(k, v) {
+                          appendImage(v.id);              
+                      });
+                  }
+              );
+          }
+      });
+
+      $(document).ready( function() {
+          $('#photo_upload').on('fileselect', function(event, numFiles, label) {
+              var form_data = new FormData();
+              form_data.append('img', $('#photo_upload')[0].files[0]);
+
+              $.ajax({
+                  type: 'POST',
+                  cache: false,
+                  processData: false,
+                  contentType: false,
+                  data: form_data,
+                  url: flask_util.url_for('{{ entity }}._upload_image', {id:{{ params['id'] }} }),
+
+                  success: function(data) {
+                      /* The data has been sent out successfully. */
+                      appendImage(data.result.id);
+                  }
+              });
+
+          });
+      });
+      {% endif %}
     </script>
 
     {%- endblock scripts %}

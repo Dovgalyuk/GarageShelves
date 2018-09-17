@@ -1,3 +1,6 @@
+{% set params=catalog %}
+{% set entity='catalog' %}
+
 {% extends 'base.html' %}
 
 {% block content %}
@@ -52,35 +55,16 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-8"> 
+      <div class="col-6"> 
         <h3>Catalog item images</h3>
+        {% if g.user.admin %}
+          {{ upload_files_control('photo_upload', 'Upload') }}
+        {% endif %}
       </div>
-      {% if g.user.admin %}
-      <div class="col-4">
-        <form class="form-inline" method="post" enctype="multipart/form-data">
-          <div class="form-group">
-            <label for="catalog_photo">Add image</label>
-            <input type="file" id="catalog_photo" name="catalog_photo">
-          </div>
-          <button type="submit" class="btn btn-default">Upload</button>
-        </form>
-      </div>
-      {% endif %}
     </div>
 
-    {% for image4 in images | batch(4) %}
-    <div class="row">
-      {% for image in image4 %}
-        <div class="col-3">
-          <button type="button" class="btn btn-link" data-toggle="modal" data-target="#photoModal" data-whatever="{{ image['id'] }}">
-            <div class="thumbnail">
-              <img width=230 height=230 class="figure-img img-fluid rounded" src="{{ url_for('uploads.view', id=image['id']) }}">
-            </div>
-          </button>
-        </div>
-      {% endfor %}
+    <div id="imagesList">
     </div>
-    {% endfor %}
 
     <div class="row">
       <div class="col-12">
