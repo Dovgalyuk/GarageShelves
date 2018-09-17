@@ -61,21 +61,49 @@
             </button>
           </div>
           <div class="modal-body">
-            <img src="" id="modal-photo-img" class="figure-img img-fluid rounded" width=auto>
+            <div class="text-center">
+              <img src="" id="modal-photo-img" class="figure-img img-fluid rounded" width=auto>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
+    {% macro select_files_control(id, text, mul=false) -%}
+      <div class="input-group">
+          <label class="input-group-btn">
+              <span class="btn btn-primary">
+                  {{ text | safe }}<input type="file" name="{{ id }}" id="{{ id }}" class="{{ id }}" style="display: none;" {% if mul %} multiple {% endif %}>
+              </span>
+          </label>
+          <input type="text" class="form-control" readonly>
+      </div>
+    {%- endmacro %}
+
+    {% macro upload_files_control(id, text, mul=false) -%}
+      <div class="input-group">
+          <label class="input-group-btn">
+              <span class="btn btn-primary">
+                  {{ text | safe }}<input type="file" name="{{ id }}" id="{{ id }}" class="{{ id }}" style="display: none;" {% if mul %} multiple {% endif %}>
+              </span>
+          </label>
+      </div>
+    {%- endmacro %}
+
     {% block content %}
       <div class="container">
       {% with messages = get_flashed_messages(with_categories=True) %}
       {% if messages %}
+        {% for cat, msg in messages %}
         <div class="row">
           <div class="col-12">
-            {{utils.flashed_messages(messages)}}
+            <div class="alert alert-{% if cat=='critical' or cat=='error' %}danger{% elif cat=='warning'%}warning{% else %}info{%endif %} {% if dismissible %} alert-dismissible{% endif %}" role="alert">
+              {% if dismissible %} <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>{% endif %}
+              {{msg}}
+            </div>
           </div>
         </div>
+        {%- endfor -%}
       {% endif %}
       {% endwith %}
       </div>
@@ -95,6 +123,31 @@
         img.attr('src', flask_util.url_for('uploads.view', {id:id}) )
       });
     </script>
+  
+    <script type="text/javascript">
+      // for custom file attachment
+      $(document).on('change', ':file', function() {
+          var input = $(this),
+          numFiles = input.get(0).files ? input.get(0).files.length : 1,
+          label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+
+          var input_text = $(this).parents('.input-group').find(':text');
+          if (input_text) {
+              log = numFiles > 1 ? numFiles + ' files selected' : label;
+              input_text.val(log);
+          }
+          input.trigger('fileselect', [numFiles, label]);
+      });
+      /*
+        $(document).ready( function() {
+            $(':file').on('fileselect', function(event, numFiles, label) {
+                console.log(numFiles);
+                console.log(label);
+            });
+        });
+      */
+    </script>
+
     {%- endblock scripts %}
 
     <footer class="page-footer font-small pt-4">
