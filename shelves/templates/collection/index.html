@@ -10,7 +10,10 @@
     </div>
   {% for collection in collections %}
     <div class="row pt-4">
-      <div class="col-12">
+      <div class="col-1">
+        <span class="text-muted"><i class="fas fa-boxes fa-4x"></i></span>
+      </div>
+      <div class="col-11">
         <h2><a class="action" href="{{ url_for('collection.view', id=collection['id']) }}">
           {{ collection['title'] }}</a> <small>owned by {{ collection['username'] }}</small></h2>
         <p>
