@@ -53,7 +53,8 @@ def get_user_collection(id):
 def index():
     db = get_db_cursor()
     db.execute(
-        'SELECT c.id, title, description, created, owner_id, username'
+        'SELECT c.id, title, description, created, owner_id, username,'
+        ' (SELECT COUNT(*) FROM item it WHERE it.collection_id=c.id) AS count'
         ' FROM collection c JOIN user u ON c.owner_id = u.id'
         ' ORDER BY created DESC'
     )

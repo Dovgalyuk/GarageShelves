@@ -30,10 +30,10 @@
         <h3>
           <a class="action" href="{{ url_for('company.view', id=company['id']) }}">
             {{ company['title'] }}</a>
-          <p>
-            <span class="badge badge-secondary">{{ company.count }} item{% if company.count != 1 %}s{% endif %}</span>
-          </p>
         </h3>
+        <p>
+          <span class="badge badge-secondary">{{ company.count }} item{% if company.count != 1 %}s{% endif %}</span>
+        </p>
       </div>
     {% endfor %}
     </div>

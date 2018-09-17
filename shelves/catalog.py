@@ -123,7 +123,10 @@ def get_catalog_items_of_type(id, noparent = False):
     cursor = get_db_cursor()
     query = 'SELECT c.id, c.title, description, created, c.type_id,'   \
             ' ct.title as type_title, ct.physical, img.id as logo,'    \
-            ' year, com.title as company, c.company_id'                \
+            ' year, com.title as company, c.company_id,'               \
+            ' (SELECT COUNT(*) FROM catalog cc'                        \
+            '   JOIN catalog_relation r WHERE cc.id=r.catalog_id2'     \
+            '   AND c.id=r.catalog_id1 AND r.type=%s) AS count'        \
             ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'\
             ' LEFT JOIN (SELECT * FROM catalog_attribute WHERE type = %s) a ON c.id = a.catalog_id'    \
             ' LEFT JOIN image img ON a.value_id = img.id'              \
@@ -134,10 +137,10 @@ def get_catalog_items_of_type(id, noparent = False):
         cursor.execute(query
             + ' AND NOT EXISTS (SELECT 1 FROM catalog_relation'
               '      WHERE catalog_id2 = c.id AND type = %s)' + suffix,
-            (Attribute.ATTR_LOGO, id, Relation.REL_INCLUDES,)
+            (Relation.REL_INCLUDES,Attribute.ATTR_LOGO, id, Relation.REL_INCLUDES,)
         )
     else:
-        cursor.execute(query + suffix, (Attribute.ATTR_LOGO,id,))
+        cursor.execute(query + suffix, (Relation.REL_INCLUDES,Attribute.ATTR_LOGO,id,))
     return cursor.fetchall()
 
 def get_catalog_items_of_company(id):
@@ -174,8 +177,9 @@ def get_calculator_families(noparent=True):
 def get_calculators():
     return get_catalog_items_of_type(get_catalog_type_id('Calculator'))
 
-def render_catalog_list(items):
-    return render_template('catalog/list.html', catalogs=items, notype=True)
+def render_catalog_list(items, showcount=False):
+    return render_template('catalog/list.html',
+        catalogs=items, notype=True, showcount=showcount)
 
 def get_catalog_families():
     f1 = get_catalog_type_id('Computer family')
@@ -199,11 +203,11 @@ def get_catalog_families():
 @bp.route('/')
 def index():
     return render_template('catalog/index.html',
-        rendered_families=render_catalog_list(get_computer_families()),
+        rendered_families=render_catalog_list(get_computer_families(), True),
         rendered_computers=render_catalog_list(get_computers()),
-        rendered_console_families=render_catalog_list(get_console_families()),
+        rendered_console_families=render_catalog_list(get_console_families(), True),
         rendered_consoles=render_catalog_list(get_consoles()),
-        rendered_calculator_families=render_catalog_list(get_calculator_families()),
+        rendered_calculator_families=render_catalog_list(get_calculator_families(), True),
         rendered_calculators=render_catalog_list(get_calculators()),
         )
 
