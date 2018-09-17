@@ -18,7 +18,7 @@
       <div class="col-3">
         <p>In collection since {{ item['added'].strftime('%Y-%m-%d') }}</p>
       </div>
-      {% if g.user['id'] == item['owner_id'] %}
+{#      {% if g.user['id'] == item['owner_id'] %}
       <div class="col-4">
         <form class="form-inline" method="post" enctype="multipart/form-data">
           {{ select_files_control('item_photo', 'Browse&hellip;') }}
@@ -26,6 +26,7 @@
         </form>
       </div>
       {% endif %}
+      #}
     </div>
     <div class="row"><div class="col-12">
       <p>{{ item['description'] | markdown }}</p>
@@ -33,22 +34,14 @@
     <div class="row">
       <div class="col-12">
         <h4 class="pt-4">Real item photos</h4>
+        {% if g.user['id'] == item['owner_id'] %}
+          {{ upload_files_control('photo_upload', 'Upload') }}
+        {% endif %}
       </div>
     </div>
 
-    {% for image4 in images | batch(4) %}
-    <div class="row">
-      {% for image in image4 %}
-        <div class="col-3">
-          <button type="button" class="btn btn-link" data-toggle="modal" data-target="#photoModal" data-whatever="{{ image['id'] }}">
-            <div class="thumbnail">
-              <img width=230 height=230 class="figure-img img-fluid rounded" src="{{ url_for('uploads.view', id=image['id']) }}">
-            </div>
-          </button>
-        </div>
-      {% endfor %}
+    <div id="imagesList">
     </div>
-    {% endfor %}
 
     <div class="row">
       <div class="col-12">
@@ -58,4 +51,74 @@
 
     {{ rendered_children | safe }}
   </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+<script type="text/javascript">
+
+function appendImage(id) {
+    var list = $('#imagesList').children();
+    var row;
+    var add = false;
+    if (list.length > 0) {
+        row = list.last("row");
+        if (row.children().length == 4)
+            add = true;
+    } else {
+        add = true;
+    }
+
+    if (add) {
+        row = $('<div>').addClass('row');
+        $('#imagesList').append(row);
+    }
+    row.append('<div class="col-3"> \
+                  <button type="button" class="btn btn-link" data-toggle="modal" \
+                         data-target="#photoModal" data-whatever="' + id + '"> \
+                    <div class="thumbnail"> \
+                      <img width=230 height=230 class="figure-img img-fluid rounded" src="'
+                          + flask_util.url_for('uploads.view', {id:id}) + '"> \
+                    </div> \
+                  </button> \
+                </div> \
+    ');
+}
+
+$(function() {
+    /* Load images */
+    $.getJSON(flask_util.url_for('item._get_images', {id:{{ item['id'] }} }),
+        function(response) {
+            var $list = $('#imagesList');
+            $list.empty();
+            var count = 0;
+            $.each(response.result, function(k, v) {
+                appendImage(v.id);              
+            });
+        }
+    );
+});
+
+$(document).ready( function() {
+    $('#photo_upload').on('fileselect', function(event, numFiles, label) {
+        var form_data = new FormData();
+        form_data.append('img', $('#photo_upload')[0].files[0]);
+
+        $.ajax({
+            type: 'POST',
+            cache: false,
+            processData: false,
+            contentType: false,
+            data: form_data,
+            url: flask_util.url_for('item._upload_image', {id:{{ item['id'] }} }),
+
+            success: function(data) {
+                /* The data has been sent out successfully. */
+                appendImage(data.result.id);
+            }
+        });
+
+    });
+});
+</script>
 {% endblock %}

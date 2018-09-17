@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify
 )
 from werkzeug.exceptions import abort
 
@@ -100,39 +100,10 @@ def render_items_list(items):
 # Routes
 ###############################################################################
 
-@bp.route('/<int:id>', methods=('GET', 'POST'))
+@bp.route('/<int:id>')
 def view(id):
     item = get_item(id)
-
-    if request.method == 'POST':
-        if item['owner_id'] != g.user['id']:
-            abort(403)
-
-        if 'item_photo' not in request.files:
-            flash('No photo selected')
-            return redirect(request.url)
-
-        file = request.files['item_photo']
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-
-        if file:
-            file_id = upload_image(file)
-            db = get_db_cursor()
-            db.execute(
-                'INSERT INTO item_attribute (type, item_id, value_id)'
-                ' VALUES (%s, %s, %s)',
-                (Attribute.ATTR_IMAGE, id, file_id,)
-            )
-            db_commit()
-            return redirect(request.url)
-        else:
-            flash('Invalid file')
-            return redirect(request.url)
-
-    images = get_item_images(id)
-    return render_template('item/view.html', item=item, images=images,
+    return render_template('item/view.html', item=item,
         rendered_children=render_items_list(get_item_children(id)))
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
@@ -155,3 +126,33 @@ def update(id):
         return redirect(url_for("item.view", id=id))
 
     return render_template('item/update.html', item=item)
+
+
+@bp.route('/<int:id>/_get_images')
+def _get_images(id):
+    return jsonify(result=get_item_images(id))
+
+@bp.route('/<int:id>/_upload_image', methods=('POST',))
+def _upload_image(id):
+    item = get_item(id)
+    if item['owner_id'] != g.user['id']:
+        return ('', 403)
+
+    if 'img' not in request.files:
+        return ('', 400)
+
+    file = request.files['img']
+    if file:
+        file_id = upload_image(file)
+        cursor = get_db_cursor()
+        cursor.execute(
+            'INSERT INTO item_attribute (type, item_id, value_id)'
+            ' VALUES (%s, %s, %s)',
+            (Attribute.ATTR_IMAGE, id, file_id,)
+        )
+        db_commit()
+        cursor.execute('SELECT id, filename FROM image WHERE id = %s',
+            (file_id,))
+        return jsonify(result=cursor.fetchone())
+
+    return ('', 400)
