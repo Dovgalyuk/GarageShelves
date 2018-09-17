@@ -13,7 +13,9 @@ bp = Blueprint('company', __name__, url_prefix='/company')
 def get_companies():
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT * FROM company ORDER BY title'
+        'SELECT *,'
+        ' (SELECT COUNT(*) FROM catalog WHERE catalog.company_id=company.id) AS count'
+        ' FROM company ORDER BY title'
         )
     return cursor.fetchall()
 
