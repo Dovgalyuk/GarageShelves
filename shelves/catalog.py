@@ -32,7 +32,7 @@ def get_catalog_none(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT c.id, c.title, description, created, c.type_id,'
-        ' ct.title as type_title, ct.physical, year, com.title as company,'
+        ' ct.title as type_title, ct.physical, IFNULL(year, ""), com.title as company,'
         ' c.company_id'
         ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
         ' LEFT JOIN company com ON com.id = c.company_id'
