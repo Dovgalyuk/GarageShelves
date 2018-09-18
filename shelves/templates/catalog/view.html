@@ -40,7 +40,7 @@
 
     {% if g.user.admin %}
       <div class="row">
-        <div class="col-1">In families</div>
+        <div class="col-1"></div>
         <div class="col-5">
           <ul id="familiesEditor" class="list-group list-group-flush">
           </ul>
@@ -240,6 +240,9 @@ function FamiliesEditor(idSelector, options) {
      * @return {object} jQuery Object
      * */
     function createMenu(arrayItem) {
+        if (arrayItem.length > 0) {
+            $main.append('<li class="list-group-item border-0 pt-0 pb-1 d-flex justify-content-between align-items-center"><div>In families</div></li>');
+        }
         $.each(arrayItem, function (k, v) {
             var itemObject = $.extend({}, v);
             var $li = createItem(itemObject);
