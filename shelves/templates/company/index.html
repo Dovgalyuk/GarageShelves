@@ -8,6 +8,13 @@
         <h1>Companies</h1>
       </div>
     </div>
+
+    <div class="row pt-4">
+      <div class="col-12">
+        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" id="searchCompany">
+      </div>
+    </div>
+
     {% if g.user.admin %}
     <div class="row pt-4">
       <div class="col-12">
@@ -17,7 +24,7 @@
     {% endif %}
 
     {% for row in companies | batch(3) %}
-    <div class="row pt-4">
+    <div class="row pt-4 companies">
     {% for company in row %}
       <div class="col-1">
           {% if company['logo'] %}
@@ -26,7 +33,7 @@
               <span class="text-muted"><i class="fas fa-industry fa-4x"></i></span>
           {% endif %}
       </div>
-      <div class="col-3">
+      <div class="col-3 company">
         <h3>
           <a class="action" href="{{ url_for('company.view', id=company['id']) }}">
             {{ company['title'] }}</a>
@@ -40,4 +47,28 @@
     {% endfor %}
 
   </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script type="text/javascript">
+  $(document).ready(function(){
+      $("#searchCompany").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          $(".company").filter(function() {
+              var show = $(this).text().toLowerCase().indexOf(value) > -1;
+              $(this).toggle(show);
+              $(this).prev().toggle(show);
+              if (show) {
+                  $(this).parent().toggle(true);
+              }
+          });
+          $(".companies").filter(function() {
+              if ($(this).children(':visible').length == 0) {
+                  $(this).toggle(false);
+              }
+          });
+      });
+  });
+  </script>
 {% endblock %}
