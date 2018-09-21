@@ -414,6 +414,9 @@ def _join():
     if logo != 1 and logo != 2:
         abort(403)
 
+    if year == '':
+        year = None
+
     # assert that catalog items exist
     c1 = get_catalog(id1)
     c2 = get_catalog(id2)
@@ -470,6 +473,22 @@ def _join():
     cursor.execute(
         'UPDATE catalog_attribute SET catalog_id = %s WHERE catalog_id = %s',
         (id1, id2, )
+    )
+
+    # Delete duplicate relations
+    cursor.execute(
+        'DELETE FROM catalog_relation WHERE catalog_id1 = %s AND type = %s'
+        ' AND catalog_id2 IN (SELECT DISTINCT catalog_id2 FROM'
+                             ' (SELECT * FROM catalog_relation'
+                             ' WHERE catalog_id1 = %s AND type = %s) AS tmp)',
+        (id2, Relation.REL_INCLUDES, id1, Relation.REL_INCLUDES,)
+    )
+    cursor.execute(
+        'DELETE FROM catalog_relation WHERE catalog_id2 = %s AND type = %s'
+        ' AND catalog_id1 IN (SELECT DISTINCT catalog_id1 FROM'
+                             ' (SELECT * FROM catalog_relation'
+                             ' WHERE catalog_id2 = %s AND type = %s) AS tmp)',
+        (id2, Relation.REL_INCLUDES, id1, Relation.REL_INCLUDES,)
     )
 
     # Redirect relations
