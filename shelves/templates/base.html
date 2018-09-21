@@ -40,6 +40,15 @@
             {% endif %}
             {{ nav('auth.profile', 'Profile') }}
             {{ nav('auth.logout', 'Sign out') }}
+            <li class="nav-item"></li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="editCatalogDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Edit catalog
+              </a>
+              <div class="dropdown-menu" aria-labelledby="editCatalogDropdown">
+                <a class="dropdown-item" href="#" id="catalogItemJoin">Join</a>
+              </div>
+            </li>
           {% else %}
             {{ nav('auth.register', 'Register') }}
             {{ nav('auth.login', 'Login') }}
@@ -52,6 +61,7 @@
       </div>
     </nav>
 
+    {# Photo viewer modal window #}
     <div class="modal" id="photoModal" tabindex="-1" role="dialog" aria-labelledby="photo" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-lg mw-100" role="document">
         <div class="modal-content">
@@ -64,6 +74,85 @@
             <div class="text-center">
               <img src="" id="modal-photo-img" class="figure-img img-fluid rounded" width=auto>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Catalog items joiner modal window #}
+    <div class="modal" id="catalogJoinModal" tabindex="-1" role="dialog" aria-labelledby="catalogJoin" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg mw-75" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Join two catalog items</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form method="post" enctype="multipart/form-data" action="{{ url_for('catalog._join') }}">
+              <input type=hidden id="id1" name="id1">
+              <input type=hidden id="id2" name="id2">
+              <input type=hidden id="type1" name="type1">
+              <input type=hidden id="type2" name="type2">
+              <input type=hidden id="company1" name="company1">
+              <input type=hidden id="company2" name="company2">
+              <div class="form-group row justify-content-center">
+                <label for="title" class="col-2 control-label align-self-center">Title</label>
+                <div class="col-5 align-self-center">
+                  <p><input class="form-control" id="title1" name="title1" readonly></p>
+                  <p><input class="form-control" id="title2" name="title2" readonly></p>
+                </div>
+                <div class="col-5 align-self-center">
+                  <input class="form-control" id="title" name="title" required>
+                </div>
+              </div>
+
+              <div class="form-group row justify-content-center">
+                <label for="logos" class="col-2 control-label align-self-center">Logo</label>
+                <div class="col-5 align-self-center">
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="logos" id="logo1" value="1" checked>
+                    <label class="form-check-label" for="logo1">
+                    </label>
+                  </div>
+                </div>
+                <div class="col-5 align-self-center">
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="logos" id="logo2" value="2">
+                    <label class="form-check-label" for="logo2">
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group row justify-content-center">
+                <label for="year" class="col-2 control-label align-self-center">Start of production year</label>
+                <div class="col-5 align-self-center">
+                  <p><input class="form-control" id="year1" name="year1" readonly></p>
+                  <p><input class="form-control" id="year2" name="year2" readonly></p>
+                </div>
+                <div class="col-5 align-self-center">
+                  <input class="form-control" id="year" name="year">
+                </div>
+              </div>
+
+              <div class="form-group row justify-content-center">
+                <label for="description" class="col-2 control-label align-self-center">Description</label>
+                <div class="col-5 align-self-center">
+                  <p><textarea class="form-control" id="description1" name="description1" rows="5" readonly></textarea></p>
+                  <p><textarea class="form-control" id="description2" name="description2" rows="5" readonly></textarea></p>
+                </div>
+                <div class="col-5 align-self-center">
+                  <textarea class="form-control" id="description" name="description" rows="11"></textarea>
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <input type="submit" class="btn btn-primary" value="Join">
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -204,6 +293,85 @@
               });
 
           });
+      });
+      {% endif %}
+    </script>
+
+    <script type="text/javascript">
+      // for catalog management
+      {% if g.user.admin %}
+      $(document).on('click', '.catalogItemLogo', function (e) {
+          e.preventDefault();
+          var desc = $(this).next();
+          var b = 'border border-success';
+          if (desc.hasClass(b)) {
+              desc.removeClass(b);
+          } else {
+              desc.addClass(b);
+          }
+      });
+
+      // button for joining the records
+      $(document).on('click', '#catalogItemJoin', function (e) {
+          e.preventDefault();
+          var sel = $('.catalogItemDesc')
+            .filter(function(index) {
+                return $(this).hasClass('border');
+            });
+          if (sel.length != 2) {
+              alert("Select two catalog items");
+          } else {
+              var id1 = sel[0].id;
+              var id2 = sel[1].id;
+              var modal = $('#catalogJoinModal');
+              modal.find('#logo1').next().html($(sel.prev()[0]).children().clone());
+              modal.find('#logo2').next().html($(sel.prev()[1]).children().clone());
+
+              $.when(
+                $.getJSON(flask_util.url_for('catalog._get', {id:id1}),
+                    function(response) {
+                        var modal = $('#catalogJoinModal');
+                        modal.find('#id1').val(response.result.id);
+                        modal.find('#title1').val(response.result.title);
+                        modal.find('#year1').val(response.result.year);
+                        modal.find('#description1').text(response.result.description);
+                        modal.find('#type1').val(response.result.type_id);
+                        modal.find('#company1').val(response.result.company_id);
+                        modal.find('#title').val(response.result.title);
+                        modal.find('#year').val(response.result.year);
+                        modal.find('#description').text(response.result.description);
+                    }
+                ),
+                $.getJSON(flask_util.url_for('catalog._get', {id:id2}),
+                    function(response) {
+                        var modal = $('#catalogJoinModal');
+                        modal.find('#id2').val(response.result.id);
+                        modal.find('#title2').val(response.result.title);
+                        modal.find('#year2').val(response.result.year);
+                        modal.find('#description2').text(response.result.description);
+                        modal.find('#type2').val(response.result.type_id);
+                        modal.find('#company2').val(response.result.company_id);
+                    }
+                )
+              ).then(function() {
+                  var modal = $('#catalogJoinModal');
+                  if (!modal.find('#year').val()) {
+                      modal.find('#year').val(modal.find('#year2').val());
+                  }
+                  if (!modal.find('#description').text()) {
+                      modal.find('#description').text(modal.find('#description2').text());
+                  }
+                  if (modal.find('#type1').val() != modal.find('#type2').val()) {
+                      alert("Type of the items must match");
+                      return;
+                  }
+                  if (modal.find('#company1').val() != modal.find('#company2').val()) {
+                      alert("Companies of the items must match");
+                      return;
+                  }
+                  $('#catalogJoinModal').modal();
+              });
+          }
       });
       {% endif %}
     </script>

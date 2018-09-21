@@ -32,7 +32,7 @@ def get_catalog_none(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT c.id, c.title, description, created, c.type_id,'
-        ' ct.title as type_title, ct.physical, IFNULL(year, ""), com.title as company,'
+        ' ct.title as type_title, ct.physical, IFNULL(c.year, "") as year, com.title as company,'
         ' c.company_id'
         ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
         ' LEFT JOIN company com ON com.id = c.company_id'
@@ -396,6 +396,101 @@ def own(id):
 
     return redirect(url_for('catalog.view', id=id))
 
+
+@bp.route('/_join', methods=('POST',))
+@login_required
+@admin_required
+def _join():
+    id1 = int(request.form['id1'])
+    id2 = int(request.form['id2'])
+    logo = int(request.form['logos'])
+    title = request.form['title']
+    year = request.form['year']
+    description = request.form['description']
+
+    if not title:
+        abort(403)
+
+    if logo != 1 and logo != 2:
+        abort(403)
+
+    # assert that catalog items exist
+    c1 = get_catalog(id1)
+    c2 = get_catalog(id2)
+
+    if c1['company_id'] != c2['company_id']:
+        abort(403)
+
+    if c1['type_id'] != c2['type_id']:
+        abort(403)
+
+    cursor = get_db_cursor()
+
+    cursor.execute('SELECT * FROM catalog_relation'
+        ' WHERE catalog_id1 = %s AND catalog_id2 = %s',
+        (id1, id2,))
+    if cursor.fetchone():
+        abort(403)
+
+    cursor.execute('SELECT * FROM catalog_relation'
+        ' WHERE catalog_id1 = %s AND catalog_id2 = %s',
+        (id2, id1,))
+    if cursor.fetchone():
+        abort(403)
+
+    # Set new parameters of the catalog item
+    cursor.execute(
+        'UPDATE catalog SET title = %s, description = %s,'
+        ' year = %s'
+        ' WHERE id = %s',
+        (title, description, year, id1,)
+    )
+
+    # Set new logo
+    if logo == 2:
+        cursor.execute(
+            'DELETE FROM catalog_attribute'
+            ' WHERE catalog_id = %s AND type = %s',
+            (id1, Attribute.ATTR_LOGO,)
+        )
+    else:
+        cursor.execute(
+            'DELETE FROM catalog_attribute'
+            ' WHERE catalog_id = %s AND type = %s',
+            (id2, Attribute.ATTR_LOGO,)
+        )
+
+    # Redirect items
+    cursor.execute(
+        'UPDATE item SET catalog_id = %s WHERE catalog_id = %s',
+        (id1, id2, )
+    )
+
+    # Redirect attributes
+    cursor.execute(
+        'UPDATE catalog_attribute SET catalog_id = %s WHERE catalog_id = %s',
+        (id1, id2, )
+    )
+
+    # Redirect relations
+    cursor.execute(
+        'UPDATE catalog_relation SET catalog_id1 = %s WHERE catalog_id1 = %s',
+        (id1, id2, )
+    )
+    cursor.execute(
+        'UPDATE catalog_relation SET catalog_id2 = %s WHERE catalog_id2 = %s',
+        (id1, id2, )
+    )
+
+    # Delete old catalog item
+    cursor.execute('DELETE FROM catalog WHERE id = %s', (id2,))
+
+    # Commit all the changes
+    db_commit()
+
+    return redirect(url_for('catalog.view', id=id1))
+
+
 @bp.route('/_families')
 def _families():
     id = request.args.get('id', 0, type=int)
@@ -432,6 +527,10 @@ def _family_add():
     )
     db_commit()
     return ('', 204)
+
+@bp.route('/<int:id>/_get')
+def _get(id):
+    return jsonify(result=get_catalog(id));
 
 @bp.route('/<int:id>/_get_images')
 def _get_images(id):

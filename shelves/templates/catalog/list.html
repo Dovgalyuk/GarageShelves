@@ -1,14 +1,14 @@
 {% for row in catalogs | batch(3) %}
 <div class="row pt-4">
 {% for catalog in row %}
-  <div class="col-1">
-      {% if catalog['logo'] %}
-          <img src="{{ url_for('uploads.view', id=catalog['logo']) }}">
-      {% else %}
-          <span class="text-muted"><i class="fas fa-laptop fa-4x"></i></span>
-      {% endif %}
+  <div class="col-1 catalogItemLogo">
+    {% if catalog['logo'] %}
+        <img src="{{ url_for('uploads.view', id=catalog['logo']) }}">
+    {% else %}
+        <span class="text-muted"><i class="fas fa-laptop fa-4x"></i></span>
+    {% endif %}
   </div>
-  <div class="col-3">
+  <div class="col-3 catalogItemDesc" id="{{ catalog.id }}">
     <h3>
       <a class="action" href="{{ url_for('catalog.view', id=catalog['id']) }}">
         {% if not notype %}
