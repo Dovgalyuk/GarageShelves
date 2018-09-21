@@ -110,7 +110,7 @@ def view(id):
 @login_required
 def update(id):
     item = get_item(id)
-    if item['owner_id'] != g.user['id']:
+    if not g.user['admin'] and item['owner_id'] != g.user['id']:
         abort(403)
 
     if request.method == 'POST':
@@ -157,3 +157,32 @@ def _upload_image(id):
         return jsonify(result=cursor.fetchone())
 
     return ('', 400)
+
+@bp.route('/<int:id>/_delete')
+@login_required
+def _delete(id):
+    item = get_item(id)
+
+    if not g.user['admin'] and item['owner_id'] != g.user['id']:
+        abort(403)
+
+    cursor = get_db_cursor()
+    # delete attributes
+    cursor.execute(
+        'DELETE FROM item_attribute WHERE item_id = %s',
+        (id,)
+    )
+    # delete relations
+    cursor.execute(
+        'DELETE FROM item_relation WHERE item_id1 = %s OR item_id2 = %s',
+        (id, id,)
+    )
+    # delete item
+    cursor.execute('DELETE FROM item WHERE id = %s', (id,));
+
+    db_commit()
+
+    from shelves.collection import get_user_collection
+    collection = get_user_collection(g.user['id'])
+    
+    return redirect(url_for('collection.view', id=collection['id']))

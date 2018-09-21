@@ -8,8 +8,10 @@
   <div class="container">
     <div class="row">
       <div class="page-header">
-        <h3 class="pt-4 pb-2">{% if g.user['id'] == item['owner_id'] %}<a href="{{ url_for('item.update', id=item['id']) }}"><i class="fas fa-edit"></i></a>{% endif %}
-        Item of {{ item['type_title'] }} : {{ item['title'] }} <a href="{{ url_for('catalog.view', id=item['catalog_id']) }}"><i class="fas fa-folder"></i></a></h3>
+        <h3 class="pt-4 pb-2">
+        Item of <a href="{{ url_for('catalog.view', id=item['catalog_id']) }}">{{ item['type_title'] }} : {{ item['title'] }}</a>
+        {% if g.user['id'] == item['owner_id'] or g.user.admin %}<a href="{{ url_for('item.update', id=item['id']) }}"><i class="fas fa-edit"></i></a>{% endif %}
+        </h3>
       </div>
     </div>
   </div>

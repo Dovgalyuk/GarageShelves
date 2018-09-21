@@ -80,6 +80,7 @@
     </div>
 
     {# Catalog items joiner modal window #}
+    {% if g.user.admin %}
     <div class="modal" id="catalogJoinModal" tabindex="-1" role="dialog" aria-labelledby="catalogJoin" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-lg mw-75" role="document">
         <div class="modal-content">
@@ -112,7 +113,7 @@
                 <label for="logos" class="col-2 control-label align-self-center">Logo</label>
                 <div class="col-5 align-self-center">
                   <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="logos" id="logo1" value="1" checked>
+                    <input class="form-check-input" type="radio" name="logos" id="logo1" value="logo1" checked>
                     <label class="form-check-label" for="logo1">
                     </label>
                   </div>
@@ -157,6 +158,7 @@
         </div>
       </div>
     </div>
+    {% endif %}
 
     {% macro select_files_control(id, text, mul=false) -%}
       <div class="input-group">
