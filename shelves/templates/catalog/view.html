@@ -66,25 +66,19 @@
     <div id="imagesList">
     </div>
 
-    <div class="row">
-      <div class="col-12">
-        <h3 class="pt-4">Includes catalog items (TODO)</h3>
-      </div>
-    </div>
-    {% if g.user.admin %}
-    <div class="row">
-      <div class="col-12">
-        <a href="{{ url_for('catalog.create', parent=catalog['id']) }}"><i class="fas fa-plus"></i> Add catalog sub-item</a>
-      </div>
-    </div>
-    {% endif %}
-
     {% if catalogs %}
       <div class="row">
         <div class="col-12">
           <h3 class="pt-4">Includes the following catalog items</h3>
         </div>
       </div>
+    {% endif %}
+    {% if g.user.admin %}
+    <div class="row">
+      <div class="col-12">
+        <a href="{{ url_for('catalog.create', parent=catalog['id']) }}"><i class="fas fa-plus"></i> Add catalog sub-item</a>
+      </div>
+    </div>
     {% endif %}
     {% include 'catalog/list.html' %}
 
