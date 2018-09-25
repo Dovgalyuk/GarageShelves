@@ -510,6 +510,10 @@ def _join():
     return redirect(url_for('catalog.view', id=id1))
 
 
+@bp.route('/_all_types')
+def _all_types():
+    return jsonify(result=get_catalog_types())
+
 @bp.route('/_families')
 def _families():
     id = request.args.get('id', 0, type=int)

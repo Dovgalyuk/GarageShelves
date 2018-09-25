@@ -66,13 +66,28 @@
     <div id="imagesList">
     </div>
 
-    {% if catalogs %}
-      <div class="row">
-        <div class="col-12">
-          <h3 class="pt-4">Includes the following catalog items</h3>
-        </div>
+    {% if catalog['physical'] %}
+    <div class="row">
+      <div class="col-12">
+        <h3 class="pt-4">Kits with this item</h3>
       </div>
+    </div>
+    {% if g.user.admin %}
+    <div class="row">
+      <div class="col-12">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalCreateKit">
+          <i class="fas fa-plus"></i> Create new kit
+        </button>
+      </div>
+    </div>
     {% endif %}
+    {% endif %}
+
+    <div class="row">
+      <div class="col-12">
+        <h3 class="pt-4">Includes the following catalog items</h3>
+      </div>
+    </div>
     {% if g.user.admin %}
     <div class="row">
       <div class="col-12">
@@ -134,6 +149,41 @@
               <input type="submit" class="btn btn-primary" value="Add item to collection">
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="modal fade" id="modalCreateKit" tabindex="-1" role="dialog" aria-labelledby="createKitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createKitModalLabel">Create kit</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="container-fluid">
+            <div class="row">
+              <label for="main" class="col-3">Main item</label>
+              <div class="col-9">
+                <input type="text" class="form-control" id="main" value="{{ catalog.title }}" readonly>
+              </div>
+            </div>
+            <div class="kitItems">
+            </div>
+            <div class="row pt-2">
+              <div class="col-12">
+                <button type="button" class="btn btn-primary btnAddKitItem">Add kit item</button>
+              </div>
+            </div>          
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary btnCreateKit">Create kit</button>
         </div>
       </div>
     </div>
@@ -286,8 +336,46 @@ function FamiliesEditor(idSelector, options) {
         )
     };
 };
-
 var editor = new FamiliesEditor('familiesEditor', {});
+
+
+{% if g.user.admin %}
+function KitEditor() {
+    var $list = $('.kitItems');
+    var $types = {};
+    $('#modalCreateKit').on('show.bs.modal', function (event) {
+        $.getJSON(flask_util.url_for('catalog._all_types'),
+            function(response) {
+                $types = {};
+                $.each(response.result, function(k, v) {
+                    if (v.physical)
+                        $types[v.id] = v.title;
+                });
+            }
+        );
+    });
+    $(document).on('click', '.btnAddKitItem', function (e) {
+        e.preventDefault();
+        var $div = $('<div>').addClass('row');
+        var $div1 = $('<div>').addClass('col-3');
+        $div1.append(ItemTypeCombo());
+        var $div2 = $('<div>').addClass('col-9').append('<input type="text" class="form-control">');
+        $div.append($div1).append($div2);
+        $list.append($div);
+    });
+
+    function ItemTypeCombo() {
+        var $combo = $('<select>').addClass('form-control');
+        $.each($types, function(k, v) {
+            var $opt = $('<option>').val(k).append(v);
+            $combo.append($opt);
+        });
+        return $combo;
+    }
+};
+
+var kitEditor = new KitEditor();
+{% endif %}
 
 /* Load data into the families editor */
 $(function() {
@@ -306,7 +394,6 @@ $(function() {
             }
         );
     });
-
 });
 
 </script>
