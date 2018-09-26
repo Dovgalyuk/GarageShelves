@@ -67,20 +67,21 @@
     </div>
 
     {% if catalog['physical'] %}
-    <div class="row">
-      <div class="col-12">
-        <h3 class="pt-4">Kits with this item</h3>
+      <div class="row">
+        <div class="col-12">
+          <h3 class="pt-4">Kits with this item</h3>
+        </div>
       </div>
-    </div>
-    {% if g.user.admin %}
-    <div class="row">
-      <div class="col-12">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalCreateKit">
-          <i class="fas fa-plus"></i> Create new kit
-        </button>
+      {% if g.user.admin %}
+      <div class="row">
+        <div class="col-12">
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalCreateKit">
+            <i class="fas fa-plus"></i> Create new kit
+          </button>
+        </div>
       </div>
-    </div>
-    {% endif %}
+      {% endif %}
+      {{ rendered_kits | safe }}
     {% endif %}
 
     <div class="row">

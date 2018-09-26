@@ -77,24 +77,45 @@ def get_catalog_logo(id):
     )
     return cursor.fetchone()
 
-def get_catalog_parents(id):
+def get_catalog_families(id):
+    f1 = get_catalog_type_id('Computer family')
+    f2 = get_catalog_type_id('Console family')
+    f3 = get_catalog_type_id('Calculator family')
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT c1.id, c1.title, ct.title as type_title'
         ' FROM catalog c1 JOIN catalog_relation r ON c1.id = r.catalog_id1'
         ' JOIN catalog_type ct ON c1.type_id = ct.id'
         ' JOIN catalog c2 ON c2.id = r.catalog_id2'
-        ' WHERE r.type = %s AND c2.id = %s',
-        (Relation.REL_INCLUDES, id,)
+        ' WHERE r.type = %s AND c2.id = %s AND c1.type_id IN (%s, %s, %s)',
+        (Relation.REL_INCLUDES, id, f1, f2, f3,)
     )
     parents = cursor.fetchall()
     return parents
+
+def get_catalog_kits(id):
+    kit = get_catalog_type_id('Kit')
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT c1.id, c1.title, ct.title as type_title, IFNULL(c1.year, "") as year,'
+        ' com.title as company, c1.company_id, img.id as logo'
+        ' FROM catalog c1 JOIN catalog_relation r ON c1.id = r.catalog_id1'
+        ' JOIN catalog_type ct ON c1.type_id = ct.id'
+        ' JOIN catalog c2 ON c2.id = r.catalog_id2'
+        ' LEFT JOIN company com ON com.id = c1.company_id'
+        ' LEFT JOIN (SELECT * FROM catalog_attribute WHERE type = %s) a ON c1.id = a.catalog_id'
+        ' LEFT JOIN image img ON a.value_id = img.id'
+        ' WHERE r.type = %s AND c2.id = %s AND c1.type_id = %s'
+        ' ORDER BY c1.title',
+        (Attribute.ATTR_LOGO, Relation.REL_INCLUDES, id, kit,)
+    )
+    return cursor.fetchall()
 
 def get_catalog_children(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT c2.id, c2.title, ct.title as type_title,'
-        '       ct.physical, c2.description, c2.year, com.title as company,'
+        '       ct.physical, c2.description, IFNULL(c2.year, "") as year, com.title as company,'
         '       c2.company_id'
         ' FROM catalog c1 JOIN catalog_relation r ON c1.id = r.catalog_id1'
         ' JOIN catalog c2 ON c2.id = r.catalog_id2'
@@ -182,7 +203,7 @@ def render_catalog_list(items, showcount=False):
     return render_template('catalog/list.html',
         catalogs=items, notype=True, showcount=showcount)
 
-def get_catalog_families():
+def get_all_families():
     f1 = get_catalog_type_id('Computer family')
     f2 = get_catalog_type_id('Console family')
     f3 = get_catalog_type_id('Calculator family')
@@ -286,7 +307,7 @@ def view(id):
     return render_template('catalog/view.html',
         catalog=catalog, catalog_types=get_catalog_types(),
         rendered_items=render_items_list(items),
-        parents=get_catalog_parents(id),
+        rendered_kits=render_catalog_list(get_catalog_kits(id), True),
         catalogs=get_catalog_children(id),
         logo=get_catalog_logo(id))
 
@@ -518,11 +539,11 @@ def _all_types():
 @bp.route('/_families')
 def _families():
     id = request.args.get('id', 0, type=int)
-    return jsonify(result=get_catalog_parents(id))
+    return jsonify(result=get_catalog_families(id))
 
 @bp.route('/_all_families')
 def _all_families():
-    return jsonify(result=get_catalog_families())
+    return jsonify(result=get_all_families())
 
 @bp.route('/_family_remove', methods=('POST',))
 @admin_required

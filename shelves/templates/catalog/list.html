@@ -24,7 +24,7 @@
         {% if catalog['company'] %}
           <a class="text-secondary" href="{{ url_for('company.view', id=catalog['company_id']) }}">{{ catalog['company'] }}</a>
         {% endif %}
-        {% if showcount %}
+        {% if showcount and catalog.count %}
           <span class="badge badge-secondary">{{ catalog.count }} item{% if catalog.count != 1 %}s{% endif %}</span>
         {% endif %}
       </p>
