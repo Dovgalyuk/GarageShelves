@@ -2,6 +2,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, jsonify
 )
 from werkzeug.exceptions import abort
+import re
 
 from shelves.auth import (login_required, admin_required)
 from shelves.db import get_db_cursor, db_commit
@@ -581,3 +582,60 @@ def _upload_image(id):
         return jsonify(result=cursor.fetchone())
 
     return ('', 400)
+
+@bp.route('/<int:id>/_create_kit', methods=('POST',))
+@login_required
+@admin_required
+def _create_kit(id):
+    catalog = get_catalog(id)
+    if not catalog['physical']:
+        abort(403)
+
+    kit_type = get_catalog_type_id('Kit')
+
+    cursor = get_db_cursor()
+    title = request.form['title']
+    if not title:
+        abort(403)
+
+    cursor.execute(
+        'INSERT INTO catalog (type_id, title, description, company_id)'
+        ' VALUES (%s, %s, %s, %s)',
+        (kit_type, title, '', catalog['company_id'],)
+    )
+    kit_id = cursor.lastrowid
+
+    # Add main item into the kit
+    cursor.execute(
+        'INSERT INTO catalog_relation'
+        ' (catalog_id1, catalog_id2, type)'
+        ' VALUES (%s, %s, %s)',
+        (kit_id, id, Relation.REL_INCLUDES,)
+    )
+
+    re_type = re.compile('type(\d+)')
+    for k, v in request.form.items():
+        m = re.search(re_type, k)
+        if m:
+            num = m.group(1)
+            title_item = request.form['title%s' % num]
+            type_id = int(v)
+            ct = get_catalog_type(type_id)
+            if not ct['physical']:
+                abort(403)
+            cursor.execute(
+                'INSERT INTO catalog (type_id, title, description, company_id)'
+                ' VALUES (%s, %s, %s, %s)',
+                (type_id, title_item, '', catalog['company_id'],)
+            )
+            item_id = cursor.lastrowid
+            cursor.execute(
+                'INSERT INTO catalog_relation'
+                ' (catalog_id1, catalog_id2, type)'
+                ' VALUES (%s, %s, %s)',
+                (kit_id, item_id, Relation.REL_INCLUDES,)
+            )
+
+    db_commit()
+
+    return view(kit_id)

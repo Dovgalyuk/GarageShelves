@@ -166,14 +166,20 @@
         </div>
         <div class="modal-body">
           <div class="container-fluid">
-            <div class="row">
-              <label for="main" class="col-3">Main item</label>
-              <div class="col-9">
-                <input type="text" class="form-control" id="main" value="{{ catalog.title }}" readonly>
+            <form class="kitItems" method="post" enctype="multipart/form-data" action="{{ url_for('catalog._create_kit', id=catalog.id) }}">
+              <div class="row">
+                <label for="main" class="col-3">New kit title</label>
+                <div class="col-9">
+                  <input type="text" class="form-control" name="title">
+                </div>
               </div>
-            </div>
-            <div class="kitItems">
-            </div>
+              <div class="row">
+                <label for="main" class="col-3">Main item</label>
+                <div class="col-9">
+                  <input type="text" class="form-control" name="main" value="{{ catalog.title }}" readonly>
+                </div>
+              </div>
+            </form>
             <div class="row pt-2">
               <div class="col-12">
                 <button type="button" class="btn btn-primary btnAddKitItem">Add kit item</button>
@@ -343,7 +349,10 @@ var editor = new FamiliesEditor('familiesEditor', {});
 function KitEditor() {
     var $list = $('.kitItems');
     var $types = {};
+    var $lastid = 0;
     $('#modalCreateKit').on('show.bs.modal', function (event) {
+        $lastid = 0;
+        // TODO: delete items
         $.getJSON(flask_util.url_for('catalog._all_types'),
             function(response) {
                 $types = {};
@@ -356,16 +365,22 @@ function KitEditor() {
     });
     $(document).on('click', '.btnAddKitItem', function (e) {
         e.preventDefault();
+        ++$lastid;
         var $div = $('<div>').addClass('row');
         var $div1 = $('<div>').addClass('col-3');
         $div1.append(ItemTypeCombo());
-        var $div2 = $('<div>').addClass('col-9').append('<input type="text" class="form-control">');
+        var $input = $('<input>').addClass('form-control').attr('name', 'title' + $lastid);
+        var $div2 = $('<div>').addClass('col-9').append($input);
         $div.append($div1).append($div2);
         $list.append($div);
     });
+    $(document).on('click', '.btnCreateKit', function (e) {
+        e.preventDefault();
+        $list.submit();
+    });
 
     function ItemTypeCombo() {
-        var $combo = $('<select>').addClass('form-control');
+        var $combo = $('<select>').addClass('form-control').attr('name', 'type' + $lastid);
         $.each($types, function(k, v) {
             var $opt = $('<option>').val(k).append(v);
             $combo.append($opt);
