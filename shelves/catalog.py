@@ -5,7 +5,7 @@ from werkzeug.exceptions import abort
 import re
 
 from shelves.auth import (login_required, admin_required)
-from shelves.db import get_db_cursor, db_commit
+from shelves.db import get_db_cursor, db_commit, db_rollback
 from shelves.collection import get_user_collection
 from shelves.item import (get_catalog_items, render_items_list)
 from shelves.company import get_companies, get_company
@@ -344,15 +344,20 @@ def update(id):
         if not title:
             error = 'Title is required.'
 
-        cursor = get_db_cursor()
+        file = None
+        file_id = None
         if 'catalog_logo' in request.files:
             file = request.files['catalog_logo']
             if file.filename != '':
                 file_id = upload_image(file, 64, 64)
                 if file_id is None:
-                    flash('Only 64x64 images can be used as a logo')
-                    return redirect(request.url)
+                    error = 'Only 64x64 images can be used as a logo'
 
+        if error is not None:
+            flash(error)
+        else:
+            cursor = get_db_cursor()
+            if file_id is not None:
                 cursor.execute(
                     'DELETE FROM catalog_attribute'
                     ' WHERE type=%s AND catalog_id=%s',
@@ -364,9 +369,6 @@ def update(id):
                     (Attribute.ATTR_LOGO, id, file_id,)
                 )
 
-        if error is not None:
-            flash(error)
-        else:
             cursor.execute(
                 'UPDATE catalog SET title = %s, description = %s, type_id = %s,'
                 ' year = %s, company_id = %s'
@@ -389,32 +391,36 @@ def own(id):
         abort(403)
 
     collection = get_user_collection(g.user['id'])
-    cursor = get_db_cursor()
-    cursor.execute(
-        'INSERT INTO item (catalog_id, internal_id, description, collection_id)'
-        ' VALUES (%s, %s, %s, %s)',
-        (id, request.form['internal_id'], '', collection['id'])
-    )
-    item_id = cursor.lastrowid
+    try:
+        cursor = get_db_cursor()
+        cursor.execute(
+            'INSERT INTO item (catalog_id, internal_id, description, collection_id)'
+            ' VALUES (%s, %s, %s, %s)',
+            (id, request.form['internal_id'], '', collection['id'])
+        )
+        item_id = cursor.lastrowid
 
-    if 'subitem' in request.form:
-        subitems = request.form.getlist('subitem')
-        for subitem in subitems:
-            # assert that catalog item exists
-            get_catalog(subitem)
-            cursor.execute(
-                'INSERT INTO item (catalog_id, description, collection_id)'
-                ' VALUES (%s, %s, %s)',
-                (subitem, '', collection['id'])
-            )
-            subitem_id = cursor.lastrowid
-            cursor.execute(
-                'INSERT INTO item_relation (item_id1, item_id2, type)'
-                ' VALUES (%s, %s, %s)',
-                (item_id, subitem_id, Relation.REL_INCLUDES)
-            )
+        if 'subitem' in request.form:
+            subitems = request.form.getlist('subitem')
+            for subitem in subitems:
+                # assert that catalog item exists
+                get_catalog(subitem)
+                cursor.execute(
+                    'INSERT INTO item (catalog_id, description, collection_id)'
+                    ' VALUES (%s, %s, %s)',
+                    (subitem, '', collection['id'])
+                )
+                subitem_id = cursor.lastrowid
+                cursor.execute(
+                    'INSERT INTO item_relation (item_id1, item_id2, type)'
+                    ' VALUES (%s, %s, %s)',
+                    (item_id, subitem_id, Relation.REL_INCLUDES)
+                )
 
-    db_commit()
+        db_commit()
+    except:
+        db_rollback()
+        raise
 
     return redirect(url_for('catalog.view', id=id))
 
@@ -614,49 +620,52 @@ def _create_kit(id):
 
     kit_type = get_catalog_type_id('Kit')
 
-    cursor = get_db_cursor()
     title = request.form['title']
     if not title:
         abort(403)
 
-    cursor.execute(
-        'INSERT INTO catalog (type_id, title, description, company_id)'
-        ' VALUES (%s, %s, %s, %s)',
-        (kit_type, title, '', catalog['company_id'],)
-    )
-    kit_id = cursor.lastrowid
+    try:
+        cursor = get_db_cursor()
+        cursor.execute(
+            'INSERT INTO catalog (type_id, title, description, company_id)'
+            ' VALUES (%s, %s, %s, %s)',
+            (kit_type, title, '', catalog['company_id'],)
+        )
+        kit_id = cursor.lastrowid
 
-    # Add main item into the kit
-    cursor.execute(
-        'INSERT INTO catalog_relation'
-        ' (catalog_id1, catalog_id2, type)'
-        ' VALUES (%s, %s, %s)',
-        (kit_id, id, Relation.REL_INCLUDES,)
-    )
+        # Add main item into the kit
+        cursor.execute(
+            'INSERT INTO catalog_relation'
+            ' (catalog_id1, catalog_id2, type)'
+            ' VALUES (%s, %s, %s)',
+            (kit_id, id, Relation.REL_INCLUDES,)
+        )
 
-    re_type = re.compile('type(\d+)')
-    for k, v in request.form.items():
-        m = re.search(re_type, k)
-        if m:
-            num = m.group(1)
-            title_item = request.form['title%s' % num]
-            type_id = int(v)
-            ct = get_catalog_type(type_id)
-            if not ct['physical']:
-                abort(403)
-            cursor.execute(
-                'INSERT INTO catalog (type_id, title, description, company_id)'
-                ' VALUES (%s, %s, %s, %s)',
-                (type_id, title_item, '', catalog['company_id'],)
-            )
-            item_id = cursor.lastrowid
-            cursor.execute(
-                'INSERT INTO catalog_relation'
-                ' (catalog_id1, catalog_id2, type)'
-                ' VALUES (%s, %s, %s)',
-                (kit_id, item_id, Relation.REL_INCLUDES,)
-            )
-
-    db_commit()
+        re_type = re.compile('type(\d+)')
+        for k, v in request.form.items():
+            m = re.search(re_type, k)
+            if m:
+                num = m.group(1)
+                title_item = request.form['title%s' % num]
+                type_id = int(v)
+                ct = get_catalog_type(type_id)
+                if not ct['physical']:
+                    abort(403)
+                cursor.execute(
+                    'INSERT INTO catalog (type_id, title, description, company_id)'
+                    ' VALUES (%s, %s, %s, %s)',
+                    (type_id, title_item, '', catalog['company_id'],)
+                )
+                item_id = cursor.lastrowid
+                cursor.execute(
+                    'INSERT INTO catalog_relation'
+                    ' (catalog_id1, catalog_id2, type)'
+                    ' VALUES (%s, %s, %s)',
+                    (kit_id, item_id, Relation.REL_INCLUDES,)
+                )
+        db_commit()
+    except:
+        db_rollback()
+        raise
 
     return view(kit_id)

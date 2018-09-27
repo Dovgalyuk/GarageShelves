@@ -23,6 +23,9 @@ def close_db(e=None):
 def db_commit():
     mysql.connection.commit()
 
+def db_rollback():
+    mysql.connection.rollback()
+
 def init_db():
     db = get_db_cursor()
 
