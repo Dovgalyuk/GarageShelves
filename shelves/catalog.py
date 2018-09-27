@@ -668,4 +668,4 @@ def _create_kit(id):
         db_rollback()
         raise
 
-    return view(kit_id)
+    return redirect(url_for('catalog.view', id=kit_id))
