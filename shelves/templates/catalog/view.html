@@ -123,25 +123,23 @@
           </div>
         </div>
         <div class="modal-body">
-          <form class="form-inline" method="post" enctype="multipart/form-data" action="{{ url_for('catalog.own', id=catalog['id']) }}" method="post">
-            <div class="row"><div class="col-12">
-              <div class="form-group">
-                <label for="internal_id" class="col-form-label">Internal ID:</label>
-                <input type="text" class="form-control" id="internal_id" name="internal_id">
+          <form class="form" method="post" enctype="multipart/form-data" action="{{ url_for('catalog.own', id=catalog['id']) }}" method="post">
+              <div class="form-group row">
+                <label for="internal_id" class="col-3 col-form-label">Internal ID:</label>
+                <div class="col-9">
+                  <input type="text" class="form-control" id="internal_id" name="internal_id">
+                </div>
               </div>
-            </div></div>
             {% if catalogs %}
-              <div class="row"><div class="col-12">
+              <div class="form-group">
                 <h4>Also add items from the kit</h4>
-              </div></div>
+              </div>
               {% for catalog in catalogs %}
                 {% if catalog['physical'] %}
-                  <div class="row"><div class="col-12">
-                    <div class="form-group">
-                      <input type="checkbox" class="form-control" id="subitem{{ catalog['id'] }}" name="subitem" value="{{ catalog['id'] }}" checked>
-                      <label for="subitem{{ catalog['id'] }}" class="col-form-label">{{ catalog['type_title'] }} : {{ catalog['title'] }}</label>
-                    </div>
-                  </div></div>
+                  <div class="form-check">
+                      <input type="checkbox" class="form-check-input" id="subitem{{ catalog['id'] }}" name="subitem" value="{{ catalog['id'] }}" checked>
+                      <label for="subitem{{ catalog['id'] }}" class="form-check-label">{{ catalog['type_title'] }} : {{ catalog['title'] }}</label>
+                  </div>
                 {% endif %}
               {% endfor %}
             {% endif %}
