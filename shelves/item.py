@@ -90,7 +90,24 @@ def get_item_children(id):
         ' WHERE r.item_id1 = %s AND r.type = %s',
         (Attribute.ATTR_IMAGE,id,Relation.REL_INCLUDES,)
     )
+    return cursor.fetchall()
 
+def get_item_parents(id):
+    # There should be only one parent, but anyway
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT i.id, i.description, c.id AS catalog_id,'
+        ' c.title, ct.title AS type_title, added,'
+        '       col.owner_id, i.internal_id,'
+        '       (SELECT value_id FROM item_attribute '
+        '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id'
+        ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
+        ' JOIN catalog_type ct ON c.type_id = ct.id'
+        ' JOIN collection col ON i.collection_id = col.id'
+        ' JOIN item_relation r ON i.id = r.item_id1'
+        ' WHERE r.item_id2 = %s AND r.type = %s',
+        (Attribute.ATTR_IMAGE,id,Relation.REL_INCLUDES,)
+    )
     return cursor.fetchall()
 
 def render_items_list(items):
@@ -104,6 +121,7 @@ def render_items_list(items):
 def view(id):
     item = get_item(id)
     return render_template('item/view.html', item=item,
+        rendered_parents=render_items_list(get_item_parents(id)),
         rendered_children=render_items_list(get_item_children(id)))
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
@@ -184,5 +202,5 @@ def _delete(id):
 
     from shelves.collection import get_user_collection
     collection = get_user_collection(g.user['id'])
-    
+
     return redirect(url_for('collection.view', id=collection['id']))
