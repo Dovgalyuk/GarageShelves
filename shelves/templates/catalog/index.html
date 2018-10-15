@@ -42,20 +42,43 @@
         <h2 class="pt-4">Computers</h2>
       </div>
     </div>
-    {{ rendered_computers | safe }}
+
+    <div id="catalogComputers"></div>
 
     <div class="row">
       <div class="col-12">
         <h2 class="pt-4">Consoles</h2>
       </div>
     </div>
-    {{ rendered_consoles | safe }}
+    <div id="catalogConsoles"></div>
 
     <div class="row">
       <div class="col-12">
         <h2 class="pt-4">Calculators</h2>
       </div>
     </div>
-    {{ rendered_calculators | safe }}
+    <div id="catalogCalculators"></div>
   </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+
+<script type="text/javascript">
+
+var computers = new CatalogViewer('catalogComputers',
+    {filter:{type_name:'Computer'}, notype:true});
+var consoles = new CatalogViewer('catalogConsoles',
+    {filter:{type_name:'Console'}, notype:true});
+var calculators = new CatalogViewer('catalogCalculators',
+    {filter:{type_name:'Calculator'}, notype:true});
+
+$(function() {
+    computers.loadData();
+    consoles.loadData();
+    calculators.loadData();
+});
+
+</script>
+
 {% endblock %}

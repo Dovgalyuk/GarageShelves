@@ -226,11 +226,8 @@ def get_all_families():
 def index():
     return render_template('catalog/index.html',
         rendered_families=render_catalog_list(get_computer_families(), True),
-        rendered_computers=render_catalog_list(get_computers()),
         rendered_console_families=render_catalog_list(get_console_families(), True),
-        rendered_consoles=render_catalog_list(get_consoles()),
         rendered_calculator_families=render_catalog_list(get_calculator_families(), True),
-        rendered_calculators=render_catalog_list(get_calculators()),
         )
 
 
@@ -308,7 +305,6 @@ def view(id):
         catalog=catalog, catalog_types=get_catalog_types(),
         rendered_items=render_items_list(items),
         rendered_kits=render_catalog_list(get_catalog_kits(id), True),
-        catalogs=get_catalog_children(id),
         logo=get_catalog_logo(id))
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
@@ -550,6 +546,47 @@ def _families():
 @bp.route('/_all_families')
 def _all_families():
     return jsonify(result=get_all_families())
+
+@bp.route('/_catalog_filtered')
+def _catalog_filtered():
+    company_id = request.args.get('company', -1, type=int)
+    parent_id = request.args.get('parent', -1, type=int)
+    type_id = request.args.get('type_id', -1, type=int)
+    type_name = request.args.get('type_name')
+    if type_name:
+        type_id = get_catalog_type_id(type_name)
+    noparent = request.args.get('noparent', False, type=bool)
+
+    cursor = get_db_cursor()
+    query = 'SELECT c.id, c.title, description, created, c.type_id,'   \
+            ' ct.title as type_title, ct.physical, img.id as logo,'    \
+            ' year, com.title as company, c.company_id,'               \
+            ' (SELECT COUNT(*) FROM catalog cc'                        \
+            '   JOIN catalog_relation r WHERE cc.id=r.catalog_id2'     \
+            '   AND c.id=r.catalog_id1 AND r.type=%s) AS count'        \
+            ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'\
+            ' LEFT JOIN (SELECT * FROM catalog_attribute WHERE type = %s) a ON c.id = a.catalog_id'    \
+            ' LEFT JOIN image img ON a.value_id = img.id'              \
+            ' LEFT JOIN company com ON com.id = c.company_id'            
+    suffix = ' ORDER BY c.title'
+    where = ' WHERE 1 = 1'
+    # parameters are integer - insert them without escaping
+    if company_id != -1:
+        where += ' AND com.id = %d' % company_id
+    if parent_id != -1:
+        query += ' JOIN catalog_relation r2 ON r2.catalog_id2 = c.id'
+        where += ' AND r2.catalog_id1 = %d' % parent_id \
+              +  ' AND r2.type = %d' % Relation.REL_INCLUDES
+    if type_id != -1:
+        where += ' AND ct.id = %d' % type_id
+    if noparent:
+        where += ' AND NOT EXISTS (SELECT 1 FROM catalog_relation' \
+                 '      WHERE catalog_id2 = c.id AND type = %d)' % Relation.REL_INCLUDES
+    cursor.execute(query + where + suffix,
+        (Relation.REL_INCLUDES,Attribute.ATTR_LOGO,))
+    result = cursor.fetchall()
+
+    return jsonify(result=result)
 
 @bp.route('/_family_remove', methods=('POST',))
 @admin_required

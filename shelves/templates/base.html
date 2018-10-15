@@ -378,6 +378,83 @@
       {% endif %}
     </script>
 
+    <script type="text/javascript">
+      function CatalogViewer(idSelector, options) {
+          var $main = $("#" + idSelector);
+          var settings = options;
+
+          function createRow() {
+              return $('<div>').addClass('row pt-4');
+          }
+
+          function createLogo(item) {
+              var $div = $('<div>').addClass('col-1 catalogItemLogo');
+              if (item.logo) {
+                  var $img = $('<img>').attr('src',
+                            flask_util.url_for('uploads.view', {id:item.logo}));
+                  $div.append($img);
+              } else {
+                  $div.append('<span class="text-muted"><i class="fas fa-laptop fa-4x"></i></span>');
+              }
+              return $div;
+          }
+
+          function createDesc(item) {
+              var $desc = $('<div>').addClass('col-3 catalogItemDesc');
+              var $title = $('<a>').addClass('action')
+                    .attr('href', flask_util.url_for('catalog.view', {id:item.id}))
+              if (item.type_title && !settings.notype) {
+                  $title.append(item.type_title + ' : ');
+              }
+              $title.append(item.title);
+              $desc.append($('<h3>').append($title));
+              var $p = $('<p>');
+              if (item.year) {
+                  $p.append($('<span>').addClass('badge badge-secondary').append(item.year));
+              }
+              if (item.company) {
+                  $p.append(' ');
+                  $p.append($('<a>').addClass('text-secondary')
+                            .attr('href', flask_util.url_for('company.view', {id:item.company_id}))
+                            .append(item.company));
+              }
+              if (item.count) {
+                  $p.append($('<span>').addClass('badge badge-secondary')
+                            .append(item.count + ' item' + (item.count > 1 ? 's' : '')));
+              }
+              $desc.append($p);
+              return $desc;
+          }
+
+          function createItems(arrayItems) {
+              var colCnt = 0;
+              var $row = createRow();
+              $.each(arrayItems, function (k, v) {
+                  $row.append(createLogo(v));
+                  $row.append(createDesc(v));
+
+                  colCnt = (colCnt + 1) % 3;
+                  if (colCnt == 0) {
+                      $main.append($row);
+                      $row = createRow();
+                  }
+              });
+              $main.append($row);
+          }
+
+          /* Public methods */
+
+          this.loadData = function () {
+              $main.empty();
+              $.getJSON(flask_util.url_for('catalog._catalog_filtered'), settings.filter,
+                  function(response) {
+                      createItems(response.result);
+                  }
+              )
+          };
+      };
+    </script>
+
     {%- endblock scripts %}
 
     <footer class="page-footer font-small pt-4">

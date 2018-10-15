@@ -96,7 +96,8 @@
       </div>
     </div>
     {% endif %}
-    {% include 'catalog/list.html' %}
+    <div id="catalogChildren">
+    </div>
 
     {% if g.user and catalog['physical'] %}
       <div class="row">
@@ -222,6 +223,8 @@
   {{ super() }}
 
 <script type="text/javascript">
+
+var catalogViewer = new CatalogViewer('catalogChildren', {filter:{parent:{{ catalog['id'] }} }});
 
 function FamiliesEditor(idSelector, options) {
     var $main = $("#" + idSelector);
@@ -394,6 +397,7 @@ var kitEditor = new KitEditor();
 /* Load data into the families editor */
 $(function() {
     editor.loadData();
+    catalogViewer.loadData();
 
     /* Load families into modal window */
     $('#modalAddFamily').on('show.bs.modal', function (event) {
