@@ -130,19 +130,10 @@
                   <input type="text" class="form-control" id="internal_id" name="internal_id">
                 </div>
               </div>
-            {% if catalogs %}
               <div class="form-group">
-                <h4>Also add items from the kit</h4>
+                <h4>Also add next items from the kit</h4>
               </div>
-              {% for catalog in catalogs %}
-                {% if catalog['physical'] %}
-                  <div class="form-check">
-                      <input type="checkbox" class="form-check-input" id="subitem{{ catalog['id'] }}" name="subitem" value="{{ catalog['id'] }}" checked>
-                      <label for="subitem{{ catalog['id'] }}" class="form-check-label">{{ catalog['type_title'] }} : {{ catalog['title'] }}</label>
-                  </div>
-                {% endif %}
-              {% endfor %}
-            {% endif %}
+              <div id="ownModalChildren"></div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
               <input type="submit" class="btn btn-primary" value="Add item to collection">
@@ -410,6 +401,27 @@ $(function() {
                 $.each(response.result, function(k, v) {
                     $opt = $('<option>').val(v.id).append(v.title);
                     $list.append($opt);
+                });
+            }
+        );
+    });
+
+    /* Load families into modal window */
+    $('#ownModal').on('show.bs.modal', function (event) {
+        $.getJSON(flask_util.url_for('catalog._catalog_filtered'),
+            { parent:{{ catalog['id'] }} },
+            function(response) {
+                var $div = $('#ownModalChildren');
+                $div.empty();
+                $.each(response.result, function(k, v) {
+                    if (v.physical) {
+                        $d = $('<div>').addClass('form-check');
+                        $d.append('<input type="checkbox" class="form-check-input" id="'
+                          + v.id + '" name="subitem" value="' + v.id + '" checked>');
+                        $d.append('<label for="subitem' + v.id + '" class="form-check-label">'
+                          + v.type_title + ' : ' + v.title + '</label>');
+                        $div.append($d);
+                    }
                 });
             }
         );
