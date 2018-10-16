@@ -93,41 +93,6 @@ def get_catalog_families(id):
     parents = cursor.fetchall()
     return parents
 
-def get_catalog_kits(id):
-    kit = get_catalog_type_id('Kit')
-    cursor = get_db_cursor()
-    cursor.execute(
-        'SELECT c1.id, c1.title, ct.title as type_title, IFNULL(c1.year, "") as year,'
-        ' com.title as company, c1.company_id, img.id as logo'
-        ' FROM catalog c1 JOIN catalog_relation r ON c1.id = r.catalog_id1'
-        ' JOIN catalog_type ct ON c1.type_id = ct.id'
-        ' JOIN catalog c2 ON c2.id = r.catalog_id2'
-        ' LEFT JOIN company com ON com.id = c1.company_id'
-        ' LEFT JOIN (SELECT * FROM catalog_attribute WHERE type = %s) a ON c1.id = a.catalog_id'
-        ' LEFT JOIN image img ON a.value_id = img.id'
-        ' WHERE r.type = %s AND c2.id = %s AND c1.type_id = %s'
-        ' ORDER BY c1.title',
-        (Attribute.ATTR_LOGO, Relation.REL_INCLUDES, id, kit,)
-    )
-    return cursor.fetchall()
-
-def get_catalog_children(id):
-    cursor = get_db_cursor()
-    cursor.execute(
-        'SELECT c2.id, c2.title, ct.title as type_title,'
-        '       ct.physical, c2.description, IFNULL(c2.year, "") as year, com.title as company,'
-        '       c2.company_id'
-        ' FROM catalog c1 JOIN catalog_relation r ON c1.id = r.catalog_id1'
-        ' JOIN catalog c2 ON c2.id = r.catalog_id2'
-        ' JOIN catalog_type ct ON c2.type_id = ct.id'
-        ' LEFT JOIN company com ON com.id = c2.company_id'
-        ' WHERE r.type = %s AND c1.id = %s'
-        ' ORDER BY c2.title',
-        (Relation.REL_INCLUDES, id,)
-    )
-    parents = cursor.fetchall()
-    return parents
-
 def get_catalog_type_id(name):
     cursor = get_db_cursor()
     cursor.execute(
@@ -165,22 +130,6 @@ def get_catalog_items_of_type(id, noparent = False):
         cursor.execute(query + suffix, (Relation.REL_INCLUDES,Attribute.ATTR_LOGO,id,))
     return cursor.fetchall()
 
-def get_catalog_items_of_company(id):
-    cursor = get_db_cursor()
-    cursor.execute(
-        'SELECT c.id, c.title, description, created, c.type_id,'
-        ' ct.title as type_title, ct.physical, img.id as logo,'
-        ' year'
-        ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
-        ' LEFT JOIN (SELECT * FROM catalog_attribute WHERE type = %s) a ON c.id = a.catalog_id'
-        ' LEFT JOIN image img ON a.value_id = img.id'
-        ' JOIN company com ON com.id = c.company_id'
-        ' WHERE c.company_id = %s'
-        ' ORDER BY c.title',
-        (Attribute.ATTR_LOGO, id,)
-    )
-    return cursor.fetchall()
-
 def get_computer_families(noparent=True):
     return get_catalog_items_of_type(get_catalog_type_id('Computer family'), noparent)
 
@@ -198,10 +147,6 @@ def get_calculator_families(noparent=True):
 
 def get_calculators():
     return get_catalog_items_of_type(get_catalog_type_id('Calculator'))
-
-def render_catalog_list(items, showcount=False):
-    return render_template('catalog/list.html',
-        catalogs=items, notype=True, showcount=showcount)
 
 def get_all_families():
     f1 = get_catalog_type_id('Computer family')
@@ -224,11 +169,7 @@ def get_all_families():
 # All catalogs
 @bp.route('/')
 def index():
-    return render_template('catalog/index.html',
-        rendered_families=render_catalog_list(get_computer_families(), True),
-        rendered_console_families=render_catalog_list(get_console_families(), True),
-        rendered_calculator_families=render_catalog_list(get_calculator_families(), True),
-        )
+    return render_template('catalog/index.html')
 
 
 @bp.route('/create', methods=('GET', 'POST'))
@@ -304,7 +245,6 @@ def view(id):
     return render_template('catalog/view.html',
         catalog=catalog, catalog_types=get_catalog_types(),
         rendered_items=render_items_list(items),
-        rendered_kits=render_catalog_list(get_catalog_kits(id), True),
         logo=get_catalog_logo(id))
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
@@ -551,6 +491,7 @@ def _all_families():
 def _catalog_filtered():
     company_id = request.args.get('company', -1, type=int)
     parent_id = request.args.get('parent', -1, type=int)
+    includes_id = request.args.get('includes', -1, type=int)
     type_id = request.args.get('type_id', -1, type=int)
     type_name = request.args.get('type_name')
     if type_name:
@@ -577,6 +518,10 @@ def _catalog_filtered():
         query += ' JOIN catalog_relation r2 ON r2.catalog_id2 = c.id'
         where += ' AND r2.catalog_id1 = %d' % parent_id \
               +  ' AND r2.type = %d' % Relation.REL_INCLUDES
+    if includes_id != -1:
+        query += ' JOIN catalog_relation r3 ON r3.catalog_id1 = c.id'
+        where += ' AND r3.catalog_id2 = %d' % includes_id \
+              +  ' AND r3.type = %d' % Relation.REL_INCLUDES
     if type_id != -1:
         where += ' AND ct.id = %d' % type_id
     if noparent:

@@ -21,21 +21,24 @@
         <h2 class="pt-4">Computer families</h2>
       </div>
     </div>
-    {{ rendered_families | safe }}
+
+    <div id="catalogComputerFamilies"></div>
 
     <div class="row">
       <div class="col-12">
         <h2 class="pt-4">Console families</h2>
       </div>
     </div>
-    {{ rendered_console_families | safe }}
+
+    <div id="catalogConsoleFamilies"></div>
 
     <div class="row">
       <div class="col-12">
         <h2 class="pt-4">Calculator families</h2>
       </div>
     </div>
-    {{ rendered_calculator_families | safe }}
+
+    <div id="catalogCalculatorFamilies"></div>
 
     <div class="row">
       <div class="col-12">
@@ -66,6 +69,13 @@
 
 <script type="text/javascript">
 
+var computerFamilies = new CatalogViewer('catalogComputerFamilies',
+    {filter:{type_name:'Computer family', noparent:true}, notype:true});
+var consoleFamilies = new CatalogViewer('catalogConsoleFamilies',
+    {filter:{type_name:'Console family', noparent:true}, notype:true});
+var calculatorFamilies = new CatalogViewer('catalogCalculatorFamilies',
+    {filter:{type_name:'Calculator family', noparent:true}, notype:true});
+
 var computers = new CatalogViewer('catalogComputers',
     {filter:{type_name:'Computer'}, notype:true});
 var consoles = new CatalogViewer('catalogConsoles',
@@ -74,6 +84,9 @@ var calculators = new CatalogViewer('catalogCalculators',
     {filter:{type_name:'Calculator'}, notype:true});
 
 $(function() {
+    computerFamilies.loadData();
+    consoleFamilies.loadData();
+    calculatorFamilies.loadData();
     computers.loadData();
     consoles.loadData();
     calculators.loadData();

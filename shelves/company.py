@@ -65,10 +65,7 @@ def create():
 
 @bp.route('/<int:id>')
 def view(id):
-    from shelves.catalog import get_catalog_items_of_company, render_catalog_list
-    return render_template('company/view.html',
-        company=get_company(id),
-        rendered_catalog_items=render_catalog_list(get_catalog_items_of_company(id)))
+    return render_template('company/view.html', company=get_company(id))
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required

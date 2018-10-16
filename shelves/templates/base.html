@@ -400,7 +400,8 @@
           }
 
           function createDesc(item) {
-              var $desc = $('<div>').addClass('col-3 catalogItemDesc');
+              var $desc = $('<div>').addClass('col-3 catalogItemDesc')
+                    .attr('id', item.id);
               var $title = $('<a>').addClass('action')
                     .attr('href', flask_util.url_for('catalog.view', {id:item.id}))
               if (item.type_title && !settings.notype) {

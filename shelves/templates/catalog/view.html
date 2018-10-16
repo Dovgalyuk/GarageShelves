@@ -81,7 +81,7 @@
         </div>
       </div>
       {% endif %}
-      {{ rendered_kits | safe }}
+      <div id="catalogKits"></div>
     {% endif %}
 
     <div class="row">
@@ -96,8 +96,7 @@
       </div>
     </div>
     {% endif %}
-    <div id="catalogChildren">
-    </div>
+    <div id="catalogChildren"></div>
 
     {% if g.user and catalog['physical'] %}
       <div class="row">
@@ -225,6 +224,8 @@
 <script type="text/javascript">
 
 var catalogViewer = new CatalogViewer('catalogChildren', {filter:{parent:{{ catalog['id'] }} }});
+var catalogKits = new CatalogViewer('catalogKits',
+    {filter:{type_name:'Kit', includes:{{ catalog['id'] }} }, notype:true});
 
 function FamiliesEditor(idSelector, options) {
     var $main = $("#" + idSelector);
@@ -398,6 +399,7 @@ var kitEditor = new KitEditor();
 $(function() {
     editor.loadData();
     catalogViewer.loadData();
+    catalogKits.loadData();
 
     /* Load families into modal window */
     $('#modalAddFamily').on('show.bs.modal', function (event) {
