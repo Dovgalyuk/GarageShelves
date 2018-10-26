@@ -651,3 +651,30 @@ def _create_kit(id):
         raise
 
     return redirect(url_for('catalog.view', id=kit_id))
+
+@bp.route('/<int:id>/_delete')
+@login_required
+@admin_required
+def _delete(id):
+    # assert id is correct
+    catalog = get_catalog(id)
+
+    cursor = get_db_cursor()
+    # delete attributes
+    cursor.execute(
+        'DELETE FROM catalog_attribute WHERE catalog_id = %s',
+        (id,)
+    )
+    # delete relations
+    cursor.execute(
+        'DELETE FROM catalog_relation WHERE catalog_id1 = %s OR catalog_id2 = %s',
+        (id, id,)
+    )
+    # delete item
+    cursor.execute('DELETE FROM catalog WHERE id = %s', (id,));
+
+    # TODO: delete child items for the kit?
+
+    db_commit()
+
+    return redirect(url_for('catalog.index'))

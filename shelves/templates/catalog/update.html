@@ -9,8 +9,13 @@
       <form method="post" enctype="multipart/form-data">
         <div class="form-group row">
           <label for="title" class="col-2 control-label">Title</label>
-          <div class="col-10">
+          <div class="col-7">
             <input class="form-control" id="title" name="title" value="{{ request.form['title'] or catalog['title'] }}" required>
+          </div>
+          <div class="col-3">
+            <p>
+            {% if g.user.admin %}<button class="btn btn-outline-danger btnDelete"><i class="fas fa-trash-alt"></i> Delete this catalog item</button>{% endif %}
+            </p>
           </div>
         </div>
         <div class="form-group row">
@@ -64,4 +69,16 @@
       </form>
     </div>
   </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script type="text/javascript">
+    $(document).on('click', '.btnDelete', function (e) {
+        e.preventDefault();
+        if (confirm('Do you really want to delete this catalog item?')) {
+            window.location.replace(flask_util.url_for('catalog._delete', {id:{{catalog['id']}} }));
+        }
+    });
+  </script>
 {% endblock %}
