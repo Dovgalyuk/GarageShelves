@@ -39,7 +39,13 @@
             <select name="company_id" id="company_id">
                 <option value="-1">Unknown</option>
                 {% for c in companies %}
-                <option value="{{c['id']}}"{% if c['id']==request.form['company_id'] %} SELECTED{% endif %}>
+                <option value="{{c['id']}}"
+                  {% if request.form['company_id'] %}
+                    {% if c['id']==request.form['company_id'] %} SELECTED{% endif %}
+                  {% else %}
+                    {% if c['id']==company_id %} SELECTED{% endif %}
+                  {% endif %}
+                >
                     {{c['title']}}
                 </option>
                 {% endfor %}

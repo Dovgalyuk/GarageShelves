@@ -18,6 +18,14 @@
         </div>
       </div>
 
+      {% if g.user.admin %}
+      <div class="row">
+        <div class="col-12">
+          <a href="{{ url_for('catalog.create', company_id=company['id']) }}"><i class="fas fa-plus"></i> Add catalog item manufactured by company</a>
+        </div>
+      </div>
+      {% endif %}
+
       <div id="catalogCompany"></div>
 
     </div>
