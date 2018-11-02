@@ -176,6 +176,28 @@ def _upload_image(id):
 
     return ('', 400)
 
+@bp.route('/<int:id>/_delete_image')
+@login_required
+def _delete_image(id):
+    item = get_item(id)
+    if not g.user['admin'] or (item['owner_id'] != g.user['id']):
+        return ('', 403)
+
+    img = request.args.get('img', -1, type=int)
+
+    if img == -1:
+        return ('', 400)
+
+    cursor = get_db_cursor()
+    cursor.execute(
+        'DELETE FROM item_attribute WHERE type = %s'
+        ' AND item_id = %s AND value_id = %s',
+        (Attribute.ATTR_IMAGE, id, img,)
+    )
+    db_commit()
+
+    return jsonify(result='')
+
 @bp.route('/<int:id>/_delete')
 @login_required
 def _delete(id):

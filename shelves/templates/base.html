@@ -66,6 +66,11 @@
       <div class="modal-dialog modal-dialog-centered modal-lg mw-100" role="document">
         <div class="modal-content">
           <div class="modal-header">
+            {% if (item and g.user['id'] == item['owner_id']) or g.user.admin %}
+            <button type="button" id="modal-photo-delete" class="btn btn-outline-danger btnDelete" data-dismiss="modal" aria-label="Delete">
+              <span aria-hidden="true">Delete image</span>
+            </button>
+            {% endif %}
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -207,11 +212,24 @@
     {{ flask_util_js.js }}
     <script type="text/javascript">
       $('#photoModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget) // Button that triggered the modal
-        var id = button.data('whatever') // Extract info from data-* attributes
-        var modal = $(this)
-        var img = modal.find('#modal-photo-img')
-        img.attr('src', flask_util.url_for('uploads.view', {id:id}) )
+        var button = $(event.relatedTarget); // Button that triggered the modal
+        var id = button.data('whatever'); // Extract info from data-* attributes
+        var modal = $(this);
+        var img = modal.find('#modal-photo-img');
+        img.attr('src', flask_util.url_for('uploads.view', {id:id}) );
+        img.data('whatever', id);
+      });
+      $(document).on('click', '#modal-photo-delete', function (e) {
+          e.preventDefault();
+          if (confirm('Do you really want to delete this image?')) {
+              var img = $('#photoModal').find('#modal-photo-img');
+              $.getJSON(flask_util.url_for('{{ entity }}._delete_image',
+                  {id:{{ params['id'] }}, img: img.data('whatever') }),
+                  function(response) {
+                      loadImages();
+                  }
+              );
+          }
       });
     </script>
   
@@ -259,7 +277,7 @@
       }
       {% if entity %}
       // Image list support functions
-      $(function() {
+      function loadImages() {
           if ($('#imagesList')) {
               /* Load images */
               $.getJSON(flask_util.url_for('{{ entity }}._get_images', {id:{{ params['id'] }} }),
@@ -273,6 +291,10 @@
                   }
               );
           }
+      }
+
+      $(document).ready( function() {
+          loadImages();
       });
 
       $(document).ready( function() {

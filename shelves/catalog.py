@@ -678,3 +678,24 @@ def _delete(id):
     db_commit()
 
     return redirect(url_for('catalog.index'))
+
+@bp.route('/<int:id>/_delete_image')
+@login_required
+@admin_required
+def _delete_image(id):
+    catalog = get_catalog(id)
+
+    img = request.args.get('img', -1, type=int)
+
+    if img == -1:
+        return ('', 400)
+
+    cursor = get_db_cursor()
+    cursor.execute(
+        'DELETE FROM catalog_attribute WHERE type = %s'
+        ' AND catalog_id = %s AND value_id = %s',
+        (Attribute.ATTR_IMAGE, id, img,)
+    )
+    db_commit()
+
+    return jsonify(result='')
