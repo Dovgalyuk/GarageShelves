@@ -9,13 +9,14 @@
     {% else %}
         <span class="text-muted"><i class="fas fa-laptop fa-10x"></i></span>
     {% endif %}
-
-    {% if item['internal_id'] %}
-        {{ item['internal_id'] }}
-    {% endif %}
-    <a class="action" href="{{ url_for('item.view', id=item['id']) }}">
-        <h6>{% if item['username'] %}{{ item['username'] }}'s{% endif %} {{ item['type_title'] }} : {{ item['title'] }}</h6></a>
-    <p>{{ item['description'] | markdown }}</p>
+    <p>
+        {% if item['internal_id'] %}
+            {{ item['internal_id'] }}
+        {% endif %}
+        <a class="action" href="{{ url_for('item.view', id=item['id']) }}">
+            <strong>{% if item['username'] %}{{ item['username'] }}'s{% endif %} {{ item['type_title'] }} : {{ item['title'] }}</strong>
+        </a>
+    </p>
   </div>
 </div>
 {% endfor %}
