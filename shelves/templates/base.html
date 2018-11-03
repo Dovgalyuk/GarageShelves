@@ -443,6 +443,7 @@
                             .append(item.company));
               }
               if (item.count) {
+                  $p.append(' ');
                   $p.append($('<span>').addClass('badge badge-secondary')
                             .append(item.count + ' item' + (item.count > 1 ? 's' : '')));
               }
