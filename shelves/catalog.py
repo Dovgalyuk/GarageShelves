@@ -174,10 +174,9 @@ def index():
 
 @bp.route('/create', methods=('GET', 'POST'))
 @bp.route('/create/<int:parent>', methods=('GET', 'POST'))
-@bp.route('/create/<int:company_id>', methods=('GET', 'POST'))
 @login_required
 @admin_required
-def create(parent = -1, company_id = -1):
+def create(parent = -1):
     if request.method == 'POST':
         if not g.user['admin']:
             abort(403)
@@ -231,6 +230,7 @@ def create(parent = -1, company_id = -1):
     p = None
     if parent != -1:
         p = get_catalog(parent)
+    company_id = request.args.get('company', -1, type=int)
     return render_template('catalog/create.html',
         parent=p, catalog_types=catalog_types,
         companies=get_companies(), company_id=company_id)
