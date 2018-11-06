@@ -21,7 +21,7 @@
       {% if g.user.admin %}
       <div class="row">
         <div class="col-12">
-          <a href="{{ url_for('catalog.create', company=company['id']) }}"><i class="fas fa-plus"></i> Add catalog item manufactured by company</a>
+          <a class="btn btn-primary" href="{{ url_for('catalog.create', company=company['id']) }}">Add catalog item</a>
         </div>
       </div>
       {% endif %}

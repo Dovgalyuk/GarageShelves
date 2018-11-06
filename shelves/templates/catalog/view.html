@@ -76,7 +76,7 @@
       <div class="row">
         <div class="col-12">
           <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalCreateKit">
-            <i class="fas fa-plus"></i> Create new kit
+            Create new kit
           </button>
         </div>
       </div>
@@ -92,7 +92,7 @@
     {% if g.user.admin %}
     <div class="row">
       <div class="col-12">
-        <a href="{{ url_for('catalog.create', parent=catalog['id']) }}"><i class="fas fa-plus"></i> Add catalog sub-item</a>
+        <a class="btn btn-primary" href="{{ url_for('catalog.create', parent=catalog['id']) }}">Create sub-item</a>
       </div>
     </div>
     {% endif %}
