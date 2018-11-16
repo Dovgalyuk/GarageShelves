@@ -75,41 +75,6 @@ def get_item(id):
 
     return item
 
-def get_item_children(id):
-    cursor = get_db_cursor()
-    cursor.execute(
-        'SELECT i.id, i.description, c.id AS catalog_id,'
-        ' c.title, ct.title AS type_title, added,'
-        '       col.owner_id, i.internal_id,'
-        '       (SELECT value_id FROM item_attribute '
-        '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id'
-        ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
-        ' JOIN catalog_type ct ON c.type_id = ct.id'
-        ' JOIN collection col ON i.collection_id = col.id'
-        ' JOIN item_relation r ON i.id = r.item_id2'
-        ' WHERE r.item_id1 = %s AND r.type = %s',
-        (Attribute.ATTR_IMAGE,id,Relation.REL_INCLUDES,)
-    )
-    return cursor.fetchall()
-
-def get_item_parents(id):
-    # There should be only one parent, but anyway
-    cursor = get_db_cursor()
-    cursor.execute(
-        'SELECT i.id, i.description, c.id AS catalog_id,'
-        ' c.title, ct.title AS type_title, added,'
-        '       col.owner_id, i.internal_id,'
-        '       (SELECT value_id FROM item_attribute '
-        '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id'
-        ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
-        ' JOIN catalog_type ct ON c.type_id = ct.id'
-        ' JOIN collection col ON i.collection_id = col.id'
-        ' JOIN item_relation r ON i.id = r.item_id1'
-        ' WHERE r.item_id2 = %s AND r.type = %s',
-        (Attribute.ATTR_IMAGE,id,Relation.REL_INCLUDES,)
-    )
-    return cursor.fetchall()
-
 def render_items_list(items):
     return render_template('item/list.html', items=items)
 
@@ -120,9 +85,7 @@ def render_items_list(items):
 @bp.route('/<int:id>')
 def view(id):
     item = get_item(id)
-    return render_template('item/view.html', item=item,
-        rendered_parents=render_items_list(get_item_parents(id)),
-        rendered_children=render_items_list(get_item_children(id)))
+    return render_template('item/view.html', item=item)
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required
@@ -226,3 +189,36 @@ def _delete(id):
     collection = get_user_collection(g.user['id'])
 
     return redirect(url_for('collection.view', id=collection['id']))
+
+@bp.route('/_items_filtered')
+def _items_filtered():
+    parent_id = request.args.get('parent', -1, type=int)
+    includes_id = request.args.get('includes', -1, type=int)
+
+    cursor = get_db_cursor()
+
+    query = 'SELECT i.id, i.description, c.id AS catalog_id,' \
+            ' c.title, ct.title AS type_title, added,'        \
+            '       col.owner_id, i.internal_id,'             \
+            '       (SELECT value_id FROM item_attribute '    \
+            '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id' \
+            ' FROM item i JOIN catalog c ON i.catalog_id = c.id' \
+            ' JOIN catalog_type ct ON c.type_id = ct.id'         \
+            ' JOIN collection col ON i.collection_id = col.id'   \
+            % Attribute.ATTR_IMAGE
+
+    where = ' WHERE 1 = 1'
+
+    if parent_id != -1:
+        query += ' JOIN item_relation r1 ON r1.item_id2 = i.id'
+        where += ' AND r1.item_id1 = %d' % parent_id \
+              +  ' AND r1.type = %d' % Relation.REL_INCLUDES
+    if includes_id != -1:
+        query += ' JOIN item_relation r2 ON r2.item_id1 = i.id'
+        where += ' AND r2.item_id2 = %d' % includes_id \
+              +  ' AND r2.type = %d' % Relation.REL_INCLUDES
+    
+    cursor.execute(query + where)
+    result = cursor.fetchall()
+
+    return jsonify(result=result)

@@ -480,6 +480,76 @@
       };
     </script>
 
+    <script type="text/javascript">
+      function ItemsViewer(idSelector, options) {
+          var $main = $("#" + idSelector);
+          var settings = options;
+
+          function createRow() {
+              return $('<div>').addClass('row pt-4');
+          }
+
+          function createLogo(item) {
+              var $div = $('<div>').addClass('thumbnail itemLogo');
+              if (item.logo) {
+                  var $img = $('<img width=240 height=240>').attr('src',
+                            flask_util.url_for('uploads.view', {id:item.logo}));
+                  $div.append($img);
+              } else {
+                  $div.append('<span class="text-muted"><i class="fas fa-laptop fa-10x"></i></span>');
+              }
+              return $div;
+          }
+
+          function createDesc(item) {
+              var $desc = $('<div>').addClass('itemDesc')
+                    .attr('id', item.id);
+              var $p = $('<p>');
+              if (item.internal_id) {
+                  $p.append(item.internal_id + ' ');
+              }
+              var $title = $('<a>').addClass('action')
+                    .attr('href', flask_util.url_for('item.view', {id:item.id}))
+              if (item.type_title && !settings.notype) {
+                  $title.append(item.type_title + ' : ');
+              }
+              $title.append(item.title);
+              $p.append($('<strong>').append($title));
+              $desc.append($p);
+              return $desc;
+          }
+
+          function createItems(arrayItems) {
+              var colCnt = 0;
+              var $row = createRow();
+              $.each(arrayItems, function (k, v) {
+                  $div = $('<div>').addClass('col-3');
+                  $div.append(createLogo(v));
+                  $div.append(createDesc(v));
+                  $row.append($div);
+
+                  colCnt = (colCnt + 1) % 4;
+                  if (colCnt == 0) {
+                      $main.append($row);
+                      $row = createRow();
+                  }
+              });
+              $main.append($row);
+          }
+
+          /* Public methods */
+
+          this.loadData = function () {
+              $main.empty();
+              $.getJSON(flask_util.url_for('item._items_filtered'), settings.filter,
+                  function(response) {
+                      createItems(response.result);
+                  }
+              )
+          };
+      };
+    </script>
+
     {%- endblock scripts %}
 
     <footer class="page-footer font-small pt-4">

@@ -45,7 +45,7 @@
       </div>
     </div>
 
-    {{ rendered_parents | safe }}
+    <div id="itemKits"></div>
 
     <div class="row">
       <div class="col-12">
@@ -53,6 +53,25 @@
       </div>
     </div>
 
-    {{ rendered_children | safe }}
+    <div id="itemChildren"></div>
   </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+
+<script type="text/javascript">
+
+var itemKits = new ItemsViewer('itemKits',
+              {filter:{includes:{{ item['id'] }} }});
+var itemChildren = new ItemsViewer('itemChildren',
+              {filter:{parent:{{ item['id'] }} }});
+
+$(function() {
+    itemKits.loadData();
+    itemChildren.loadData();
+});
+
+</script>
+
 {% endblock %}
