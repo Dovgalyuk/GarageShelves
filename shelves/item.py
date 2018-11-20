@@ -60,7 +60,7 @@ def get_item(id):
     cursor.execute(
         'SELECT i.id, i.description, c.id AS catalog_id,'
         ' c.title, ct.title AS type_title, added,'
-        '       col.owner_id, i.internal_id'
+        '       col.owner_id, i.internal_id, i.collection_id '
         ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
         ' JOIN catalog_type ct ON c.type_id = ct.id'
         ' JOIN collection col ON i.collection_id = col.id'
@@ -194,12 +194,14 @@ def _delete(id):
 def _items_filtered():
     parent_id = request.args.get('parent', -1, type=int)
     includes_id = request.args.get('includes', -1, type=int)
+    collection_id = request.args.get('collection', -1, type=int)
+    includes_catalog_id = request.args.get('includes_catalog', -1, type=int)
 
     cursor = get_db_cursor()
 
     query = 'SELECT i.id, i.description, c.id AS catalog_id,' \
             ' c.title, ct.title AS type_title, added,'        \
-            '       col.owner_id, i.internal_id,'             \
+            '       col.owner_id, i.internal_id, i.collection_id,' \
             '       (SELECT value_id FROM item_attribute '    \
             '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id' \
             ' FROM item i JOIN catalog c ON i.catalog_id = c.id' \
@@ -211,14 +213,52 @@ def _items_filtered():
 
     if parent_id != -1:
         query += ' JOIN item_relation r1 ON r1.item_id2 = i.id'
-        where += ' AND r1.item_id1 = %d' % parent_id \
-              +  ' AND r1.type = %d' % Relation.REL_INCLUDES
+        where += ' AND r1.item_id1 = %d' \
+                 ' AND r1.type = %d'     \
+                 % (parent_id, Relation.REL_INCLUDES)
     if includes_id != -1:
         query += ' JOIN item_relation r2 ON r2.item_id1 = i.id'
-        where += ' AND r2.item_id2 = %d' % includes_id \
-              +  ' AND r2.type = %d' % Relation.REL_INCLUDES
+        where += ' AND r2.item_id2 = %d' \
+                 ' AND r2.type = %d' % (includes_id, Relation.REL_INCLUDES)
+    if collection_id != -1:
+        where += ' AND i.collection_id = %d' % collection_id
+    if includes_catalog_id != -1:
+        where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
+                 ' WHERE type = %d AND catalog_id1 = c.id'     \
+                 ' AND catalog_id2 = %d)'                      \
+                 % (Relation.REL_INCLUDES, includes_catalog_id)
     
     cursor.execute(query + where)
     result = cursor.fetchall()
 
     return jsonify(result=result)
+
+@bp.route('/<int:id>/_add_to_kit')
+@login_required
+def _add_to_kit(id):
+    kit_id = request.args.get('kit', -1, type=int)
+
+    item = get_item(id)
+
+    if not g.user['admin'] and item['owner_id'] != g.user['id']:
+        abort(403)
+
+    kit = get_item(kit_id)
+
+    cursor = get_db_cursor()
+
+    # validate that the item is not already included anywhere
+    cursor.execute('SELECT * FROM item_relation'
+        ' WHERE item_id2 = %s AND type = %s',
+        (id, Relation.REL_INCLUDES,))
+    if cursor.fetchone():
+        abort(403)
+
+    cursor.execute(
+        'INSERT INTO item_relation (item_id1, item_id2, type)'
+        ' VALUES (%s, %s, %s)',
+        (kit_id, id, Relation.REL_INCLUDES)
+        )
+    db_commit()
+
+    return jsonify(result='')

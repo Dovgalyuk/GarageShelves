@@ -45,6 +45,12 @@
       </div>
     </div>
 
+    <div class="row">
+      <div class="col-12">
+        <a class="btn btn-primary btnAddToKit" href="#">Add to already owned kit</a>
+      </div>
+    </div>
+
     <div id="itemKits"></div>
 
     <div class="row">
@@ -55,6 +61,28 @@
 
     <div id="itemChildren"></div>
   </div>
+
+<div class="modal fade" id="modalAddToKit" tabindex="-1" role="dialog" aria-labelledby="modalAddToKitTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAddToKitTitle">Add {{ item['type_title'] }} : {{ item['title'] }} to the kit</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <select class="form-control" id="modalAddToKitList">
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary btnAddToKitCommit">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -70,6 +98,38 @@ var itemChildren = new ItemsViewer('itemChildren',
 $(function() {
     itemKits.loadData();
     itemChildren.loadData();
+    /* TODO: hide the button */
+});
+
+$(document).on('click', '.btnAddToKit', function (e) {
+    e.preventDefault();
+    $('#modalAddToKit').modal('show');
+});
+
+/* Load kits into modal window */
+$('#modalAddToKit').on('show.bs.modal', function (event) {
+    $.getJSON(flask_util.url_for('item._items_filtered'),
+        { collection:{{ item['collection_id'] }}, includes_catalog:{{ item['catalog_id'] }} },
+        function(response) {
+            var $list = $('#modalAddToKitList');
+            $list.empty();
+            $.each(response.result, function(k, v) {
+                $opt = $('<option>').val(v.id).append(v.title);
+                $list.append($opt);
+            });
+        }
+    );
+});
+
+$(document).on('click', '.btnAddToKitCommit', function (e) {
+    e.preventDefault();
+    $('#modalAddToKit').modal('hide');
+    var $list = $('#modalAddToKitList');
+    $.getJSON(flask_util.url_for('item._add_to_kit', {id:{{ item['id'] }} }),
+        { kit:$list.val() },
+        function() {
+            itemKits.loadData();
+        });
 });
 
 </script>
