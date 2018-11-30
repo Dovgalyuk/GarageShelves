@@ -17,8 +17,13 @@ def load_logged_in_user():
         g.user = None
     else:
         cursor = get_db_cursor()
+        # TODO: multiple collections
         cursor.execute(
-            'SELECT * FROM user WHERE id = %s', (user_id,)
+            'SELECT user.id as id, username, admin, collection.id as col_id'
+            ' FROM user '
+            ' LEFT JOIN collection ON user.id = collection.owner_id'
+            ' WHERE user.id = %s',
+            (user_id,)
         )
         g.user = cursor.fetchone()
 

@@ -32,8 +32,8 @@
           {{ nav('company.index', 'Companies') }}
           {{ nav('collection.index', 'All collections') }}
           {% if g.user %}
-            <li class="nav-item">
-              <span class="nav-link disabled">{{ g.user['username'] }}</span>
+            <li class="nav-item {% if request.endpoint == ep %}active{% endif %}">
+              <a class="nav-link" href="{{ url_for('collection.view', id=g.user['col_id']) }}">{{ g.user['username'] }}</a>
             </li>
             {% if g.user.admin %}
               {# global settings will be here #}
