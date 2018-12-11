@@ -464,7 +464,7 @@ $(function() {
                 $.each(response.result, function(k, v) {
                     if (v.physical) {
                         $opt = $('<option>').attr('id', v.id).
-                            val(v.title).text(v.type_title + ' : ' + v.title);
+                            val(v.title).text(v.id + ' ' + v.type_title + ' : ' + v.title);
                         datalist.append($opt);
                     }
                 });
