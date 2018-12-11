@@ -495,6 +495,7 @@ def _catalog_filtered():
     includes_id = request.args.get('includes', -1, type=int)
     type_id = request.args.get('type_id', -1, type=int)
     type_name = request.args.get('type_name')
+    name = request.args.get('name')
     if type_name:
         type_id = get_catalog_type_id(type_name)
     noparent = request.args.get('noparent', False, type=bool)
@@ -512,6 +513,7 @@ def _catalog_filtered():
             ' LEFT JOIN company com ON com.id = c.company_id'            
     suffix = ' ORDER BY c.title'
     where = ' WHERE 1 = 1'
+    params = (Relation.REL_INCLUDES,Attribute.ATTR_LOGO,)
     # parameters are integer - insert them without escaping
     if company_id != -1:
         where += ' AND com.id = %d' % company_id
@@ -528,8 +530,11 @@ def _catalog_filtered():
     if noparent:
         where += ' AND NOT EXISTS (SELECT 1 FROM catalog_relation' \
                  '      WHERE catalog_id2 = c.id AND type = %d)' % Relation.REL_INCLUDES
-    cursor.execute(query + where + suffix,
-        (Relation.REL_INCLUDES,Attribute.ATTR_LOGO,))
+    if name:
+        # TODO: spaces are not supported in the template?
+        where += ' AND c.title LIKE %s'
+        params = (*params, '%' + name + '%', )
+    cursor.execute(query + where + suffix, params)
     result = cursor.fetchall()
 
     return jsonify(result=result)
@@ -548,16 +553,22 @@ def _family_remove():
     db_commit()
     return ('', 204)
 
-@bp.route('/_family_add', methods=('POST',))
+@bp.route('/_relation_add', methods=('POST',))
 @admin_required
-def _family_add():
-    id = int(request.form['id'])
-    family = int(request.form['family'])
+def _relation_add():
+    id1 = int(request.form['id1'])
+    id2 = int(request.form['id2'])
+    rel = Relation.REL_INCLUDES
+
+    # assert the ids
+    get_catalog(id1)
+    get_catalog(id2)
+
     cursor = get_db_cursor()
     cursor.execute(
         'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
         ' VALUES (%s, %s, %s)',
-        (family, id, Relation.REL_INCLUDES,)
+        (id1, id2, Relation.REL_INCLUDES,)
     )
     db_commit()
     return ('', 204)

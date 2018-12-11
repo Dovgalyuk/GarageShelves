@@ -91,8 +91,11 @@
     </div>
     {% if g.user.admin %}
     <div class="row">
-      <div class="col-12">
+      <div class="col-2">
         <a class="btn btn-primary" href="{{ url_for('catalog.create', parent=catalog['id']) }}">Create sub-item</a>
+      </div>
+      <div class="col-2">
+        <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#modalAddItem">Add existing sub-item</button>
       </div>
     </div>
     {% endif %}
@@ -207,6 +210,27 @@
   </div>
 </div>
 
+<div class="modal fade" id="modalAddItem" tabindex="-1" role="dialog" aria-labelledby="modalAddItemTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAddItemTitle">Add existing catalog item</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input list="modalCatalogItems" id="modalCatalogItem" class="form-control">
+        <datalist id="modalCatalogItems"></datalist>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary btnAddExistingItem">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -250,8 +274,8 @@ function FamiliesEditor(idSelector, options) {
         e.preventDefault();
         $('#modalAddFamily').modal('hide');
         var $list = $('#modalFamiliesList');
-        $.post(flask_util.url_for('catalog._family_add'),
-            {id:{{ catalog['id'] }}, family:$list.val() },
+        $.post(flask_util.url_for('catalog._relation_add'),
+            {id2:{{ catalog['id'] }}, id1:$list.val() },
             function() {
                 editor.loadData();
             })
@@ -425,6 +449,41 @@ $(function() {
                 });
             }
         );
+    });
+
+    /* Load new items info the add item modal */
+    $('#modalCatalogItem').on('input', function(e) {
+        var val = $(this).val();
+        if (val.length < 3)
+            return;
+        $.getJSON(flask_util.url_for('catalog._catalog_filtered'),
+            { name:val },
+            function(response) {
+                var datalist = $('#modalCatalogItems');
+                datalist.empty();
+                $.each(response.result, function(k, v) {
+                    if (v.physical) {
+                        $opt = $('<option>').attr('id', v.id).
+                            val(v.title).text(v.type_title + ' : ' + v.title);
+                        datalist.append($opt);
+                    }
+                });
+            }
+        );
+    });
+
+    /* Add the existing item to the current kit/set/family */
+    $(document).on('click', '.btnAddExistingItem', function (e) {
+        e.preventDefault();
+        var options = $('#modalCatalogItems option');
+        if (options.length == 1) {
+            $.post(flask_util.url_for('catalog._relation_add'),
+                {id1:{{ catalog['id'] }}, id2:options[0].id });
+            location.reload();
+        } else {
+            // TODO: select one from similar names
+            alert('Please enter valid and unique catalog item name');
+        }
     });
 });
 
