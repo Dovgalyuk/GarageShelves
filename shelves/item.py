@@ -75,9 +75,6 @@ def get_item(id):
 
     return item
 
-def render_items_list(items):
-    return render_template('item/list.html', items=items)
-
 ###############################################################################
 # Routes
 ###############################################################################
