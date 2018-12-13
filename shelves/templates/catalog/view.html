@@ -3,6 +3,13 @@
 
 {% extends 'base.html' %}
 
+{% block menu %}
+  {% if g.user.admin %}
+    <a class="dropdown-item btnAddToKit" href="{{ url_for('catalog.create', parent=catalog['id']) }}">Create sub-item</a>
+    <a class="dropdown-item btnAddToKit" data-toggle="modal" data-target="#modalAddItem">Add existing sub-item</a>
+  {% endif %}
+{% endblock %}
+
 {% block content %}
   {{ super() }}
   <div class="container">
@@ -89,16 +96,6 @@
         <h3 class="pt-4">Includes the following catalog items</h3>
       </div>
     </div>
-    {% if g.user.admin %}
-    <div class="row">
-      <div class="col-2">
-        <a class="btn btn-primary" href="{{ url_for('catalog.create', parent=catalog['id']) }}">Create sub-item</a>
-      </div>
-      <div class="col-2">
-        <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#modalAddItem">Add existing sub-item</button>
-      </div>
-    </div>
-    {% endif %}
     <div id="catalogChildren"></div>
 
     {% if g.user and catalog['physical'] %}

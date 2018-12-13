@@ -3,6 +3,10 @@
 
 {% extends 'base.html' %}
 
+{% block menu %}
+  <a class="dropdown-item btnAddToKit" href="#">Add to already owned kit</a>
+{% endblock %}
+
 {% block content %}
   {{ super() }}
   <div class="container">
@@ -45,12 +49,12 @@
       </div>
     </div>
 
-    <div class="row">
+<!--     <div class="row">
       <div class="col-12">
         <a class="btn btn-primary btnAddToKit" href="#">Add to already owned kit</a>
       </div>
     </div>
-
+ -->
     <div id="itemKits"></div>
 
     <div class="row">
