@@ -17,6 +17,22 @@
         <p>{{ collection['description'] | markdown }}</p>
       </div>
     </div>
-    {{ rendered_items | safe }}
+
+    <div id="collectionItems"></div>
   </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+
+<script type="text/javascript">
+
+var collectionItems = new ItemsViewer('collectionItems',
+              {filter:{collection:{{ collection['id'] }} }});
+
+$(function() {
+    collectionItems.loadData();
+});
+
+</script>
 {% endblock %}

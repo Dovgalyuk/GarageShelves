@@ -7,7 +7,7 @@ import re
 from shelves.auth import (login_required, admin_required)
 from shelves.db import get_db_cursor, db_commit, db_rollback
 from shelves.collection import get_user_collection
-from shelves.item import (get_catalog_items, render_items_list)
+from shelves.item import (get_catalog_items)
 from shelves.company import get_companies, get_company
 from shelves.uploads import upload_image
 from shelves.relation import Relation
@@ -245,7 +245,6 @@ def view(id):
 
     return render_template('catalog/view.html',
         catalog=catalog, catalog_types=get_catalog_types(),
-        rendered_items=render_items_list(items),
         logo=get_catalog_logo(id))
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))

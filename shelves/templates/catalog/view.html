@@ -104,10 +104,11 @@
     {% if g.user and catalog['physical'] %}
       <div class="row">
         <div class="col-12">
-          <h3 class="pt-4">Items in your collection</h3>
+          <h3 class="pt-4">Items in your collections</h3>
         </div>
       </div>
-      {{ rendered_items | safe }}
+
+      <div id="ownedItems"></div>
     {% endif %}
 
   <div class="modal fade" id="ownModal" tabindex="-1" role="dialog" aria-labelledby="ownModalLabel" aria-hidden="true">
@@ -241,6 +242,9 @@
 var catalogViewer = new CatalogViewer('catalogChildren', {filter:{parent:{{ catalog['id'] }} }});
 var catalogKits = new CatalogViewer('catalogKits',
     {filter:{type_name:'Kit', includes:{{ catalog['id'] }} }, notype:true});
+
+var itemsOwned = new ItemsViewer('ownedItems',
+              {filter:{catalog:{{ catalog['id'] }}, user:{{ g.user['id'] }} }});
 
 function FamiliesEditor(idSelector, options) {
     var $main = $("#" + idSelector);
@@ -415,6 +419,7 @@ $(function() {
     editor.loadData();
     catalogViewer.loadData();
     catalogKits.loadData();
+    itemsOwned.loadData();
 
     /* Load families into modal window */
     $('#modalAddFamily').on('show.bs.modal', function (event) {

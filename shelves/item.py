@@ -189,7 +189,9 @@ def _delete(id):
 
 @bp.route('/_items_filtered')
 def _items_filtered():
+    user_id = request.args.get('user', -1, type=int)
     parent_id = request.args.get('parent', -1, type=int)
+    catalog_id = request.args.get('catalog', -1, type=int)
     includes_id = request.args.get('includes', -1, type=int)
     collection_id = request.args.get('collection', -1, type=int)
     includes_catalog_id = request.args.get('includes_catalog', -1, type=int)
@@ -203,29 +205,35 @@ def _items_filtered():
             '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id' \
             ' FROM item i JOIN catalog c ON i.catalog_id = c.id' \
             ' JOIN catalog_type ct ON c.type_id = ct.id'         \
-            ' JOIN collection col ON i.collection_id = col.id'   \
-            % Attribute.ATTR_IMAGE
+            ' JOIN collection col ON i.collection_id = col.id'
 
     where = ' WHERE 1 = 1'
+    params = (Attribute.ATTR_IMAGE,)
 
+    if user_id != -1:
+        where += ' AND col.owner_id = %s'
+        params = (*params, user_id)
+    if catalog_id != -1:
+        where += ' AND catalog_id = %s'
+        params = (*params, catalog_id)
     if parent_id != -1:
         query += ' JOIN item_relation r1 ON r1.item_id2 = i.id'
-        where += ' AND r1.item_id1 = %d' \
-                 ' AND r1.type = %d'     \
-                 % (parent_id, Relation.REL_INCLUDES)
+        where += ' AND r1.item_id1 = %s AND r1.type = %s'
+        params = (*params, parent_id, Relation.REL_INCLUDES)
     if includes_id != -1:
         query += ' JOIN item_relation r2 ON r2.item_id1 = i.id'
-        where += ' AND r2.item_id2 = %d' \
-                 ' AND r2.type = %d' % (includes_id, Relation.REL_INCLUDES)
+        where += ' AND r2.item_id2 = %s AND r2.type = %s'
+        params =(*params, includes_id, Relation.REL_INCLUDES)
     if collection_id != -1:
-        where += ' AND i.collection_id = %d' % collection_id
+        where += ' AND col.id = %s'
+        params = (*params, collection_id)
     if includes_catalog_id != -1:
         where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
-                 ' WHERE type = %d AND catalog_id1 = c.id'     \
-                 ' AND catalog_id2 = %d)'                      \
-                 % (Relation.REL_INCLUDES, includes_catalog_id)
+                 ' WHERE type = %s AND catalog_id1 = c.id'     \
+                 ' AND catalog_id2 = %s)'
+        params = (*params, Relation.REL_INCLUDES, includes_catalog_id)
     
-    cursor.execute(query + where)
+    cursor.execute(query + where, params)
     result = cursor.fetchall()
 
     return jsonify(result=result)
