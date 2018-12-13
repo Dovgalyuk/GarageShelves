@@ -491,9 +491,10 @@
 
           function createLogo(item) {
               var $div = $('<div>').addClass('thumbnail itemLogo');
-              if (item.logo) {
-                  var $img = $('<img width=240 height=240>').attr('src',
-                            flask_util.url_for('uploads.view', {id:item.logo}));
+              if (item.img_id) {
+                  var $img = $('<img width=240 height=240>')
+                      .addClass("figure-img img-fluid rounded")
+                      .attr('src', flask_util.url_for('uploads.view', {id:item.img_id}));
                   $div.append($img);
               } else {
                   $div.append('<span class="text-muted"><i class="fas fa-laptop fa-10x"></i></span>');
