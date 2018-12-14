@@ -1,5 +1,11 @@
 {% extends 'base.html' %}
 
+{% block menu %}
+  {% if g.user.admin %}
+    <a class="dropdown-item" href="{{ url_for('catalog.create', company=company['id']) }}">Create sub-item</a>
+  {% endif %}
+{% endblock %}
+
 {% block content %}
   {{ super() }}
   <div class="container">
@@ -18,13 +24,11 @@
         </div>
       </div>
 
-      {% if g.user.admin %}
       <div class="row">
         <div class="col-12">
-          <a class="btn btn-primary" href="{{ url_for('catalog.create', company=company['id']) }}">Add catalog item</a>
+          <h3 class="pt-4">Manufactured items</h3>
         </div>
       </div>
-      {% endif %}
 
       <div id="catalogCompany"></div>
 
