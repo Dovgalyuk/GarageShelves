@@ -476,6 +476,11 @@
               $.getJSON(flask_util.url_for('catalog._catalog_filtered'), settings.filter,
                   function(response) {
                       createItems(response.result);
+                      if (response.result.length == 0) {
+                          $main.prev().hide();
+                      } else {
+                          $main.prev().show();
+                      }
                   }
               )
           };
@@ -547,6 +552,11 @@
               $.getJSON(flask_util.url_for('item._items_filtered'), settings.filter,
                   function(response) {
                       createItems(response.result);
+                      if (response.result.length == 0) {
+                          $main.prev().hide();
+                      } else {
+                          $main.prev().show();
+                      }
                   }
               )
           };

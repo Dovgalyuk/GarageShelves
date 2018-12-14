@@ -5,8 +5,9 @@
 
 {% block menu %}
   {% if g.user.admin %}
-    <a class="dropdown-item btnAddToKit" href="{{ url_for('catalog.create', parent=catalog['id']) }}">Create sub-item</a>
-    <a class="dropdown-item btnAddToKit" data-toggle="modal" data-target="#modalAddItem">Add existing sub-item</a>
+    <a class="dropdown-item" href="{{ url_for('catalog.create', parent=catalog['id']) }}">Create sub-item</a>
+    <a class="dropdown-item" data-toggle="modal" data-target="#modalAddItem">Add existing sub-item</a>
+    <a class="dropdown-item" data-toggle="modal" data-target="#modalCreateKit">Create new kit</a>
   {% endif %}
 {% endblock %}
 
@@ -79,15 +80,6 @@
           <h3 class="pt-4">Kits with this item</h3>
         </div>
       </div>
-      {% if g.user.admin %}
-      <div class="row">
-        <div class="col-12">
-          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalCreateKit">
-            Create new kit
-          </button>
-        </div>
-      </div>
-      {% endif %}
       <div id="catalogKits"></div>
     {% endif %}
 
