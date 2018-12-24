@@ -630,8 +630,9 @@ def _create_kit(id):
         cursor.execute(
             'INSERT INTO catalog_relation'
             ' (catalog_id1, catalog_id2, type)'
-            ' VALUES (%s, %s, %s)',
-            (kit_id, id, Relation.REL_INCLUDES,)
+            ' VALUES (%s, %s, %s), (%s, %s, %s)',
+            (kit_id, id, Relation.REL_INCLUDES,
+             kit_id, id, Relation.REL_MAIN_ITEM,)
         )
 
         re_type = re.compile('type(\d+)')
