@@ -547,7 +547,7 @@
           function createItems(arrayItems, is_main) {
               var colCnt = 0;
               var $row = createRow();
-              var size = is_main ? 4 : 8;
+              var size = is_main ? 1 : 3;
               $.each(arrayItems, function (k, v) {
                   if (is_main) {
                       mainItem = v.id;
@@ -555,7 +555,7 @@
                       return;
                   }
                   $div = $('<div>');
-                  $div.addClass('col-3');
+                  $div.addClass('col-' + (12 / size));
                   $div.append(createLogo(v, is_main));
                   $div.append(createDesc(v, is_main));
                   $row.append($div);
