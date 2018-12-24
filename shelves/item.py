@@ -195,6 +195,7 @@ def _items_filtered():
     includes_id = request.args.get('includes', -1, type=int)
     collection_id = request.args.get('collection', -1, type=int)
     includes_catalog_id = request.args.get('includes_catalog', -1, type=int)
+    is_main = request.args.get('is_main', False, type=bool)
 
     cursor = get_db_cursor()
 
@@ -217,9 +218,14 @@ def _items_filtered():
         where += ' AND catalog_id = %s'
         params = (*params, catalog_id)
     if parent_id != -1:
-        query += ' JOIN item_relation r1 ON r1.item_id2 = i.id'
-        where += ' AND r1.item_id1 = %s AND r1.type = %s'
+        parent = get_item(parent_id)
+        where += ' AND EXISTS (SELECT 1 FROM item_relation' \
+                 ' WHERE item_id1 = %s AND item_id2 = i.id AND type = %s)'
         params = (*params, parent_id, Relation.REL_INCLUDES)
+        if is_main:
+            where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
+                     ' WHERE catalog_id1 = %s AND catalog_id2 = catalog_id AND type = %s)'
+            params = (*params, parent['catalog_id'], Relation.REL_MAIN_ITEM)
     if includes_id != -1:
         query += ' JOIN item_relation r2 ON r2.item_id1 = i.id'
         where += ' AND r2.item_id2 = %s AND r2.type = %s'

@@ -498,6 +498,7 @@ def _catalog_filtered():
     if type_name:
         type_id = get_catalog_type_id(type_name)
     noparent = request.args.get('noparent', False, type=bool)
+    is_main = request.args.get('is_main', False, type=bool)
 
     cursor = get_db_cursor()
     query = 'SELECT c.id, c.title, description, created, c.type_id,'   \
@@ -517,9 +518,13 @@ def _catalog_filtered():
     if company_id != -1:
         where += ' AND com.id = %d' % company_id
     if parent_id != -1:
-        query += ' JOIN catalog_relation r2 ON r2.catalog_id2 = c.id'
-        where += ' AND r2.catalog_id1 = %d' % parent_id \
-              +  ' AND r2.type = %d' % Relation.REL_INCLUDES
+        if is_main:
+            rel = Relation.REL_MAIN_ITEM
+        else:
+            rel = Relation.REL_INCLUDES
+        where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
+                 '      WHERE catalog_id1 = %s AND catalog_id2 = c.id AND type = %s)'
+        params = (*params, parent_id, rel,)
     if includes_id != -1:
         query += ' JOIN catalog_relation r3 ON r3.catalog_id1 = c.id'
         where += ' AND r3.catalog_id2 = %d' % includes_id \
@@ -533,6 +538,7 @@ def _catalog_filtered():
         # TODO: spaces are not supported in the template?
         where += ' AND c.title LIKE %s'
         params = (*params, '%' + name + '%', )
+    print(query + where + suffix)
     cursor.execute(query + where + suffix, params)
     result = cursor.fetchall()
 

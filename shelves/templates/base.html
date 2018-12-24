@@ -412,7 +412,7 @@
               return $('<div>').addClass('row pt-4');
           }
 
-          function createLogo(item) {
+          function createLogo(item, is_main) {
               var $div = $('<div>').addClass('col-1 catalogItemLogo');
               if (item.logo) {
                   var $img = $('<img>').attr('src',
@@ -453,11 +453,11 @@
               return $desc;
           }
 
-          function createItems(arrayItems) {
+          function createItems(arrayItems, is_main) {
               var colCnt = 0;
               var $row = createRow();
               $.each(arrayItems, function (k, v) {
-                  $row.append(createLogo(v));
+                  $row.append(createLogo(v, is_main));
                   $row.append(createDesc(v));
 
                   colCnt = (colCnt + 1) % 3;
@@ -473,6 +473,16 @@
 
           this.loadData = function () {
               $main.empty();
+              /*
+              // Not yet
+              var filter = Object.assign({}, settings.filter);
+              filter.is_main = true;
+              $.getJSON(flask_util.url_for('catalog._catalog_filtered'), filter,
+                  function(response) {
+                      createItems(response.result, true);
+                  }
+              )
+              */
               $.getJSON(flask_util.url_for('catalog._catalog_filtered'), settings.filter,
                   function(response) {
                       createItems(response.result);
@@ -491,52 +501,67 @@
       function ItemsViewer(idSelector, options) {
           var $main = $("#" + idSelector);
           var settings = options;
+          var mainItem = -1;
 
           function createRow() {
               return $('<div>').addClass('row pt-4');
           }
 
-          function createLogo(item) {
-              var $div = $('<div>').addClass('thumbnail itemLogo');
+          function createLogo(item, is_main) {
+              var $div = $('<span>').addClass('thumbnail itemLogo');
               if (item.img_id) {
-                  var $img = $('<img width=240 height=240>')
+                  var size = is_main ? 240 : 60;
+                  var $img = $('<img width=' + size + ' height=' + size + '>')
                       .addClass("figure-img img-fluid rounded")
                       .attr('src', flask_util.url_for('uploads.view', {id:item.img_id}));
                   $div.append($img);
               } else {
-                  $div.append('<span class="text-muted"><i class="fas fa-laptop fa-10x"></i></span>');
+                  var size = is_main ? 10 : 2;
+                  $div.append('<i class="text-muted fas fa-laptop fa-' + size + 'x"></i>');
+              }
+              if (is_main) {
+                  $div = $('<div>').append($div);
               }
               return $div;
           }
 
-          function createDesc(item) {
-              var $desc = $('<div>').addClass('itemDesc')
+          function createDesc(item, is_main) {
+              var $desc = $('<span>').addClass('itemDesc')
                     .attr('id', item.id);
-              var $p = $('<p>');
               if (item.internal_id) {
-                  $p.append(item.internal_id + ' ');
+                  $desc.append(item.internal_id + ' ');
               }
               var $title = $('<a>').addClass('action')
                     .attr('href', flask_util.url_for('item.view', {id:item.id}))
+              if (is_main) {
+                  $title.addClass('fa-2x');
+              }
               if (item.type_title && !settings.notype) {
                   $title.append(item.type_title + ' : ');
               }
               $title.append(item.title);
-              $p.append($('<strong>').append($title));
-              $desc.append($p);
+              $desc.append($('<strong>').append($title));
               return $desc;
           }
 
-          function createItems(arrayItems) {
+          function createItems(arrayItems, is_main) {
               var colCnt = 0;
               var $row = createRow();
+              var size = is_main ? 4 : 8;
               $.each(arrayItems, function (k, v) {
-                  $div = $('<div>').addClass('col-3');
-                  $div.append(createLogo(v));
-                  $div.append(createDesc(v));
+                  if (is_main) {
+                      mainItem = v.id;
+                  } else if (v.id == mainItem) {
+                      return;
+                  }
+                  $div = $('<div>');
+                  $div.addClass('col-3');
+                  $div.append(createLogo(v, is_main));
+                  $div.append(createDesc(v, is_main));
                   $row.append($div);
+                  is_main = false;
 
-                  colCnt = (colCnt + 1) % 4;
+                  colCnt = (colCnt + 1) % size;
                   if (colCnt == 0) {
                       $main.append($row);
                       $row = createRow();
@@ -549,14 +574,25 @@
 
           this.loadData = function () {
               $main.empty();
-              $.getJSON(flask_util.url_for('item._items_filtered'), settings.filter,
+              mainItem = -1;
+              var filter = Object.assign({}, settings.filter);
+              filter.is_main = true;
+              $.getJSON(flask_util.url_for('item._items_filtered'), filter,
                   function(response) {
-                      createItems(response.result);
-                      if (response.result.length == 0) {
-                          $main.prev().hide();
-                      } else {
-                          $main.prev().show();
+                      if (response.result.length > 0) {
+                          createItems(response.result, true);
                       }
+                      // order the requests
+                      $.getJSON(flask_util.url_for('item._items_filtered'), settings.filter,
+                          function(response) {
+                              createItems(response.result);
+                              if (response.result.length == 0) {
+                                  $main.prev().hide();
+                              } else {
+                                  $main.prev().show();
+                              }
+                          }
+                      )
                   }
               )
           };
