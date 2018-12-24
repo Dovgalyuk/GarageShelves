@@ -538,7 +538,6 @@ def _catalog_filtered():
         # TODO: spaces are not supported in the template?
         where += ' AND c.title LIKE %s'
         params = (*params, '%' + name + '%', )
-    print(query + where + suffix)
     cursor.execute(query + where + suffix, params)
     result = cursor.fetchall()
 

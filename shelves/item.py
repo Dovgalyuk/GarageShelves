@@ -197,6 +197,10 @@ def _items_filtered():
     includes_catalog_id = request.args.get('includes_catalog', -1, type=int)
     is_main = request.args.get('is_main', False, type=bool)
 
+    # TODO: check at frontend
+    if parent_id == -1 and is_main:
+        return jsonify(result='')
+
     cursor = get_db_cursor()
 
     query = 'SELECT i.id, i.description, c.id AS catalog_id,' \
@@ -240,6 +244,7 @@ def _items_filtered():
         params = (*params, Relation.REL_INCLUDES, includes_catalog_id)
     
     cursor.execute(query + where, params)
+    print(query + where)
     result = cursor.fetchall()
 
     return jsonify(result=result)
