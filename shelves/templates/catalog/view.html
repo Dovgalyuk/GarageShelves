@@ -232,8 +232,11 @@ var catalogViewer = new CatalogViewer('catalogChildren', {filter:{parent:{{ cata
 var catalogKits = new CatalogViewer('catalogKits',
     {filter:{type_name:'Kit', includes:{{ catalog['id'] }} }, notype:true});
 
+{% if g.user and catalog['physical'] %}
 var itemsOwned = new ItemsViewer('ownedItems',
-              {filter:{catalog:{{ catalog['id'] }}, user:{{ g.user['id'] }} }});
+              {filter:{catalog:{{ catalog['id'] }},
+                       user:{{ g.user['id'] }} }});
+{% endif %}
 
 function FamiliesEditor(idSelector, options) {
     var $main = $("#" + idSelector);
