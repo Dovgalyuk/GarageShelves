@@ -33,7 +33,8 @@ def get_catalog_none(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT c.id, c.title, description, created, c.type_id,'
-        ' ct.title as type_title, ct.is_physical, IFNULL(c.year, "") as year, com.title as company,'
+        ' ct.title as type_title, ct.is_physical, ct.is_group, ct.is_kit,'
+        ' IFNULL(c.year, "") as year, com.title as company,'
         ' c.company_id'
         ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
         ' LEFT JOIN company com ON com.id = c.company_id'
@@ -499,6 +500,7 @@ def _catalog_filtered():
         type_id = get_catalog_type_id(type_name)
     noparent = request.args.get('noparent', False, type=bool)
     is_main = request.args.get('is_main', False, type=bool)
+    is_group = request.args.get('is_group', False, type=bool)
 
     cursor = get_db_cursor()
     query = 'SELECT c.id, c.title, description, created, c.type_id,'   \
@@ -538,6 +540,11 @@ def _catalog_filtered():
         # TODO: spaces are not supported in the template?
         where += ' AND c.title LIKE %s'
         params = (*params, '%' + name + '%', )
+    if is_group:
+        where += ' AND ct.is_group = TRUE'
+    else:
+        where += ' AND ct.is_group = FALSE'
+
     cursor.execute(query + where + suffix, params)
     result = cursor.fetchall()
 

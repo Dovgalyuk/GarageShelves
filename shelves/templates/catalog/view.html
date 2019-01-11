@@ -74,6 +74,15 @@
     <div id="imagesList">
     </div>
 
+    {% if catalog['is_group'] %}
+      <div class="row">
+        <div class="col-12">
+          <h3 class="pt-4">Includes the families</h3>
+        </div>
+      </div>
+      <div id="catalogFamilies"></div>
+    {% endif %}
+
     {% if catalog['is_physical'] %}
       <div class="row">
         <div class="col-12">
@@ -228,6 +237,12 @@
 
 <script type="text/javascript">
 
+{% if catalog['is_group'] %}
+var familyViewer = new CatalogViewer('catalogFamilies',
+    {filter:{parent:{{ catalog['id'] }}, is_group:true }, notype:true});
+$(function() { familyViewer.loadData(); })
+{% endif %}
+
 var catalogViewer = new CatalogViewer('catalogChildren', {filter:{parent:{{ catalog['id'] }} }});
 var catalogKits = new CatalogViewer('catalogKits',
     {filter:{type_name:'Kit', includes:{{ catalog['id'] }} }, notype:true});
@@ -236,6 +251,7 @@ var catalogKits = new CatalogViewer('catalogKits',
 var itemsOwned = new ItemsViewer('ownedItems',
               {filter:{catalog:{{ catalog['id'] }},
                        user:{{ g.user['id'] }} }});
+$(function() { itemsOwned.loadData(); })
 {% endif %}
 
 function FamiliesEditor(idSelector, options) {
@@ -411,7 +427,6 @@ $(function() {
     editor.loadData();
     catalogViewer.loadData();
     catalogKits.loadData();
-    itemsOwned.loadData();
 
     /* Load families into modal window */
     $('#modalAddFamily').on('show.bs.modal', function (event) {

@@ -30,7 +30,9 @@ CREATE TABLE collection (
 CREATE TABLE catalog_type (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
   title TEXT NOT NULL,
-  is_physical BOOLEAN NOT NULL DEFAULT 1
+  is_physical BOOLEAN NOT NULL DEFAULT 1,
+  is_group BOOLEAN NOT NULL DEFAULT 0,
+  is_kit BOOLEAN NOT NULL DEFAULT 0
 );
 
 CREATE TABLE company (
@@ -125,13 +127,13 @@ INSERT INTO collection (owner_id, title, description)
 
 -- default catalog types
 INSERT INTO catalog_type (title) VALUES ("Nothing");
-INSERT INTO catalog_type (title, is_physical) VALUES ("Computer Family", 0);
+INSERT INTO catalog_type (title, is_physical, is_group) VALUES ("Computer Family", 0, 1);
 INSERT INTO catalog_type (title) VALUES ("Computer");
-INSERT INTO catalog_type (title, is_physical) VALUES ("Console family", 0);
+INSERT INTO catalog_type (title, is_physical, is_group) VALUES ("Console family", 0, 1);
 INSERT INTO catalog_type (title) VALUES ("Console");
-INSERT INTO catalog_type (title, is_physical) VALUES ("Calculator Family", 0);
+INSERT INTO catalog_type (title, is_physical, is_group) VALUES ("Calculator Family", 0, 1);
 INSERT INTO catalog_type (title) VALUES ("Calculator");
-INSERT INTO catalog_type (title) VALUES ("Kit");
+INSERT INTO catalog_type (title, is_kit) VALUES ("Kit", 1);
 INSERT INTO catalog_type (title) VALUES ("Mainboard");
 INSERT INTO catalog_type (title) VALUES ("Peripheral device");
 INSERT INTO catalog_type (title) VALUES ("Cable/Adapter");
