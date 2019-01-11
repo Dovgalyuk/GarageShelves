@@ -40,7 +40,7 @@
           </p>
         </div>
         <div class="col-2 align-self-center">
-          {% if g.user and catalog['physical'] %}
+          {% if g.user and catalog['is_physical'] %}
             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ownModal">I own this</button>
           {% endif %}
         </div>
@@ -74,7 +74,7 @@
     <div id="imagesList">
     </div>
 
-    {% if catalog['physical'] %}
+    {% if catalog['is_physical'] %}
       <div class="row">
         <div class="col-12">
           <h3 class="pt-4">Kits with this item</h3>
@@ -90,7 +90,7 @@
     </div>
     <div id="catalogChildren"></div>
 
-    {% if g.user and catalog['physical'] %}
+    {% if g.user and catalog['is_physical'] %}
       <div class="row">
         <div class="col-12">
           <h3 class="pt-4">Items in your collections</h3>
@@ -232,7 +232,7 @@ var catalogViewer = new CatalogViewer('catalogChildren', {filter:{parent:{{ cata
 var catalogKits = new CatalogViewer('catalogKits',
     {filter:{type_name:'Kit', includes:{{ catalog['id'] }} }, notype:true});
 
-{% if g.user and catalog['physical'] %}
+{% if g.user and catalog['is_physical'] %}
 var itemsOwned = new ItemsViewer('ownedItems',
               {filter:{catalog:{{ catalog['id'] }},
                        user:{{ g.user['id'] }} }});
@@ -371,7 +371,7 @@ function KitEditor() {
             function(response) {
                 $types = {};
                 $.each(response.result, function(k, v) {
-                    if (v.physical)
+                    if (v.is_physical)
                         $types[v.id] = v.title;
                 });
             }
@@ -435,7 +435,7 @@ $(function() {
                 var $div = $('#ownModalChildren');
                 $div.empty();
                 $.each(response.result, function(k, v) {
-                    if (v.physical) {
+                    if (v.is_physical) {
                         $d = $('<div>').addClass('form-check');
                         $d.append('<input type="checkbox" class="form-check-input" id="'
                           + v.id + '" name="subitem" value="' + v.id + '" checked>');
@@ -459,7 +459,7 @@ $(function() {
                 var datalist = $('#modalCatalogItems');
                 datalist.empty();
                 $.each(response.result, function(k, v) {
-                    if (v.physical) {
+                    if (v.is_physical) {
                         $opt = $('<option>').attr('id', v.id).
                             val(v.title).text(v.id + ' ' + v.type_title + ' : ' + v.title);
                         datalist.append($opt);

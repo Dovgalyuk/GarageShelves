@@ -33,7 +33,7 @@ def get_catalog_none(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT c.id, c.title, description, created, c.type_id,'
-        ' ct.title as type_title, ct.physical, IFNULL(c.year, "") as year, com.title as company,'
+        ' ct.title as type_title, ct.is_physical, IFNULL(c.year, "") as year, com.title as company,'
         ' c.company_id'
         ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
         ' LEFT JOIN company com ON com.id = c.company_id'
@@ -109,7 +109,7 @@ def get_catalog_type_id(name):
 def get_catalog_items_of_type(id, noparent = False):
     cursor = get_db_cursor()
     query = 'SELECT c.id, c.title, description, created, c.type_id,'   \
-            ' ct.title as type_title, ct.physical, img.id as logo,'    \
+            ' ct.title as type_title, ct.is_physical, img.id as logo,'    \
             ' year, com.title as company, c.company_id,'               \
             ' (SELECT COUNT(*) FROM catalog cc'                        \
             '   JOIN catalog_relation r WHERE cc.id=r.catalog_id2'     \
@@ -323,7 +323,7 @@ def update(id):
 def own(id):
     catalog = get_catalog(id)
 
-    if not catalog['physical']:
+    if not catalog['is_physical']:
         abort(403)
 
     collection = get_user_collection(g.user['id'])
@@ -502,7 +502,7 @@ def _catalog_filtered():
 
     cursor = get_db_cursor()
     query = 'SELECT c.id, c.title, description, created, c.type_id,'   \
-            ' ct.title as type_title, ct.physical, img.id as logo,'    \
+            ' ct.title as type_title, ct.is_physical, img.id as logo,'    \
             ' year, com.title as company, c.company_id,'               \
             ' (SELECT COUNT(*) FROM catalog cc'                        \
             '   JOIN catalog_relation r WHERE cc.id=r.catalog_id2'     \
@@ -613,7 +613,7 @@ def _upload_image(id):
 @admin_required
 def _create_kit(id):
     catalog = get_catalog(id)
-    if not catalog['physical']:
+    if not catalog['is_physical']:
         abort(403)
 
     kit_type = get_catalog_type_id('Kit')
@@ -648,7 +648,7 @@ def _create_kit(id):
                 title_item = request.form['title%s' % num]
                 type_id = int(v)
                 ct = get_catalog_type(type_id)
-                if not ct['physical']:
+                if not ct['is_physical']:
                     abort(403)
                 cursor.execute(
                     'INSERT INTO catalog (type_id, title, description, company_id)'
