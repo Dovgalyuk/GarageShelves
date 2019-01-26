@@ -32,7 +32,7 @@ def get_catalog_type(id):
 def get_catalog_none(id):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT c.id, c.title, description, created, c.type_id,'
+        'SELECT c.id, c.title, c.title_eng, description, created, c.type_id,'
         ' ct.title as type_title, ct.is_physical, ct.is_group, ct.is_kit,'
         ' IFNULL(c.year, "") as year, com.title as company,'
         ' c.company_id'
@@ -84,7 +84,7 @@ def get_catalog_families(id):
     f3 = get_catalog_type_id('Calculator family')
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT c1.id, c1.title, ct.title as type_title'
+        'SELECT c1.id, c1.title, c1.title_eng, ct.title as type_title'
         ' FROM catalog c1 JOIN catalog_relation r ON c1.id = r.catalog_id1'
         ' JOIN catalog_type ct ON c1.type_id = ct.id'
         ' JOIN catalog c2 ON c2.id = r.catalog_id2'
@@ -131,31 +131,13 @@ def get_catalog_items_of_type(id, noparent = False):
         cursor.execute(query + suffix, (Relation.REL_INCLUDES,Attribute.ATTR_LOGO,id,))
     return cursor.fetchall()
 
-def get_computer_families(noparent=True):
-    return get_catalog_items_of_type(get_catalog_type_id('Computer family'), noparent)
-
-def get_computers():
-    return get_catalog_items_of_type(get_catalog_type_id('Computer'))
-
-def get_console_families(noparent=True):
-    return get_catalog_items_of_type(get_catalog_type_id('Console family'), noparent)
-
-def get_consoles():
-    return get_catalog_items_of_type(get_catalog_type_id('Console'))
-
-def get_calculator_families(noparent=True):
-    return get_catalog_items_of_type(get_catalog_type_id('Calculator family'), noparent)
-
-def get_calculators():
-    return get_catalog_items_of_type(get_catalog_type_id('Calculator'))
-
 def get_all_families():
     f1 = get_catalog_type_id('Computer family')
     f2 = get_catalog_type_id('Console family')
     f3 = get_catalog_type_id('Calculator family')
     cursor = get_db_cursor()
     cursor.execute(
-            'SELECT c.id, c.title, ct.title as type_title'
+            'SELECT c.id, c.title, c.title_eng, ct.title as type_title'
             ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
             ' WHERE ct.id IN (%s, %s, %s)'
             ' ORDER BY c.title',
@@ -185,6 +167,7 @@ def create(parent = -1):
         error = None
         type_id = request.form['type_id']
         title = request.form['title']
+        title_eng = request.form['title_eng']
         description = request.form['description']
         company_id = int(request.form['company_id'])
         if company_id == -1:
@@ -211,9 +194,9 @@ def create(parent = -1):
             parent = request.form['parent']
             cursor = get_db_cursor()
             cursor.execute(
-                'INSERT INTO catalog (type_id, title, description, year, company_id)'
-                ' VALUES (%s, %s, %s, %s, %s)',
-                (type_id, title, description, year, company_id)
+                'INSERT INTO catalog (type_id, title, title_eng, description, year, company_id)'
+                ' VALUES (%s, %s, %s, %s, %s, %s)',
+                (type_id, title, title_eng, description, year, company_id)
             )
             catalog_id = cursor.lastrowid
             if parent and int(parent) > 0:
@@ -260,6 +243,7 @@ def update(id):
 
         error = None
         title = request.form['title']
+        title_eng = request.form['title_eng']
         description = request.form['description']
         type_id = request.form['type_id']
         company_id = int(request.form['company_id'])
@@ -307,10 +291,12 @@ def update(id):
                 )
 
             cursor.execute(
-                'UPDATE catalog SET title = %s, description = %s, type_id = %s,'
+                'UPDATE catalog SET title = %s, title_eng = %s,'
+                ' description = %s,'
+                ' type_id = %s,'
                 ' year = %s, company_id = %s'
                 ' WHERE id = %s',
-                (title, description, type_id, year, company_id, id)
+                (title, title_eng, description, type_id, year, company_id, id)
             )
             db_commit()
             return redirect(url_for('catalog.view', id=id))
@@ -370,6 +356,7 @@ def _join():
     id2 = int(request.form['id2'])
     logo = int(request.form['logos'])
     title = request.form['title']
+    title_eng = request.form['title_eng']
     year = request.form['year']
     description = request.form['description']
 
@@ -408,10 +395,10 @@ def _join():
 
     # Set new parameters of the catalog item
     cursor.execute(
-        'UPDATE catalog SET title = %s, description = %s,'
+        'UPDATE catalog SET title = %s, title_eng = %s, description = %s,'
         ' year = %s'
         ' WHERE id = %s',
-        (title, description, year, id1,)
+        (title, title_eng, description, year, id1,)
     )
 
     # Set new logo
@@ -503,7 +490,8 @@ def _catalog_filtered():
     is_group = request.args.get('is_group', False, type=bool)
 
     cursor = get_db_cursor()
-    query = 'SELECT c.id, c.title, description, created, c.type_id,'   \
+    query = 'SELECT c.id, c.title, c.title_eng,' \
+            ' description, created, c.type_id,'   \
             ' ct.title as type_title, ct.is_physical, img.id as logo,'    \
             ' year, com.title as company, c.company_id,'               \
             ' (SELECT COUNT(*) FROM catalog cc'                        \

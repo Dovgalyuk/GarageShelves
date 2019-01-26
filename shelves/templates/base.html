@@ -117,6 +117,17 @@
               </div>
 
               <div class="form-group row justify-content-center">
+                <label for="title_eng" class="col-2 control-label align-self-center">Title in English</label>
+                <div class="col-5 align-self-center">
+                  <p><input class="form-control" id="title_eng1" name="title_eng1" readonly></p>
+                  <p><input class="form-control" id="title_eng2" name="title_eng2" readonly></p>
+                </div>
+                <div class="col-5 align-self-center">
+                  <input class="form-control" id="title_eng" name="title_eng">
+                </div>
+              </div>
+
+              <div class="form-group row justify-content-center">
                 <label for="logos" class="col-2 control-label align-self-center">Logo</label>
                 <div class="col-5 align-self-center">
                   <div class="form-check form-check-inline">
@@ -360,11 +371,14 @@
                         var modal = $('#catalogJoinModal');
                         modal.find('#id1').val(response.result.id);
                         modal.find('#title1').val(response.result.title);
+                        modal.find('#title_eng1').val(response.result.title_eng);
                         modal.find('#year1').val(response.result.year);
                         modal.find('#description1').text(response.result.description);
                         modal.find('#type1').val(response.result.type_id);
                         modal.find('#company1').val(response.result.company_id);
+                        // default values
                         modal.find('#title').val(response.result.title);
+                        modal.find('#title_eng').val(response.result.title_eng);
                         modal.find('#year').val(response.result.year);
                         modal.find('#description').text(response.result.description);
                     }
@@ -374,6 +388,7 @@
                         var modal = $('#catalogJoinModal');
                         modal.find('#id2').val(response.result.id);
                         modal.find('#title2').val(response.result.title);
+                        modal.find('#title_eng2').val(response.result.title_eng);
                         modal.find('#year2').val(response.result.year);
                         modal.find('#description2').text(response.result.description);
                         modal.find('#type2').val(response.result.type_id);
@@ -387,6 +402,9 @@
                   }
                   if (!modal.find('#description').text()) {
                       modal.find('#description').text(modal.find('#description2').text());
+                  }
+                  if (!modal.find('#title_eng').text()) {
+                      modal.find('#title_eng').text(modal.find('#title_eng2').text());
                   }
                   if (modal.find('#type1').val() != modal.find('#type2').val()) {
                       alert("Type of the items must match");
@@ -414,7 +432,7 @@
           }
 
           function createLogo(item, is_main) {
-              var $div = $('<div>').addClass('col-1 catalogItemLogo');
+              var $div = $('<div>').addClass('col-1 catalogItemLogo align-self-center');
               if (item.logo) {
                   var $img = $('<img>').attr('src',
                             flask_util.url_for('uploads.view', {id:item.logo}));
@@ -434,12 +452,19 @@
               if (item.type_title && !settings.notype) {
                   $title.append(item.type_title + ' : ');
               }
-              $title.append(item.title);
+              if (item.title_eng) {
+                  $title.append(item.title_eng);
+              } else {
+                  $title.append(item.title);
+              }
               var $header = '<h5>';
               if (is_main) {
                   $header = '<h3>';
               }
               $desc.append($($header).append($title));
+              if (item.title_eng) {
+                  $desc.append($('<h6>').addClass('text-secondary').append(item.title));
+              }
               var $p = $('<p>');
               if (item.year) {
                   $p.append($('<span>').addClass('badge badge-secondary').append(item.year));
@@ -564,7 +589,11 @@
               if (item.type_title && !settings.notype) {
                   $title.append(item.type_title + ' : ');
               }
-              $title.append(item.title);
+              if (item.title_eng) {
+                  $title.append(item.title_eng);
+              } else {
+                  $title.append(item.title);
+              }
               $desc.append($('<strong>').append($title));
               return $desc;
           }

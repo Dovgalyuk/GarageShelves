@@ -14,7 +14,7 @@ bp = Blueprint('item', __name__, url_prefix='/item')
 def get_collection_items(collection):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT i.id, i.internal_id,  i.description, c.title,'
+        'SELECT i.id, i.internal_id,  i.description, c.title, c.title_eng,'
         '       ct.title AS type_title, col.owner_id, '
         '       (SELECT value_id FROM item_attribute '
         '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id'
@@ -30,7 +30,7 @@ def get_collection_items(collection):
 def get_catalog_items(collection, catalog):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT i.id, i.internal_id,  i.description, c.title,'
+        'SELECT i.id, i.internal_id,  i.description, c.title, c.title_eng,'
         '       ct.title AS type_title, added, col.owner_id, u.username,'
         '       (SELECT value_id FROM item_attribute '
         '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id'
@@ -59,7 +59,7 @@ def get_item(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT i.id, i.description, c.id AS catalog_id,'
-        ' c.title, ct.title AS type_title, added,'
+        ' c.title, c.title_eng, ct.title AS type_title, added,'
         '       col.owner_id, i.internal_id, i.collection_id '
         ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
         ' JOIN catalog_type ct ON c.type_id = ct.id'
@@ -204,7 +204,7 @@ def _items_filtered():
     cursor = get_db_cursor()
 
     query = 'SELECT i.id, i.description, c.id AS catalog_id,' \
-            ' c.title, ct.title AS type_title, added,'        \
+            ' c.title, c.title_eng, ct.title AS type_title, added,'        \
             '       col.owner_id, i.internal_id, i.collection_id,' \
             '       (SELECT value_id FROM item_attribute '    \
             '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id' \

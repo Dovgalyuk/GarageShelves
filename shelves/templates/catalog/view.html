@@ -24,18 +24,21 @@
           {% endif %}
         </div>
         <div class="col-9 align-self-center">
-          <h1 class="display-4">
-            {{ catalog['type_title'] }} : {{ catalog['title'] }}
+          <h1>
+            {{ catalog['type_title'] }} : {{ catalog['title_eng'] or catalog['title'] }}
             {% if g.user.admin %}
               <a class="action" href="{{ url_for('catalog.update', id=catalog['id']) }}"><i class="fas fa-edit"></i></a>
             {% endif %}
           </h1>
-          <p>
+          {% if catalog['title_eng'] and catalog['title'] %}
+            <h4 class="text-secondary">{{ catalog['title'] }}</h4>
+          {% endif %}
+          <p class="text-secondary">
             {% if catalog['year'] %}
               <span class="badge badge-secondary">{{ catalog['year'] }}</span>
             {% endif %}
             {% if catalog['company'] %}
-              <a class="text-secondary" href="{{ url_for('company.view', id=catalog['company_id']) }}">{{ catalog['company'] }}</a>
+              <a href="{{ url_for('company.view', id=catalog['company_id']) }}">{{ catalog['company'] }}</a>
             {% endif %}
           </p>
         </div>

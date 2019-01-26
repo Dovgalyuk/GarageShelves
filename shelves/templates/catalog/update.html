@@ -4,7 +4,7 @@
   {{ super() }}
   <div class="container">
     <div class="row"><div class="page-header">
-      <h3>Edit {{ catalog['type_title'] }} : {{ catalog['title'] }}</h3>
+      <h3>Edit {{ catalog['type_title'] }} : {{ catalog['title_eng'] or catalog['title'] }}</h3>
     </div></div>
       <form method="post" enctype="multipart/form-data">
         <div class="form-group row">
@@ -16,6 +16,12 @@
             <p>
             {% if g.user.admin %}<button class="btn btn-outline-danger btnDelete"><i class="fas fa-trash-alt"></i> Delete this catalog item</button>{% endif %}
             </p>
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="title_eng" class="col-2 control-label">Title in English</label>
+          <div class="col-10">
+            <input class="form-control" id="title_eng" name="title_eng" value="{{ request.form['title_eng'] or catalog['title_eng'] or '' }}">
           </div>
         </div>
         <div class="form-group row">
