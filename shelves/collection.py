@@ -62,7 +62,6 @@ def index():
 
 @bp.route('/<int:id>')
 def view(id):
-    from shelves.item import get_collection_items
     collection = get_collection(id, False)
 
     return render_template('collection/view.html', collection=collection)

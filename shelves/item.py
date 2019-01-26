@@ -11,39 +11,6 @@ from shelves.attribute import Attribute
 
 bp = Blueprint('item', __name__, url_prefix='/item')
 
-def get_collection_items(collection):
-    cursor = get_db_cursor()
-    cursor.execute(
-        'SELECT i.id, i.internal_id,  i.description, c.title, c.title_eng,'
-        '       ct.title AS type_title, col.owner_id, '
-        '       (SELECT value_id FROM item_attribute '
-        '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id'
-        ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
-        ' JOIN catalog_type ct ON c.type_id = ct.id'
-        ' JOIN collection col ON i.collection_id = col.id'
-        ' WHERE i.collection_id = %s'
-        ,(Attribute.ATTR_IMAGE,collection,)
-    )
-
-    return cursor.fetchall()
-
-def get_catalog_items(collection, catalog):
-    cursor = get_db_cursor()
-    cursor.execute(
-        'SELECT i.id, i.internal_id,  i.description, c.title, c.title_eng,'
-        '       ct.title AS type_title, added, col.owner_id, u.username,'
-        '       (SELECT value_id FROM item_attribute '
-        '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id'
-        ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
-        ' JOIN catalog_type ct ON c.type_id = ct.id'
-        ' JOIN collection col ON i.collection_id = col.id'
-        ' JOIN user u ON col.owner_id = u.id'
-        ' WHERE i.collection_id = %s AND c.id = %s'
-        , (Attribute.ATTR_IMAGE,collection,catalog,)
-    )
-
-    return cursor.fetchall()
-
 def get_item_images(id):
     cursor = get_db_cursor()
     cursor.execute(
