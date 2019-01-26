@@ -338,7 +338,8 @@ function FamiliesEditor(idSelector, options) {
             var $div = $('<div>');
             var $span = $('<a>').addClass('action')
               .attr('href', flask_util.url_for('catalog.view', {id:v.id}))
-              .append(v.type_title + ' : ' + v.title);
+              .append(v.type_title + ' : '
+                + (v.title_eng ? v.title_eng : v.title));
             var $divbtn = TButtonGroup();
             $div.append($divbtn).append("&nbsp;").append($span);
             $li.append($div);
@@ -374,7 +375,8 @@ function FamiliesEditor(idSelector, options) {
 
     this.loadData = function () {
         $main.empty();
-        $.getJSON(flask_util.url_for('catalog._families'), {id:{{ catalog['id'] }} },
+        $.getJSON(flask_util.url_for('catalog._catalog_filtered'),
+            {includes:{{ catalog['id'] }}, is_group:true },
             function(response) {
                 createMenu(response.result);
             }
@@ -439,12 +441,12 @@ $(function() {
 
     /* Load families into modal window */
     $('#modalAddFamily').on('show.bs.modal', function (event) {
-        $.getJSON(flask_util.url_for('catalog._all_families'),
+        $.getJSON(flask_util.url_for('catalog._catalog_filtered', {is_group:true}),
             function(response) {
                 var $list = $('#modalFamiliesList');
                 $list.empty();
                 $.each(response.result, function(k, v) {
-                    $opt = $('<option>').val(v.id).append(v.title);
+                    $opt = $('<option>').val(v.id).append(v.title_eng ? v.title_eng : v.title);
                     $list.append($opt);
                 });
             }
@@ -464,7 +466,8 @@ $(function() {
                         $d.append('<input type="checkbox" class="form-check-input" id="'
                           + v.id + '" name="subitem" value="' + v.id + '" checked>');
                         $d.append('<label for="subitem' + v.id + '" class="form-check-label">'
-                          + v.type_title + ' : ' + v.title + '</label>');
+                          + v.type_title + ' : '
+                          + (v.title_eng ? v.title_eng : v.title) + '</label>');
                         $div.append($d);
                     }
                 });
@@ -485,7 +488,8 @@ $(function() {
                 $.each(response.result, function(k, v) {
                     if (v.is_physical) {
                         $opt = $('<option>').attr('id', v.id).
-                            val(v.title).text(v.id + ' ' + v.type_title + ' : ' + v.title);
+                            val(v.title).text(v.id + ' ' + v.type_title+ ' : '
+                              + (v.title_eng ? t.title_eng : v.title));
                         datalist.append($opt);
                     }
                 });

@@ -244,7 +244,7 @@ def _items_filtered():
         params = (*params, Relation.REL_INCLUDES, includes_catalog_id)
     
     cursor.execute(query + where, params)
-    print(query + where)
+    #print(query + where)
     result = cursor.fetchall()
 
     return jsonify(result=result)
