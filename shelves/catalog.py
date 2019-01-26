@@ -614,15 +614,16 @@ def _create_kit(id):
     kit_type = get_catalog_type_id('Kit')
 
     title = request.form['title']
+    title_eng = request.form['title_eng']
     if not title:
         abort(403)
 
     try:
         cursor = get_db_cursor()
         cursor.execute(
-            'INSERT INTO catalog (type_id, title, description, company_id)'
-            ' VALUES (%s, %s, %s, %s)',
-            (kit_type, title, '', catalog['company_id'],)
+            'INSERT INTO catalog (type_id, title, title_eng, description, company_id)'
+            ' VALUES (%s, %s, %s, %s, %s)',
+            (kit_type, title, title_eng, '', catalog['company_id'],)
         )
         kit_id = cursor.lastrowid
 
