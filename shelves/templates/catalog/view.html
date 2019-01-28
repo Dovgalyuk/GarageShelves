@@ -16,6 +16,13 @@
   <div class="container">
     <div class="page-header">
       <div class="row">
+        <div class="col-1 align-self-center" id="react_catalog_logo"></div>
+        <script type="text/babel">
+          ReactDOM.render(
+            <Logo id="{{ catalog['id'] }}" />,
+            document.getElementById('react_catalog_logo')
+          );
+        </script>
         <div class="col-1 align-self-center">
           {% if logo and 'id' in logo %}
             <img src="{{ url_for('uploads.view', id=logo['id']) }}">
