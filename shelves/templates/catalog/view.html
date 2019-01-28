@@ -23,13 +23,6 @@
             document.getElementById('react_catalog_logo')
           );
         </script>
-        <div class="col-1 align-self-center">
-          {% if logo and 'id' in logo %}
-            <img src="{{ url_for('uploads.view', id=logo['id']) }}">
-          {% else %}
-            <span class="text-muted"><i class="fas fa-laptop fa-4x"></i></span>
-          {% endif %}
-        </div>
         <div class="col-9 align-self-center">
           <h1>
             {{ catalog['type_title'] }} : {{ catalog['title_eng'] or catalog['title'] }}
