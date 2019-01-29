@@ -96,7 +96,69 @@ def get_catalog_type_id(name):
 
 @bp.route('/<int:id>/_get_logo')
 def _get_logo(id):
-    return jsonify(result=get_catalog_logo(id))
+    return jsonify(get_catalog_logo(id))
+
+@bp.route('/_filtered_list')
+def _filtered_list():
+    company_id = request.args.get('company', -1, type=int)
+    parent_id = request.args.get('parent', -1, type=int)
+    includes_id = request.args.get('includes', -1, type=int)
+    type_id = request.args.get('type_id', -1, type=int)
+    type_name = request.args.get('type_name')
+    name = request.args.get('name')
+    if type_name:
+        type_id = get_catalog_type_id(type_name)
+    noparent = request.args.get('noparent', False, type=bool)
+    is_main = request.args.get('is_main', False, type=bool)
+    is_group = request.args.get('is_group', False, type=bool)
+
+    cursor = get_db_cursor()
+    query = 'SELECT c.id, c.title, c.title_eng,' \
+            ' created, c.type_id,'   \
+            ' ct.title as type_title, ct.is_physical, '    \
+            ' year, com.title as company, c.company_id,'               \
+            ' (SELECT COUNT(*) FROM catalog cc'                        \
+            '   JOIN catalog_relation r WHERE cc.id=r.catalog_id2'     \
+            '   AND c.id=r.catalog_id1 AND r.type=%s) AS count'        \
+            ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'\
+            ' LEFT JOIN company com ON com.id = c.company_id'
+    suffix = ' ORDER BY c.title'
+    where = ' WHERE 1 = 1'
+    params = (Relation.REL_INCLUDES,)
+    # parameters are integer - insert them without escaping
+    if company_id != -1:
+        where += ' AND com.id = %d' % company_id
+    if parent_id != -1:
+        if is_main:
+            rel = Relation.REL_MAIN_ITEM
+        else:
+            rel = Relation.REL_INCLUDES
+        where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
+                 '      WHERE catalog_id1 = %s AND catalog_id2 = c.id AND type = %s)'
+        params = (*params, parent_id, rel,)
+    if includes_id != -1:
+        query += ' JOIN catalog_relation r3 ON r3.catalog_id1 = c.id'
+        where += ' AND r3.catalog_id2 = %d' % includes_id \
+              +  ' AND r3.type = %d' % Relation.REL_INCLUDES
+    if type_id != -1:
+        where += ' AND ct.id = %d' % type_id
+    if noparent:
+        where += ' AND NOT EXISTS (SELECT 1 FROM catalog_relation' \
+                 '      WHERE catalog_id2 = c.id AND type = %d)' % Relation.REL_INCLUDES
+    if name:
+        # TODO: spaces are not supported in the template?
+        where += ' AND c.title LIKE %s'
+        params = (*params, '%' + name + '%', )
+    if is_group:
+        where += ' AND ct.is_group = TRUE'
+    else:
+        where += ' AND ct.is_group = FALSE'
+
+    cursor.execute(query + where + suffix, params)
+    result = cursor.fetchall()
+    #print(query + where + suffix)
+
+    return jsonify(result)
 
 ###############################################################################
 # Routes

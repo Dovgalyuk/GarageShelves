@@ -102,6 +102,14 @@
     </div>
     <div id="catalogChildren"></div>
 
+    <div id="catalogChildren2"></div>
+    <script type="text/babel">
+      ReactDOM.render(
+        <CatalogList parent="{{ catalog['id'] }}" />,
+        document.getElementById('catalogChildren2')
+      );
+    </script>
+
     {% if g.user and catalog['is_physical'] %}
       <div class="row">
         <div class="col-12">
