@@ -87,26 +87,20 @@
     {% endif %}
 
     {% if catalog['is_physical'] %}
-      <div class="row">
-        <div class="col-12">
-          <h3 class="pt-4">Kits with this item</h3>
-        </div>
-      </div>
       <div id="catalogKits"></div>
+      <script type="text/babel">
+        ReactDOM.render(
+          <CatalogListSection type_name="Kit" includes="{{ catalog['id'] }}" notype="true" title="Kits with this item"/>,
+          document.getElementById('catalogKits')
+        );
+      </script>
     {% endif %}
 
-    <div class="row">
-      <div class="col-12">
-        <h3 class="pt-4">Includes the following catalog items</h3>
-      </div>
-    </div>
     <div id="catalogChildren"></div>
-
-    <div id="catalogChildren2"></div>
     <script type="text/babel">
       ReactDOM.render(
-        <CatalogList parent="{{ catalog['id'] }}" />,
-        document.getElementById('catalogChildren2')
+        <CatalogListSection parent="{{ catalog['id'] }}" title="Includes the following catalog items"/>,
+        document.getElementById('catalogChildren')
       );
     </script>
 
@@ -259,10 +253,6 @@ var familyViewer = new CatalogViewer('catalogFamilies',
     {filter:{parent:{{ catalog['id'] }}, is_group:true }, notype:true});
 $(function() { familyViewer.loadData(); })
 {% endif %}
-
-var catalogViewer = new CatalogViewer('catalogChildren', {filter:{parent:{{ catalog['id'] }} }});
-var catalogKits = new CatalogViewer('catalogKits',
-    {filter:{type_name:'Kit', includes:{{ catalog['id'] }} }, notype:true});
 
 {% if g.user and catalog['is_physical'] %}
 var itemsOwned = new ItemsViewer('ownedItems',
@@ -444,8 +434,6 @@ var kitEditor = new KitEditor();
 /* Load data into the families editor */
 $(function() {
     editor.loadData();
-    catalogViewer.loadData();
-    catalogKits.loadData();
 
     /* Load families into modal window */
     $('#modalAddFamily').on('show.bs.modal', function (event) {
