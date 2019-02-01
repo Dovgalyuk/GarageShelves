@@ -43,6 +43,72 @@ def get_item(id):
     return item
 
 ###############################################################################
+# JSON Routes
+###############################################################################
+
+@bp.route('/_filtered_list')
+def _filtered_list():
+    user_id = request.args.get('user', -1, type=int)
+    parent_id = request.args.get('parent', -1, type=int)
+    catalog_id = request.args.get('catalog', -1, type=int)
+    includes_id = request.args.get('includes', -1, type=int)
+    collection_id = request.args.get('collection', -1, type=int)
+    includes_catalog_id = request.args.get('includes_catalog', -1, type=int)
+    is_main = request.args.get('is_main', False, type=bool)
+
+    # TODO: check at frontend
+    if parent_id == -1 and is_main:
+        return jsonify(result='')
+
+    cursor = get_db_cursor()
+
+    query = 'SELECT i.id, i.description, c.id AS catalog_id,' \
+            ' c.title, c.title_eng, ct.title AS type_title, added,'        \
+            '       col.owner_id, i.internal_id, i.collection_id,' \
+            '       (SELECT value_id FROM item_attribute '    \
+            '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id' \
+            ' FROM item i JOIN catalog c ON i.catalog_id = c.id' \
+            ' JOIN catalog_type ct ON c.type_id = ct.id'         \
+            ' JOIN collection col ON i.collection_id = col.id'
+
+    where = ' WHERE 1 = 1'
+    params = (Attribute.ATTR_IMAGE,)
+
+    if user_id != -1:
+        where += ' AND col.owner_id = %s'
+        params = (*params, user_id)
+    if catalog_id != -1:
+        where += ' AND catalog_id = %s'
+        params = (*params, catalog_id)
+    if parent_id != -1:
+        parent = get_item(parent_id)
+        where += ' AND EXISTS (SELECT 1 FROM item_relation' \
+                 ' WHERE item_id1 = %s AND item_id2 = i.id AND type = %s)'
+        params = (*params, parent_id, Relation.REL_INCLUDES)
+        if is_main:
+            where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
+                     ' WHERE catalog_id1 = %s AND catalog_id2 = catalog_id AND type = %s)'
+            params = (*params, parent['catalog_id'], Relation.REL_MAIN_ITEM)
+    if includes_id != -1:
+        query += ' JOIN item_relation r2 ON r2.item_id1 = i.id'
+        where += ' AND r2.item_id2 = %s AND r2.type = %s'
+        params =(*params, includes_id, Relation.REL_INCLUDES)
+    if collection_id != -1:
+        where += ' AND col.id = %s'
+        params = (*params, collection_id)
+    if includes_catalog_id != -1:
+        where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
+                 ' WHERE type = %s AND catalog_id1 = c.id'     \
+                 ' AND catalog_id2 = %s)'
+        params = (*params, Relation.REL_INCLUDES, includes_catalog_id)
+    
+    cursor.execute(query + where, params)
+    #print(query + where)
+    result = cursor.fetchall()
+
+    return jsonify(result)
+
+###############################################################################
 # Routes
 ###############################################################################
 
