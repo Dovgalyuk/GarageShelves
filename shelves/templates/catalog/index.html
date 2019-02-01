@@ -15,82 +15,53 @@
       </div>
     </div>
 
-    <div class="row">
-      <div class="col-12">
-        <h2 class="pt-4">Computer families</h2>
-      </div>
-    </div>
-
     <div id="catalogComputerFamilies"></div>
-
-    <div class="row">
-      <div class="col-12">
-        <h2 class="pt-4">Console families</h2>
-      </div>
-    </div>
+    <script type="text/babel">
+      ReactDOM.render(
+        <CatalogListSection type_name="Computer family" noparent="true" notype="true" is_group="true" title="Computer families"/>,
+        document.getElementById('catalogComputerFamilies')
+      );
+    </script>
 
     <div id="catalogConsoleFamilies"></div>
-
-    <div class="row">
-      <div class="col-12">
-        <h2 class="pt-4">Calculator families</h2>
-      </div>
-    </div>
+    <script type="text/babel">
+      ReactDOM.render(
+        <CatalogListSection type_name="Console family" noparent="true" notype="true" is_group="true" title="Console families"/>,
+        document.getElementById('catalogConsoleFamilies')
+      );
+    </script>
 
     <div id="catalogCalculatorFamilies"></div>
-
-    <div class="row">
-      <div class="col-12">
-        <h2 class="pt-4">Computers</h2>
-      </div>
-    </div>
+    <script type="text/babel">
+      ReactDOM.render(
+        <CatalogListSection type_name="Calculator family" noparent="true" notype="true" is_group="true" title="Calculator families"/>,
+        document.getElementById('catalogCalculatorFamilies')
+      );
+    </script>
 
     <div id="catalogComputers"></div>
+    <script type="text/babel">
+      ReactDOM.render(
+        <CatalogListSection type_name="Computer" notype="true" title="Computers"/>,
+        document.getElementById('catalogComputers')
+      );
+    </script>
 
-    <div class="row">
-      <div class="col-12">
-        <h2 class="pt-4">Consoles</h2>
-      </div>
-    </div>
     <div id="catalogConsoles"></div>
+    <script type="text/babel">
+      ReactDOM.render(
+        <CatalogListSection type_name="Console" notype="true" title="Consoles"/>,
+        document.getElementById('catalogConsoles')
+      );
+    </script>
 
-    <div class="row">
-      <div class="col-12">
-        <h2 class="pt-4">Calculators</h2>
-      </div>
-    </div>
     <div id="catalogCalculators"></div>
+    <script type="text/babel">
+      ReactDOM.render(
+        <CatalogListSection type_name="Calculator" notype="true" title="Calculators"/>,
+        document.getElementById('catalogCalculators')
+      );
+    </script>
+
   </div>
-{% endblock %}
-
-{% block scripts %}
-  {{ super() }}
-
-<script type="text/javascript">
-
-var computerFamilies = new CatalogViewer('catalogComputerFamilies',
-    {filter:{type_name:'Computer family', noparent:true, is_group:true}, notype:true});
-var consoleFamilies = new CatalogViewer('catalogConsoleFamilies',
-    {filter:{type_name:'Console family', noparent:true, is_group:true}, notype:true});
-var calculatorFamilies = new CatalogViewer('catalogCalculatorFamilies',
-    {filter:{type_name:'Calculator family', noparent:true, is_group:true}, notype:true});
-
-var computers = new CatalogViewer('catalogComputers',
-    {filter:{type_name:'Computer'}, notype:true});
-var consoles = new CatalogViewer('catalogConsoles',
-    {filter:{type_name:'Console'}, notype:true});
-var calculators = new CatalogViewer('catalogCalculators',
-    {filter:{type_name:'Calculator'}, notype:true});
-
-$(function() {
-    computerFamilies.loadData();
-    consoleFamilies.loadData();
-    calculatorFamilies.loadData();
-    computers.loadData();
-    consoles.loadData();
-    calculators.loadData();
-});
-
-</script>
-
 {% endblock %}
