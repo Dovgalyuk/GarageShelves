@@ -12,6 +12,7 @@
         {{ collection['title'] }} <small>owned by {{ collection['username'] }}</h2>
       </div>
     </div>
+
     <div class="row">
       <div class="col-12">
         <p>{{ collection['description'] | markdown }}</p>
@@ -19,20 +20,11 @@
     </div>
 
     <div id="collectionItems"></div>
+      <script type="text/babel">
+        ReactDOM.render(
+          <ItemListSection collection="{{ collection['id'] }}" title="Items in the collection"/>,
+          document.getElementById('collectionItems')
+        );
+      </script>
   </div>
-{% endblock %}
-
-{% block scripts %}
-  {{ super() }}
-
-<script type="text/javascript">
-
-var collectionItems = new ItemsViewer('collectionItems',
-              {filter:{collection:{{ collection['id'] }} }});
-
-$(function() {
-    collectionItems.loadData();
-});
-
-</script>
 {% endblock %}
