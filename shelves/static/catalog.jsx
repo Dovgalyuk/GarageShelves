@@ -23,9 +23,11 @@ class Logo extends React.Component {
 class CatalogItem extends React.Component {
     constructor(props) {
         super(props);
+        // TODO: selected state
     }
 
     render() {
+        // TODO: main item
         return <div class="col-4">
                  <div class="row pt-4">
                    <div class="col-3 align-self-center">
