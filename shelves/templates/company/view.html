@@ -24,29 +24,14 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-12">
-          <h3 class="pt-4">Manufactured items</h3>
-        </div>
-      </div>
-
       <div id="catalogCompany"></div>
+      <script type="text/babel">
+        ReactDOM.render(
+          <CatalogListSection company="{{ company['id'] }}" title="Manufactured items"/>,
+          document.getElementById('catalogCompany')
+        );
+      </script>
 
     </div>
   </div>
-{% endblock %}
-
-{% block scripts %}
-  {{ super() }}
-
-<script type="text/javascript">
-
-var catalogViewer = new CatalogViewer('catalogCompany', {filter:{company:{{ company['id'] }} }});
-
-$(function() {
-    catalogViewer.loadData();
-});
-
-</script>
-
 {% endblock %}
