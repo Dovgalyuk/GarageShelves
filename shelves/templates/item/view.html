@@ -43,12 +43,6 @@
     <div id="imagesList">
     </div>
 
-    <div class="row">
-      <div class="col-12">
-        <h4 class="pt-4">Included by the item</h4>
-      </div>
-    </div>
-
 <!--     <div class="row">
       <div class="col-12">
         <a class="btn btn-primary btnAddToKit" href="#">Add to already owned kit</a>
@@ -56,14 +50,20 @@
     </div>
  -->
     <div id="itemKits"></div>
-
-    <div class="row">
-      <div class="col-12">
-        <h4 class="pt-4">Includes the items</h4>
-      </div>
-    </div>
+      <script type="text/babel">
+        ReactDOM.render(
+          <ItemListSection includes="{{ item['id'] }}" title="Included by the item"/>,
+          document.getElementById('itemKits')
+        );
+      </script>
 
     <div id="itemChildren"></div>
+      <script type="text/babel">
+        ReactDOM.render(
+          <ItemListSection parent="{{ item['id'] }}" title="Includes the items"/>,
+          document.getElementById('itemChildren')
+        );
+      </script>
   </div>
 
 <div class="modal fade" id="modalAddToKit" tabindex="-1" role="dialog" aria-labelledby="modalAddToKitTitle" aria-hidden="true">
@@ -93,17 +93,6 @@
   {{ super() }}
 
 <script type="text/javascript">
-
-var itemKits = new ItemsViewer('itemKits',
-              {filter:{includes:{{ item['id'] }} }});
-var itemChildren = new ItemsViewer('itemChildren',
-              {filter:{parent:{{ item['id'] }} }});
-
-$(function() {
-    itemKits.loadData();
-    itemChildren.loadData();
-    /* TODO: hide the button */
-});
 
 $(document).on('click', '.btnAddToKit', function (e) {
     e.preventDefault();

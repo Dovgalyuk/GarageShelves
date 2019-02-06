@@ -54,11 +54,7 @@ def _filtered_list():
     includes_id = request.args.get('includes', -1, type=int)
     collection_id = request.args.get('collection', -1, type=int)
     includes_catalog_id = request.args.get('includes_catalog', -1, type=int)
-    is_main = request.args.get('is_main', False, type=bool)
-
-    # TODO: check at frontend
-    if parent_id == -1 and is_main:
-        return jsonify(result='')
+    is_main = request.args.get('is_main', -1, type=int)
 
     cursor = get_db_cursor()
 
@@ -85,8 +81,9 @@ def _filtered_list():
         where += ' AND EXISTS (SELECT 1 FROM item_relation' \
                  ' WHERE item_id1 = %s AND item_id2 = i.id AND type = %s)'
         params = (*params, parent_id, Relation.REL_INCLUDES)
-        if is_main:
-            where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
+        if is_main != -1:
+            where += ' AND ' + ("" if is_main == 1 else "NOT") + \
+                     ' EXISTS (SELECT 1 FROM catalog_relation' \
                      ' WHERE catalog_id1 = %s AND catalog_id2 = catalog_id AND type = %s)'
             params = (*params, parent['catalog_id'], Relation.REL_MAIN_ITEM)
     if includes_id != -1:
