@@ -160,6 +160,10 @@ def _filtered_list():
 
     return jsonify(result)
 
+@bp.route('/<int:id>/_images')
+def _images(id):
+    return jsonify(get_catalog_images(id))
+
 ###############################################################################
 # Routes
 ###############################################################################
@@ -578,10 +582,6 @@ def _relation_add():
 @bp.route('/<int:id>/_get')
 def _get(id):
     return jsonify(result=get_catalog(id));
-
-@bp.route('/<int:id>/_get_images')
-def _get_images(id):
-    return jsonify(result=get_catalog_images(id))
 
 @bp.route('/<int:id>/_upload_image', methods=('POST',))
 @login_required

@@ -105,6 +105,10 @@ def _filtered_list():
 
     return jsonify(result)
 
+@bp.route('/<int:id>/_images')
+def _images(id):
+    return jsonify(get_item_images(id))
+
 ###############################################################################
 # Routes
 ###############################################################################
@@ -135,10 +139,6 @@ def update(id):
 
     return render_template('item/update.html', item=item)
 
-
-@bp.route('/<int:id>/_get_images')
-def _get_images(id):
-    return jsonify(result=get_item_images(id))
 
 @bp.route('/<int:id>/_upload_image', methods=('POST',))
 @login_required

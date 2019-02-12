@@ -74,8 +74,13 @@
       </div>
     </div>
 
-    <div id="imagesList">
-    </div>
+    <div id="catalogImages"></div>
+    <script type="text/babel">
+      ReactDOM.render(
+        <ImageListSection id="{{ catalog['id'] }}" entity="catalog"/>,
+        document.getElementById('catalogImages')
+      );
+    </script>
 
     {% if catalog['is_group'] %}
       <div id="catalogFamilies"></div>
