@@ -23,6 +23,7 @@
     <!-- Flask-related stuff -->
     {{ flask_util_js.js }}
     <!-- React classes in external files -->
+    <script src="{{ url_for('static', filename='auth.jsx') }}" type="text/babel"></script>
     <script src="{{ url_for('static', filename='image.jsx') }}" type="text/babel"></script>
     <script src="{{ url_for('static', filename='catalog.jsx') }}" type="text/babel"></script>
     <script src="{{ url_for('static', filename='item.jsx') }}" type="text/babel"></script>
@@ -79,6 +80,14 @@
       </div>
     </nav>
 
+<!-- <script src="{{ url_for('static', filename='main.jsx') }}" type="text/babel"></script>
+<div id="mainPage"></div>
+<script type="text/babel">
+  ReactDOM.render(
+    <BasicExample />, document.getElementById('mainPage')
+  );
+</script>
+ -->
     {# Photo viewer modal window #}
     <div class="modal" id="photoModal" tabindex="-1" role="dialog" aria-labelledby="photo" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-lg mw-100" role="document">

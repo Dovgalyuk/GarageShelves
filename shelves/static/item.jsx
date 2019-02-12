@@ -59,10 +59,10 @@ class ItemList extends React.Component {
     render() {
         if (!this.state.rows)
             return <div></div>;
-        return <div>
+        return <React.Fragment>
                  {this.state.rows.map((row) =>
                     <ItemListRow row={row} is_main={this.props.is_main} notype={this.props.notype} />)}
-               </div>;
+               </React.Fragment>;
     }
 }
 
@@ -78,7 +78,7 @@ class ItemListSection extends React.Component {
     }
 
     render() {
-        return <div>
+        return <React.Fragment>
                  {!this.state.empty &&
                    <div class="row"><div class="col-12">
                      <h3 class="pt-4">{this.props.title}</h3>
@@ -88,6 +88,6 @@ class ItemListSection extends React.Component {
                    <ItemList {...this.props} is_main="1" onLoadItems={this.onLoadItems}/>
                  }
                  <ItemList {...this.props} is_main="0" onLoadItems={this.onLoadItems}/>
-               </div>;
+               </React.Fragment>;
     }
 }

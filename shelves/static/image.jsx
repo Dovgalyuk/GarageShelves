@@ -44,10 +44,10 @@ class ImageList extends React.Component {
     render() {
         if (!this.state.rows)
             return <div></div>;
-        return <div>
+        return <React.Fragment>
                  {this.state.rows.map((row) =>
                     <ImageListRow row={row} />)}
-               </div>;
+               </React.Fragment>;
     }
 }
 
@@ -58,13 +58,13 @@ class ImageListSection extends React.Component {
     }
 
     render() {
-        return <div>
+        return <React.Fragment>
                  {this.props.title &&
                    <div class="row"><div class="col-12">
                      <h3 class="pt-4">{this.props.title}</h3>
                    </div></div>
                  }
                  <ImageList {...this.props} />
-               </div>;
+               </React.Fragment>;
     }
 }

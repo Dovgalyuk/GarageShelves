@@ -92,10 +92,10 @@ class CatalogList extends React.Component {
     render() {
         if (!this.state.rows)
             return <div></div>;
-        return <div>
+        return <React.Fragment>
                  {this.state.rows.map((row) =>
                     <CatalogListRow row={row} notype={this.props.notype}/>)}
-               </div>;
+               </React.Fragment>;
     }
 }
 
@@ -111,13 +111,13 @@ class CatalogListSection extends React.Component {
     }
 
     render() {
-        return <div>
+        return <React.Fragment>
                  {!this.state.empty &&
                    <div class="row"><div class="col-12">
                      <h3 class="pt-4">{this.props.title}</h3>
                    </div></div>
                  }
                  <CatalogList {...this.props} onLoadItems={this.onLoadItems}/>
-               </div>;
+               </React.Fragment>;
     }
 }
