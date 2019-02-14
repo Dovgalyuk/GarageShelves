@@ -113,18 +113,21 @@ def _filtered_list():
     is_group = request.args.get('is_group', False, type=bool)
 
     cursor = get_db_cursor()
-    query = 'SELECT c.id, c.title, c.title_eng,' \
-            ' created, c.type_id,'   \
-            ' ct.title as type_title, ct.is_physical, '    \
+    query = 'SELECT c.id, c.title, c.title_eng,'                       \
+            ' created, c.type_id,'                                     \
+            ' ct.title as type_title, ct.is_physical, '                \
             ' year, com.title as company, c.company_id,'               \
+            ' a_logo.value_id as logo_id,'                             \
             ' (SELECT COUNT(*) FROM catalog cc'                        \
             '   JOIN catalog_relation r WHERE cc.id=r.catalog_id2'     \
             '   AND c.id=r.catalog_id1 AND r.type=%s) AS count'        \
             ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'\
-            ' LEFT JOIN company com ON com.id = c.company_id'
+            ' LEFT JOIN company com ON com.id = c.company_id'          \
+            ' LEFT JOIN catalog_attribute a_logo'                      \
+            ' ON (c.id = a_logo.catalog_id AND a_logo.type = %s)'
     suffix = ' ORDER BY c.title'
     where = ' WHERE 1 = 1'
-    params = (Relation.REL_INCLUDES,)
+    params = (Relation.REL_INCLUDES,Attribute.ATTR_LOGO,)
     # parameters are integer - insert them without escaping
     if company_id != -1:
         where += ' AND com.id = %d' % company_id
@@ -154,9 +157,11 @@ def _filtered_list():
     else:
         where += ' AND ct.is_group = FALSE'
 
+    #print(query + where + suffix)
+    #print(params)
+
     cursor.execute(query + where + suffix, params)
     result = cursor.fetchall()
-    #print(query + where + suffix)
 
     return jsonify(result)
 

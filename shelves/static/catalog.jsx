@@ -6,9 +6,9 @@ class Logo extends React.Component {
     }
 
     componentDidMount() {
-        fetch(flask_util.url_for('catalog._get_logo', { id:this.props.id }))
+        /*fetch(flask_util.url_for('catalog._get_logo', { id:this.props.id }))
            .then(response => response.json())
-           .then(data => { if (data) this.setState({img_id:data.id}); });
+           .then(data => { if (data) this.setState({img_id:data.id}); });*/
     }
 
     render() {

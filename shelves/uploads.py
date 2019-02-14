@@ -44,8 +44,22 @@ def upload_image(file,width=-1,height=-1):
         '%d.%s' % (file_id, ext)))
     return file_id
 
-@bp.route('/<int:id>')
-def view(id):
+# @bp.route('/<int:id>')
+# def view(id):
+#     cursor = get_db_cursor();
+#     cursor.execute(
+#         'SELECT * FROM image WHERE id = %s',
+#         (id,)
+#         )
+#     image = cursor.fetchone()
+
+#     return send_from_directory(os.path.join(current_app.instance_path,
+#         'uploads'), '%d.%s' % (id, image['ext']))
+
+@bp.route('/view')
+def view():
+    id = request.args.get('id', -1, type=int)
+
     cursor = get_db_cursor();
     cursor.execute(
         'SELECT * FROM image WHERE id = %s',

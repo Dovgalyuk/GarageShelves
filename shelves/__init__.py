@@ -2,11 +2,13 @@ import os
 
 from flask import (Flask, render_template)
 from flask_misaka import Misaka
+from flask_cors import CORS
 from .flask_util_js import FlaskUtilJs
 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
+    CORS(app)
 
     if test_config is None:
         # load the instance config, if it exists, when not testing

@@ -2,3 +2,4 @@ flask-misaka
 flask-uploads
 flask-mysqldb
 pillow
+flask-cors
