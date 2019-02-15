@@ -1,7 +1,7 @@
 import React, { Component, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import Navbar from './Navbar.js';
-import Catalog from './Catalog.js';
+import Navbar from './Navbar';
+import { Catalog, CatalogView } from './Catalog';
 
 class App extends Component {
   render() {
@@ -14,7 +14,8 @@ class App extends Component {
             <Suspense fallback={<div>Loading...</div>}>
               <Switch>
                 <Route exact path="/" component={Home} />
-                <Route path="/catalog" component={Catalog} />
+                <Route exact path="/catalog" component={Catalog} />
+                <Route path="/catalog/view/:id" component={CatalogView} />
               </Switch>
             </Suspense>
           </Router>

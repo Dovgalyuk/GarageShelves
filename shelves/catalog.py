@@ -42,6 +42,22 @@ def get_catalog_none(id):
     )
     return cursor.fetchone()
 
+def get_catalog_full(id):
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT c.id, c.title, c.title_eng, description, created, c.type_id,'
+        ' ct.title as type_title, ct.is_physical, ct.is_group, ct.is_kit,'
+        ' IFNULL(c.year, "") as year, com.title as company,'
+        ' c.company_id, a_logo.value_id as logo_id'
+        ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
+        ' LEFT JOIN company com ON com.id = c.company_id'
+        ' LEFT JOIN catalog_attribute a_logo'
+        ' ON (c.id = a_logo.catalog_id AND a_logo.type = %s)'
+        ' WHERE c.id = %s',
+        (Attribute.ATTR_LOGO,id,)
+    )
+    return cursor.fetchone()
+
 def get_catalog(id):
     catalog = get_catalog_none(id)
     if catalog is None:
@@ -97,6 +113,16 @@ def get_catalog_type_id(name):
 @bp.route('/<int:id>/_get_logo')
 def _get_logo(id):
     return jsonify(get_catalog_logo(id))
+
+@bp.route('/_get')
+def _get():
+    id = request.args.get('id', -1, type=int)
+
+    catalog = get_catalog_full(id)
+    if catalog is None:
+        return jsonify(error="Catalog item doesn't exist")
+
+    return jsonify(catalog)
 
 @bp.route('/_filtered_list')
 def _filtered_list():
@@ -165,8 +191,9 @@ def _filtered_list():
 
     return jsonify(result)
 
-@bp.route('/<int:id>/_images')
-def _images(id):
+@bp.route('/_images')
+def _images():
+    id = request.args.get('id', -1, type=int)
     return jsonify(get_catalog_images(id))
 
 ###############################################################################
@@ -583,10 +610,6 @@ def _relation_add():
     )
     db_commit()
     return ('', 204)
-
-@bp.route('/<int:id>/_get')
-def _get(id):
-    return jsonify(result=get_catalog(id));
 
 @bp.route('/<int:id>/_upload_image', methods=('POST',))
 @login_required
