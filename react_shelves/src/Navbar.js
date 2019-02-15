@@ -28,6 +28,8 @@ class Navbar extends Component {
             <Nav href="/catalog">Catalog</Nav>
             <Nav href="/company">Companies</Nav>
             <Nav href="/collection">All collections</Nav>
+            <Nav href="/register">Register</Nav>
+            <Nav href="/login">Login</Nav>
 {/*            {% if g.user %}
               <li className="nav-item {% if request.endpoint == ep %}active{% endif %}">
                 <a className="nav-link" href="{{ url_for('collection.view', id=g.user['col_id']) }}">{{ g.user['username'] }}</a>
