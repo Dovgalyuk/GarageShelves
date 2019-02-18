@@ -1,30 +1,80 @@
-import React, { Component, Suspense } from 'react';
+import React, { Component, Fragment, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import Navbar from './Navbar';
 import { Catalog, CatalogView } from './Catalog';
 import Login from './Auth';
+import AppliedRoute from "./AppliedRoute";
+import fetchBackend from './Backend'
+
+class NotFound extends Component {
+  render() { return "Not found"; }
+}
 
 class App extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      isAuthenticated: false,
+      isAuthenticating: true,
+    };
+  }
+
+  async componentDidMount() {
+    fetchBackend('auth/_session')
+        .then(response => response.json())
+        .then(response => {
+            if (response.user_id > 0) {
+                this.userHasAuthenticated(true);
+            } else {
+                this.setState({ isAuthenticating: false });
+            }
+        })
+        .catch(error => this.setState({ isAuthenticating: false }) );
+  }
+
+  userHasAuthenticated = authenticated => {
+    if (!authenticated) {
+      fetchBackend('auth/_logout')
+          .catch(error => {});
+    }
+    this.setState({ isAuthenticated: authenticated, isAuthenticating: false });
+  }
+
   render() {
+    const childProps = {
+        isAuthenticated: this.state.isAuthenticated,
+        userHasAuthenticated: this.userHasAuthenticated
+    };
+
+    if (this.state.isAuthenticating) {
+        return <div>Authenticating...</div>;
+    }
+
     return (
-      <>
-        <Navbar />
+      <Fragment>
+        <Navbar {...childProps} />
         {/* TODO: Error messages here */}
         <div className="container">
-          <Router>
+          <Router childProps={childProps}>
             <Suspense fallback={<div>Loading...</div>}>
               <Switch>
-                <Route path="/" exact component={Home} />
-                <Route path="/catalog" exact component={Catalog} />
-                <Route path="/catalog/view/:id" component={CatalogView} />
-                <Route path="/login" exact component={Login} />
+                <AppliedRoute path="/" exact component={Home}
+                              props={childProps} />
+                <AppliedRoute path="/catalog" exact component={Catalog}
+                              props={childProps} />
+                <AppliedRoute path="/catalog/view/:id" component={CatalogView}
+                              props={childProps} />
+                <AppliedRoute path="/login" exact component={Login}
+                              props={childProps} />
+                <Route component={NotFound} />
               </Switch>
             </Suspense>
           </Router>
           <div className="page-header">
           </div>
         </div>
-      </>
+      </Fragment>
     );
   }
 }

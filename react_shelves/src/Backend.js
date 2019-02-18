@@ -1,4 +1,4 @@
-function BackendURL(page, params)
+export function BackendURL(page, params)
 {
     var url = "http://127.0.0.1:5000/" + page;
     var first = true;
@@ -9,4 +9,9 @@ function BackendURL(page, params)
     return url;
 }
 
-export default BackendURL
+export function fetchBackend(page, params) {
+    return fetch(BackendURL(page, params),
+      {credentials: "include", headers: { "Access-Control-Allow-Credentials" : true } } );
+}
+
+export default fetchBackend;

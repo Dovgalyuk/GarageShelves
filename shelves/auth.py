@@ -1,9 +1,11 @@
 import functools
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Blueprint, flash, g, redirect, render_template, request, session, url_for,
+    jsonify
 )
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.exceptions import abort
 
 from shelves.db import get_db_cursor, db_commit
 
@@ -50,6 +52,53 @@ def admin_required(view):
         return view(**kwargs)
 
     return wrapped_view
+
+###############################################################################
+# API Routes
+###############################################################################
+
+@bp.route('/_login')
+def _login():
+    print(request.cookies)
+    print(request.args)
+    username = request.args.get('username')
+    password = request.args.get('password')
+    cursor = get_db_cursor()
+    error = None
+    cursor.execute(
+        'SELECT * FROM user WHERE username = %s', (username,)
+    )
+    user = cursor.fetchone()
+
+    if user is None:
+        error = 'Incorrect username.'
+    elif not check_password_hash(user['password'], password):
+        error = 'Incorrect password.'
+
+    if error is None:
+        session.clear()
+        session['user_id'] = user['id']
+        return jsonify(user_id=user['id'])
+
+    return jsonify(error='No session')
+
+@bp.route('/_session')
+def _session():
+    user_id = session.get('user_id')
+
+    if user_id is None:
+        return jsonify(error='No session')
+
+    return jsonify(user_id=user_id)
+
+@bp.route('/_logout')
+def _logout():
+    session.clear()
+    return jsonify(error='No session')
+
+###############################################################################
+# Old Routes
+###############################################################################
 
 @bp.route('/register', methods=('GET', 'POST'))
 def register():

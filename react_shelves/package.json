@@ -6,9 +6,11 @@
     "fetch-suspense": "^1.0.2",
     "react": "^16.8.1",
     "react-dom": "^16.8.1",
+    "react-hooks-fetch": "^0.8.0",
     "react-markdown": "^4.0.6",
     "react-router-dom": "^4.3.1",
-    "react-scripts": "2.1.5"
+    "react-scripts": "2.1.5",
+    "react-use-fetch": "0.0.0-alpha.1"
   },
   "scripts": {
     "start": "react-scripts start",

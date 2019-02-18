@@ -1,7 +1,6 @@
-import React, { Component, Suspense } from 'react';
-import useFetch from 'fetch-suspense';
+import React, { Component, Fragment } from 'react';
 import ReactMarkdown from 'react-markdown';
-import BackendURL from './Backend'
+import fetchBackend, { BackendURL } from './Backend'
 import ImageListSection from './Image'
 
 class Logo extends Component {
@@ -56,110 +55,140 @@ function CatalogListRow(props) {
            </div>;
 }
 
-class CatalogList extends Component {
+class CatalogListSection extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            loading: true,
+            rows: []
+        };
+    }
+
+    componentDidMount() {
+        fetchBackend('catalog/_filtered_list', this.props.filter)
+            .then(response => response.json())
+            .then(data => {
+                var rows = [];
+                while (data.length) {
+                    rows.push(data.splice(0, 3));
+                }
+                this.setState({loading:false, rows:rows});
+            })
+            .catch(e => this.setState({loading:false}));
+    }
+
     render() {
-        const data = useFetch(BackendURL('catalog/_filtered_list', this.props.filter));
-        var rows = [];
-        while (data.length) {
-            rows.push(data.splice(0, 3));
+        if (this.state.loading) {
+            return (
+                <div className="row"><div className="col-12">
+                  <h3 className="pt-4">
+                    {this.props.title} <span className="text-info"> are loading</span>
+                  </h3>
+                </div></div>
+            );
         }
-        return <>
-                 {rows.length > 0 &&
+        return <Fragment>
+                 {this.state.rows.length > 0 &&
                    <div className="row"><div className="col-12">
                      <h3 className="pt-4">
                        {this.props.title}
                      </h3>
                    </div></div>
                  }
-                 {rows.map((row) =>
+                 {this.state.rows.map((row) =>
                     <CatalogListRow key={row[0].id/*TODO*/} row={row} notype={this.props.filter.notype}/>)}
-               </>;
-    }
-}
-
-export class CatalogListSection extends Component {
-    render() {
-        return <>
-                 <Suspense fallback={
-                     <div className="row"><div className="col-12">
-                       <h3 className="pt-4">
-                         {this.props.title} <span className="text-info"> are loading</span>
-                       </h3>
-                     </div></div>
-                   }>
-                   <CatalogList filter={this.props.filter} title={this.props.title}/>
-                 </Suspense>
-               </>;
+               </Fragment>;
     }
 }
 
 // Routes
 
 export class CatalogView extends Component {
-  render() {
-  	const id = this.props.match.params.id;
-    const catalog = useFetch(BackendURL('catalog/_get', {id:id}));
-    if (!catalog.id) {
-    	return (
-        <div className="row">
-          <div className="page-header">
-            <h1>Catalog item not found</h1>
-          </div>
-        </div>
-    	);
+    constructor(props) {
+        super(props);
+        this.state = {
+            loading:true,
+            catalog:{}
+        };
     }
-    return (
-      <>
-        <div className="page-header">
-          <div className="row">
-            <div className="col-1 align-self-center"><Logo img_id={catalog.logo_id} /></div>
-            <div className="col-9 align-self-center">
-              <h1>
-                { catalog.type_title } : { catalog.title_eng ? catalog.title_eng : catalog.title }
-              </h1>
-              { catalog.title_eng && catalog.title
-                && <h4 className="text-secondary">{ catalog.title }</h4>
-              }
-              <p className="text-secondary">
-                { catalog.year &&
-                  <span className="badge badge-secondary">{ catalog.year }</span>
-                }
-                { catalog.company &&
-                  <a href={ "company/view/" + catalog.company_id }>{ catalog.company }</a>
-                }
-              </p>
+
+    componentDidMount() {
+        fetchBackend('catalog/_get', {id:this.props.match.params.id})
+            .then(response => response.json())
+            .then(data => {
+                this.setState({loading:false, catalog:data});
+            })
+            .catch(e => this.setState({loading:false}));
+    }
+
+    render() {
+        if (this.state.loading) {
+            return (
+                <div>Loading...</div>
+            );
+        }
+        const catalog = this.state.catalog;
+        if (!catalog.id) {
+            return (
+            <div className="row">
+              <div className="page-header">
+                <h1>Catalog item not found</h1>
+              </div>
             </div>
-          </div>
-        </div>
-
-        <div className="row">
-          <div className="col-12">
-            <h3 className="pt-4">Description</h3>
-            <ReactMarkdown source={ catalog.description } />
-          </div>
-        </div>
-
-        <ImageListSection id={ catalog.id } entity="catalog"
-            title="Catalog item images"/>
-
-        { catalog.is_group === 1 &&
-          <CatalogListSection
-            filter={ {parent:catalog.id, notype:true, is_group:true} }
-            title="Includes the families" />
+            );
         }
-        { catalog.is_physical === 1 &&
-          <CatalogListSection
-            filter={ {type_name:"Kit", notype:true, includes:catalog.id} }
-            title="Kits with this item" />
-        }
-        <CatalogListSection
-          filter={ {parent:catalog.id} }
-          title="Includes the following catalog items" />
+        return (
+          <>
+            <div className="page-header">
+              <div className="row">
+                <div className="col-1 align-self-center"><Logo img_id={catalog.logo_id} /></div>
+                <div className="col-9 align-self-center">
+                  <h1>
+                    { catalog.type_title } : { catalog.title_eng ? catalog.title_eng : catalog.title }
+                  </h1>
+                  { catalog.title_eng && catalog.title
+                    && <h4 className="text-secondary">{ catalog.title }</h4>
+                  }
+                  <p className="text-secondary">
+                    { catalog.year &&
+                      <span className="badge badge-secondary">{ catalog.year }</span>
+                    }
+                    { catalog.company &&
+                      <a href={ "company/view/" + catalog.company_id }>{ catalog.company }</a>
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
 
-    {/* TODO: Owned items */}
-      </>
-    );
-  }
+            <div className="row">
+              <div className="col-12">
+                <h3 className="pt-4">Description</h3>
+                <ReactMarkdown source={ catalog.description } />
+              </div>
+            </div>
+
+            <ImageListSection id={ catalog.id } entity="catalog"
+                title="Catalog item images"/>
+
+            { catalog.is_group === 1 &&
+              <CatalogListSection
+                filter={ {parent:catalog.id, notype:true, is_group:true} }
+                title="Includes the families" />
+            }
+            { catalog.is_physical === 1 &&
+              <CatalogListSection
+                filter={ {type_name:"Kit", notype:true, includes:catalog.id} }
+                title="Kits with this item" />
+            }
+            <CatalogListSection
+              filter={ {parent:catalog.id} }
+              title="Includes the following catalog items" />
+
+        {/* TODO: Owned items */}
+          </>
+        );
+    }
 }
 
 export class Catalog extends Component {

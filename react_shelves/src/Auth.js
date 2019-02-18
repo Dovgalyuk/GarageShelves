@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import BackendURL from './Backend'
+import fetchBackend from './Backend'
 
 export class Login extends Component {
   constructor(props) {
@@ -7,18 +7,28 @@ export class Login extends Component {
 
     this.state = {
       username: "",
-      password: ""
+      password: "",
     };
   }
 
-  handleChange(event) {
+  handleChange = (event) => {
     this.setState({
       [event.target.id]: event.target.value
     });
   }
 
-  handleSubmit(event) {
+  handleSubmit = (event) => {
     event.preventDefault();
+
+    fetchBackend('auth/_login', this.state)
+        .then(response => response.json())
+        .then(response => {
+            if (response.user_id > 0) {
+                this.props.userHasAuthenticated(true);
+                this.props.history.push("/");
+            }
+        })
+        .catch(error => alert('Invalid login/password'));
   }
 
   render() {

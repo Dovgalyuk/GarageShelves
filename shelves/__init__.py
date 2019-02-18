@@ -8,7 +8,7 @@ from .flask_util_js import FlaskUtilJs
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    CORS(app)
+    CORS(app, supports_credentials=True)
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
