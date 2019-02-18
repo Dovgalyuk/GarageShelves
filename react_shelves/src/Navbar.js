@@ -33,7 +33,10 @@ class Navbar extends Component {
             <Nav href="/catalog">Catalog</Nav>
             <Nav href="/company">Companies</Nav>
             <Nav href="/collection">All collections</Nav>
-            <Nav href="/register">Register</Nav>
+            {this.props.isAuthenticated
+              ? <Nav href="/profile">{this.props.username}</Nav>
+              : <Nav href="/register">Register</Nav>
+            }
             {this.props.isAuthenticated
               ? <Nav href="#" onClick={this.handleLogout}>Logout</Nav>
               : <Nav href="/login">Login</Nav>

@@ -16,34 +16,49 @@ class App extends Component {
 
     this.state = {
       isAuthenticated: false,
+      isAdmin: false,
       isAuthenticating: true,
+      username: "",
     };
   }
 
+  loadSession = () => {
+      fetchBackend('auth/_session')
+          .then(response => response.json())
+          .then(response => {
+              if (response.user_id > 0) {
+                  this.setState({ isAuthenticated: true,
+                                  isAdmin:response.is_admin,
+                                  username:response.username,
+                                  isAuthenticating: false });
+              } else {
+                  this.setState({ isAuthenticated: false, isAuthenticating: false });
+              }
+          })
+          .catch(error => this.setState({ isAuthenticated: false, isAuthenticating: false }) );
+  }
+
   async componentDidMount() {
-    fetchBackend('auth/_session')
-        .then(response => response.json())
-        .then(response => {
-            if (response.user_id > 0) {
-                this.userHasAuthenticated(true);
-            } else {
-                this.setState({ isAuthenticating: false });
-            }
-        })
-        .catch(error => this.setState({ isAuthenticating: false }) );
+      this.loadSession();
   }
 
   userHasAuthenticated = authenticated => {
-    if (!authenticated) {
-      fetchBackend('auth/_logout')
-          .catch(error => {});
-    }
-    this.setState({ isAuthenticated: authenticated, isAuthenticating: false });
+      if (!authenticated) {
+          fetchBackend('auth/_logout')
+              .catch(error => {})
+              .finally(() => this.loadSession());
+      }
+      else
+      {
+          this.loadSession();
+      }
   }
 
   render() {
     const childProps = {
         isAuthenticated: this.state.isAuthenticated,
+        isAdmin: this.state.isAdmin,
+        username: this.state.username,
         userHasAuthenticated: this.userHasAuthenticated
     };
 

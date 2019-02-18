@@ -29,7 +29,6 @@ def load_logged_in_user():
         )
         g.user = cursor.fetchone()
 
-
 def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
@@ -84,12 +83,12 @@ def _login():
 
 @bp.route('/_session')
 def _session():
-    user_id = session.get('user_id')
-
-    if user_id is None:
+    if g.user is None:
         return jsonify(error='No session')
 
-    return jsonify(user_id=user_id)
+    return jsonify(user_id=g.user['id'],
+                   is_admin=g.user['admin'],
+                   username=g.user['username'])
 
 @bp.route('/_logout')
 def _logout():
