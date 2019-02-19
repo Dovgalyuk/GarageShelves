@@ -169,7 +169,7 @@ export class CatalogView extends Component {
             </div>
 
             <ImageListSection id={ catalog.id } entity="catalog"
-                title="Catalog item images"/>
+                title="Catalog item images" auth={this.props.auth} />
 
             { catalog.is_group === 1 &&
               <CatalogListSection

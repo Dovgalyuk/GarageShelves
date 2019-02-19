@@ -33,7 +33,7 @@ def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
-            return redirect(url_for('auth.login'))
+            return abort(403)
 
         return view(**kwargs)
 
@@ -43,10 +43,10 @@ def admin_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
-            return redirect(url_for('auth.login'))
+            return abort(403)
 
         if g.user['admin'] == 0:
-            return redirect(url_for('auth.login'))
+            return abort(403)
 
         return view(**kwargs)
 

@@ -196,6 +196,32 @@ def _images():
     id = request.args.get('id', -1, type=int)
     return jsonify(get_catalog_images(id))
 
+@bp.route('/_upload_image', methods=('POST',))
+@login_required
+@admin_required
+def _upload_image():
+    id = request.args.get('id', -1, type=int)
+    get_catalog(id)
+
+    if 'file' not in request.files:
+        return abort(400)
+
+    file = request.files['file']
+    if file:
+        file_id = upload_image(file)
+        cursor = get_db_cursor()
+        cursor.execute(
+            'INSERT INTO catalog_attribute (type, catalog_id, value_id)'
+            ' VALUES (%s, %s, %s)',
+            (Attribute.ATTR_IMAGE, id, file_id,)
+        )
+        db_commit()
+        cursor.execute('SELECT id, filename FROM image WHERE id = %s',
+            (file_id,))
+        return jsonify(cursor.fetchone())
+
+    return abort(400)
+
 ###############################################################################
 # Routes
 ###############################################################################
@@ -610,29 +636,6 @@ def _relation_add():
     )
     db_commit()
     return ('', 204)
-
-@bp.route('/<int:id>/_upload_image', methods=('POST',))
-@login_required
-@admin_required
-def _upload_image(id):
-    if 'img' not in request.files:
-        return ('', 400)
-
-    file = request.files['img']
-    if file:
-        file_id = upload_image(file)
-        cursor = get_db_cursor()
-        cursor.execute(
-            'INSERT INTO catalog_attribute (type, catalog_id, value_id)'
-            ' VALUES (%s, %s, %s)',
-            (Attribute.ATTR_IMAGE, id, file_id,)
-        )
-        db_commit()
-        cursor.execute('SELECT id, filename FROM image WHERE id = %s',
-            (file_id,))
-        return jsonify(result=cursor.fetchone())
-
-    return ('', 400)
 
 @bp.route('/<int:id>/_create_kit', methods=('POST',))
 @login_required

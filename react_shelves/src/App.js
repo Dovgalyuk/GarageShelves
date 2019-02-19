@@ -55,12 +55,12 @@ class App extends Component {
   }
 
   render() {
-    const childProps = {
+    const childProps = { auth: {
         isAuthenticated: this.state.isAuthenticated,
         isAdmin: this.state.isAdmin,
         username: this.state.username,
         userHasAuthenticated: this.userHasAuthenticated
-    };
+    } };
 
     if (this.state.isAuthenticating) {
         return <div>Authenticating...</div>;

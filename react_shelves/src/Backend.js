@@ -14,4 +14,12 @@ export function fetchBackend(page, params) {
       {credentials: "include", headers: { "Access-Control-Allow-Credentials" : true } } );
 }
 
+export function uploadBackend(page, params, file) {
+    var form_data = new FormData();
+    form_data.append('file', file);
+    return fetch(BackendURL(page, params),
+                {method: 'POST', body: form_data, credentials: "include",
+                 headers: { "Access-Control-Allow-Credentials" : true }});
+}
+
 export default fetchBackend;

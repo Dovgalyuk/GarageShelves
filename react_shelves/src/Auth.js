@@ -24,7 +24,7 @@ export class Login extends Component {
         .then(response => response.json())
         .then(response => {
             if (response.user_id > 0) {
-                this.props.userHasAuthenticated(true);
+                this.props.auth.userHasAuthenticated(true);
                 this.props.history.push("/");
             }
         })

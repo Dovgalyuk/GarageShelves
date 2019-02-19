@@ -16,7 +16,7 @@ class Nav extends Component {
 class Navbar extends Component {
   handleLogout = event => {
       event.preventDefault();
-      this.props.userHasAuthenticated(false);
+      this.props.auth.userHasAuthenticated(false);
   }
 
   render() {
@@ -33,11 +33,11 @@ class Navbar extends Component {
             <Nav href="/catalog">Catalog</Nav>
             <Nav href="/company">Companies</Nav>
             <Nav href="/collection">All collections</Nav>
-            {this.props.isAuthenticated
-              ? <Nav href="/profile">{this.props.username}</Nav>
+            {this.props.auth.isAuthenticated
+              ? <Nav href="/profile">{this.props.auth.username}</Nav>
               : <Nav href="/register">Register</Nav>
             }
-            {this.props.isAuthenticated
+            {this.props.auth.isAuthenticated
               ? <Nav href="#" onClick={this.handleLogout}>Logout</Nav>
               : <Nav href="/login">Login</Nav>
             }

@@ -1,5 +1,36 @@
 import React, { Component } from 'react';
-import fetchBackend, { BackendURL } from './Backend'
+import fetchBackend, { BackendURL, uploadBackend } from './Backend'
+
+class Upload extends Component {
+    constructor(props) {
+        super(props);
+
+        this.inputRef = React.createRef();
+    }
+
+    handleUpload = event => {
+        uploadBackend(this.props.entity + '/_upload_image', {id:this.props.id},
+            this.inputRef.current.files[0])
+            .then(response => response.json())
+            .then(response => this.props.updateList())
+            .catch(e => {});
+    }
+
+    render() {
+        return (
+            <div className="input-group">
+              <label className="input-group-btn">
+                  <span className="btn btn-primary" onChange={this.handleUpload}>
+                      Upload image
+                      <input type="file" style={{display: "none"}}
+                             ref={this.inputRef} />
+                      {/* TODO: multiple property of input*/}
+                  </span>
+              </label>
+            </div>
+        );
+    }
+}
 
 class Image extends Component {
     render() {
@@ -31,7 +62,7 @@ class ImageListSection extends Component {
         };
     }
 
-    componentDidMount() {
+    handleUpdate = () => {
         fetchBackend(this.props.entity + '/_images', {id:this.props.id})
             .then(response => response.json())
             .then(data => {
@@ -42,6 +73,10 @@ class ImageListSection extends Component {
                 this.setState({loading:false, rows:rows});
             })
             .catch(e => this.setState({loading:false}));
+    }
+
+    componentDidMount() {
+        this.handleUpdate();
     }
 
     render() {
@@ -60,6 +95,10 @@ class ImageListSection extends Component {
                      <div className="row"><div className="col-12">
                        <h3 className="pt-4">{this.props.title}</h3>
                      </div></div>
+                   }
+                   {this.props.auth.isAdmin &&
+                     <Upload entity={this.props.entity} id={this.props.id}
+                          updateList={this.handleUpdate} />
                    }
                    {this.state.rows.map((row) =>
                       <ImageListRow key={row[0].id} row={row} />)}
