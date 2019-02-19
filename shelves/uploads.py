@@ -66,6 +66,8 @@ def view():
         (id,)
         )
     image = cursor.fetchone()
+    if image is None:
+        abort(403)
 
     return send_from_directory(os.path.join(current_app.instance_path,
         'uploads'), '%d.%s' % (id, image['ext']))
