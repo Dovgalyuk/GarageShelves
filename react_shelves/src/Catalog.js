@@ -2,6 +2,7 @@ import React, { Component, Fragment } from 'react';
 import ReactMarkdown from 'react-markdown';
 import fetchBackend, { BackendURL } from './Backend'
 import ImageListSection from './Image'
+import { ItemListSection } from './Item'
 
 class Logo extends Component {
     render() {
@@ -55,7 +56,7 @@ function CatalogListRow(props) {
            </div>;
 }
 
-class CatalogListSection extends Component {
+export class CatalogListSection extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -182,10 +183,14 @@ export class CatalogView extends Component {
                 title="Kits with this item" />
             }
             <CatalogListSection
-              filter={ {parent:catalog.id} }
-              title="Includes the following catalog items" />
+                filter={ {parent:catalog.id} }
+                title="Includes the following catalog items" />
 
-        {/* TODO: Owned items */}
+            { this.props.auth.isAuthenticated &&
+                <ItemListSection
+                    filter={ {catalog:catalog.id, user:this.props.auth.user_id} }
+                    title="Items in your collection" />
+            }
           </>
         );
     }

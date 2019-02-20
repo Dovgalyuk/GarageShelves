@@ -2,6 +2,7 @@ import React, { Component, Fragment, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import Navbar from './Navbar';
 import { Catalog, CatalogView } from './Catalog';
+import { ItemView } from './Item';
 import Login from './Auth';
 import AppliedRoute from "./AppliedRoute";
 import fetchBackend from './Backend'
@@ -19,6 +20,7 @@ class App extends Component {
       isAdmin: false,
       isAuthenticating: true,
       username: "",
+      user_id: -1,
     };
   }
 
@@ -30,6 +32,7 @@ class App extends Component {
                   this.setState({ isAuthenticated: true,
                                   isAdmin:response.is_admin,
                                   username:response.username,
+                                  user_id: response.user_id,
                                   isAuthenticating: false });
               } else {
                   this.setState({ isAuthenticated: false, isAuthenticating: false });
@@ -59,6 +62,7 @@ class App extends Component {
         isAuthenticated: this.state.isAuthenticated,
         isAdmin: this.state.isAdmin,
         username: this.state.username,
+        user_id: this.state.user_id,
         userHasAuthenticated: this.userHasAuthenticated
     } };
 
@@ -79,6 +83,8 @@ class App extends Component {
                 <AppliedRoute path="/catalog" exact component={Catalog}
                               props={childProps} />
                 <AppliedRoute path="/catalog/view/:id" component={CatalogView}
+                              props={childProps} />
+                <AppliedRoute path="/item/view/:id" component={ItemView}
                               props={childProps} />
                 <AppliedRoute path="/login" exact component={Login}
                               props={childProps} />

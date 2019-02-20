@@ -105,9 +105,15 @@ def _filtered_list():
 
     return jsonify(result)
 
-@bp.route('/<int:id>/_images')
-def _images(id):
+@bp.route('/_images')
+def _images():
+    id = request.args.get('id', -1, type=int)
     return jsonify(get_item_images(id))
+
+@bp.route('/_get')
+def _get():
+    id = request.args.get('id', -1, type=int)
+    return jsonify(get_item(id))
 
 ###############################################################################
 # Routes
