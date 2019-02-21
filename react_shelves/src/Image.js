@@ -128,8 +128,9 @@ class ImageListSection extends Component {
                         <h3 className="pt-4">{this.props.title}</h3>
                       </div></div>
                     }
-                    {this.props.auth.isAdmin &&
-                      <Upload entity={this.props.entity} id={this.props.id}
+                    {(this.props.auth.isAdmin
+                          || (this.props.owner && this.props.auth.user_id === this.props.owner))
+                      && <Upload entity={this.props.entity} id={this.props.id}
                            updateList={this.handleUpdate} />
                     }
                     {this.state.rows.map((row) =>
@@ -139,11 +140,12 @@ class ImageListSection extends Component {
                     <Modal show={this.state.showForm} size="lg"
                            onHide={this.handleCloseForm}>
                       <Modal.Header closeButton>
-                        {this.props.auth.isAdmin &&
-                            <Button className="btn btn-outline-danger"
-                                onClick={this.handleDeleteImage}>
-                              <span aria-hidden="true">Delete image</span>
-                            </Button>
+                        {(this.props.auth.isAdmin
+                          || (this.props.owner && this.props.auth.user_id === this.props.owner))
+                          && <Button className="btn btn-outline-danger"
+                                 onClick={this.handleDeleteImage}>
+                               <span aria-hidden="true">Delete image</span>
+                             </Button>
                         }
                       </Modal.Header>
 

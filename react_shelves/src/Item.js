@@ -35,7 +35,8 @@ function Item(props) {
 
 function ItemListRow(props) {
     return <div className="row pt-4">
-             { props.row.map((item) => <Item key={item.id} item={item} />)}
+             { props.row.map((item) => <Item key={item.id} item={item}
+                                             is_main={0} />)}
            </div>;
 }
 
@@ -43,26 +44,38 @@ export class ItemListSection extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            loading: true,
+            loadingList: true,
+            loadingMain: true,
+            main: [],
             rows: []
         };
     }
 
     componentDidMount() {
-        fetchBackend('item/_filtered_list', this.props.filter)
+        fetchBackend('item/_filtered_list', {...this.props.filter, is_main:0})
             .then(response => response.json())
             .then(data => {
                 var rows = [];
                 while (data.length) {
                     rows.push(data.splice(0, 3));
                 }
-                this.setState({loading:false, rows:rows});
+                this.setState({loadingList:false, rows:rows});
             })
-            .catch(e => this.setState({loading:false}));
+            .catch(e => this.setState({loadingList:false}));
+        if (this.props.filter.parent) {
+            fetchBackend('item/_filtered_list', {...this.props.filter, is_main:1})
+                .then(response => response.json())
+                .then(data => {
+                    this.setState({loadingMain:false, main:data});
+                })
+                .catch(e => this.setState({loadingMain:false}));
+        } else {
+            this.setState({loadingMain:false});
+        }
     }
 
     render() {
-        if (this.state.loading) {
+        if (this.state.loadingList || this.state.LoadingMain) {
             return (
                 <div className="row"><div className="col-12">
                   <h3 className="pt-4">
@@ -72,12 +85,17 @@ export class ItemListSection extends Component {
             );
         }
         return <Fragment>
-                 {this.state.rows.length > 0 &&
+                 {(this.state.rows.length > 0 || this.state.main.length > 0) &&
                    <Row><Col>
                      <h3 className="pt-4">
                        {this.props.title}
                      </h3>
                    </Col></Row>
+                 }
+                 {this.state.main.length > 0 &&
+                    <Row className="pt-4">
+                      <Item item={this.state.main[0]} is_main={1} />
+                    </Row>
                  }
                  {this.state.rows.map((row) =>
                     <ItemListRow key={row[0].id/*TODO*/} row={row} />)
@@ -149,6 +167,7 @@ export class ItemView extends Component {
             </Row>
 
             <ImageListSection id={ item.id } entity="item"
+                owner={item.owner_id}
                 title="Real item photos" auth={this.props.auth} />
 
             <ItemListSection

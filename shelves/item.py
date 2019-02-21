@@ -115,6 +115,55 @@ def _get():
     id = request.args.get('id', -1, type=int)
     return jsonify(get_item(id))
 
+@bp.route('/_upload_image', methods=('POST',))
+@login_required
+def _upload_image():
+    id = request.args.get('id', -1, type=int)
+    item = get_item(id)
+    if item['owner_id'] != g.user['id']:
+        return abort(403)
+
+    if 'file' not in request.files:
+        return abort(400)
+
+    file = request.files['file']
+    if file:
+        file_id = upload_image(file)
+        cursor = get_db_cursor()
+        cursor.execute(
+            'INSERT INTO item_attribute (type, item_id, value_id)'
+            ' VALUES (%s, %s, %s)',
+            (Attribute.ATTR_IMAGE, id, file_id,)
+        )
+        db_commit()
+        cursor.execute('SELECT id, filename FROM image WHERE id = %s',
+            (file_id,))
+        return jsonify(cursor.fetchone())
+
+    return abort(400)
+
+@bp.route('/_delete_image')
+@login_required
+def _delete_image():
+    id = request.args.get('id', -1, type=int)
+    item = get_item(id)
+    if not g.user['admin'] or (item['owner_id'] != g.user['id']):
+        return abort(403)
+
+    img = request.args.get('img', -1, type=int)
+    if img == -1:
+        return abort(400)
+
+    cursor = get_db_cursor()
+    cursor.execute(
+        'DELETE FROM item_attribute WHERE type = %s'
+        ' AND item_id = %s AND value_id = %s',
+        (Attribute.ATTR_IMAGE, id, img,)
+    )
+    db_commit()
+
+    return jsonify(result='success')
+
 ###############################################################################
 # Routes
 ###############################################################################
@@ -145,54 +194,6 @@ def update(id):
 
     return render_template('item/update.html', item=item)
 
-
-@bp.route('/<int:id>/_upload_image', methods=('POST',))
-@login_required
-def _upload_image(id):
-    item = get_item(id)
-    if item['owner_id'] != g.user['id']:
-        return ('', 403)
-
-    if 'img' not in request.files:
-        return ('', 400)
-
-    file = request.files['img']
-    if file:
-        file_id = upload_image(file)
-        cursor = get_db_cursor()
-        cursor.execute(
-            'INSERT INTO item_attribute (type, item_id, value_id)'
-            ' VALUES (%s, %s, %s)',
-            (Attribute.ATTR_IMAGE, id, file_id,)
-        )
-        db_commit()
-        cursor.execute('SELECT id, filename FROM image WHERE id = %s',
-            (file_id,))
-        return jsonify(result=cursor.fetchone())
-
-    return ('', 400)
-
-@bp.route('/<int:id>/_delete_image')
-@login_required
-def _delete_image(id):
-    item = get_item(id)
-    if not g.user['admin'] or (item['owner_id'] != g.user['id']):
-        return ('', 403)
-
-    img = request.args.get('img', -1, type=int)
-
-    if img == -1:
-        return ('', 400)
-
-    cursor = get_db_cursor()
-    cursor.execute(
-        'DELETE FROM item_attribute WHERE type = %s'
-        ' AND item_id = %s AND value_id = %s',
-        (Attribute.ATTR_IMAGE, id, img,)
-    )
-    db_commit()
-
-    return jsonify(result='')
 
 @bp.route('/<int:id>/_delete')
 @login_required

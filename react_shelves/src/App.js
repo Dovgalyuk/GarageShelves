@@ -24,6 +24,14 @@ class App extends Component {
     };
   }
 
+  logout = () => {
+      this.setState({ isAuthenticated: false,
+                      isAdmin: false,
+                      isAuthenticating: false,
+                      username: "",
+                      user_id: -1 });
+  }
+
   loadSession = () => {
       fetchBackend('auth/_session')
           .then(response => response.json())
@@ -35,10 +43,10 @@ class App extends Component {
                                   user_id: response.user_id,
                                   isAuthenticating: false });
               } else {
-                  this.setState({ isAuthenticated: false, isAuthenticating: false });
+                  this.logout();
               }
           })
-          .catch(error => this.setState({ isAuthenticated: false, isAuthenticating: false }) );
+          .catch(error => this.logout() );
   }
 
   async componentDidMount() {
@@ -49,7 +57,7 @@ class App extends Component {
       if (!authenticated) {
           fetchBackend('auth/_logout')
               .catch(error => {})
-              .finally(() => this.loadSession());
+              .finally(() => this.logout());
       }
       else
       {
