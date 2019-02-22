@@ -36,7 +36,7 @@ class CatalogItem extends Component {
                     &nbsp;
                     {this.props.item.company
                         && <a className="text-secondary"
-                            href={"/company/view/id=" + this.props.item.company_id}>
+                            href={"/company/view/" + this.props.item.company_id}>
                             {this.props.item.company}
                         </a>}
                     &nbsp;
@@ -102,7 +102,9 @@ export class CatalogListSection extends Component {
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
 // Routes
+///////////////////////////////////////////////////////////////////////////////
 
 export class CatalogView extends Component {
     constructor(props) {
@@ -155,7 +157,7 @@ export class CatalogView extends Component {
                       <span className="badge badge-secondary">{ catalog.year }</span>
                     }
                     { catalog.company &&
-                      <a href={ "company/view/" + catalog.company_id }>{ catalog.company }</a>
+                      <a href={ "/company/view/" + catalog.company_id }>{ catalog.company }</a>
                     }
                   </p>
                 </div>

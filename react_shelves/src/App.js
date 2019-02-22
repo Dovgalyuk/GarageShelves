@@ -1,6 +1,7 @@
 import React, { Component, Fragment, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import Navbar from './Navbar';
+import { Companies, CompanyView } from './Company';
 import { Catalog, CatalogView } from './Catalog';
 import { ItemView } from './Item';
 import Login from './Auth';
@@ -87,6 +88,10 @@ class App extends Component {
             <Suspense fallback={<div>Loading...</div>}>
               <Switch>
                 <AppliedRoute path="/" exact component={Home}
+                              props={childProps} />
+                <AppliedRoute path="/company" exact component={Companies}
+                              props={childProps} />
+                <AppliedRoute path="/company/view/:id" component={CompanyView}
                               props={childProps} />
                 <AppliedRoute path="/catalog" exact component={Catalog}
                               props={childProps} />

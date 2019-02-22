@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify
 )
 from werkzeug.exceptions import abort
 
@@ -26,6 +26,20 @@ def get_company(id):
         (id,)
         )
     return cursor.fetchone()
+
+###############################################################################
+# API Routes
+###############################################################################
+
+@bp.route('/_filtered_list')
+def _filtered_list():
+    # No parameters yet
+    return jsonify(get_companies())
+
+@bp.route('/_get')
+def _get():
+    id = request.args.get('id', -1, type=int)
+    return jsonify(get_company(id))
 
 ###############################################################################
 # Routes
