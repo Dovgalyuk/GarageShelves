@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify
 )
 from werkzeug.exceptions import abort
 
@@ -45,8 +45,33 @@ def get_user_collection(id):
 
     return collection
 
+###############################################################################
+# API Routes
+###############################################################################
 
+@bp.route('/_filtered_list')
+def _filtered_list():
+    # No parameters yet
+
+    db = get_db_cursor()
+    db.execute(
+        'SELECT c.id, title, description, created, owner_id, username,'
+        ' (SELECT COUNT(*) FROM item it WHERE it.collection_id=c.id) AS count'
+        ' FROM collection c JOIN user u ON c.owner_id = u.id'
+        ' ORDER BY created DESC'
+    )
+    collections = db.fetchall()
+
+    return jsonify(collections)
+
+@bp.route('/_get')
+def _get():
+    id = request.args.get('id', -1, type=int)
+    return jsonify(get_collection(id, False))
+
+###############################################################################
 # Routes
+###############################################################################
 
 @bp.route('/')
 def index():
