@@ -244,6 +244,58 @@ def _delete_image():
 
     return jsonify(result='success')
 
+@bp.route('/_own', methods=('POST',))
+@login_required
+def _own():
+    id = int(request.args['id'])
+    catalog = get_catalog(id)
+
+    if not catalog['is_physical']:
+        abort(403)
+
+    collection = get_user_collection(g.user['id'])
+    try:
+        main = request.json[str(id)]
+        iid = ''
+        if 'internal' in main:
+            iid = main['internal']
+        cursor = get_db_cursor()
+        cursor.execute(
+            'INSERT INTO item (catalog_id, internal_id, description, collection_id)'
+            ' VALUES (%s, %s, %s, %s)',
+            (id, iid, '', collection['id'])
+        )
+        item_id = cursor.lastrowid
+
+        for subitem, attr in request.json.items():
+            subid = int(subitem)
+            if id == subid:
+                continue
+            if attr['use']:
+                # assert that catalog item exists
+                get_catalog(subid)
+                iid = ''
+                if 'internal' in attr:
+                    iid = attr['internal']
+                cursor.execute(
+                    'INSERT INTO item (catalog_id, internal_id, description, collection_id)'
+                    ' VALUES (%s, %s, %s, %s)',
+                    (subid, iid, '', collection['id'])
+                )
+                subitem_id = cursor.lastrowid
+                cursor.execute(
+                    'INSERT INTO item_relation (item_id1, item_id2, type)'
+                    ' VALUES (%s, %s, %s)',
+                    (item_id, subitem_id, Relation.REL_INCLUDES)
+                )
+
+        db_commit()
+    except:
+        db_rollback()
+        abort(500)
+
+    return jsonify(result='success')
+
 ###############################################################################
 # Routes
 ###############################################################################

@@ -51,7 +51,8 @@ export class ItemListSection extends Component {
         };
     }
 
-    componentDidMount() {
+    handleUpdate = () => {
+        this.setState({loadingMain:true, loadingList:true});
         fetchBackend('item/_filtered_list', {...this.props.filter, is_main:0})
             .then(response => response.json())
             .then(data => {
@@ -72,6 +73,10 @@ export class ItemListSection extends Component {
         } else {
             this.setState({loadingMain:false});
         }
+    }
+
+    componentDidMount() {
+        this.handleUpdate();
     }
 
     render() {
