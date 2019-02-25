@@ -113,23 +113,33 @@ export class FormOwn extends Component {
         super(props);
         this.state = {
             loading:true,
-            items:[]
+            items:[],
+            form:this.defaultForm()
         };
-        this.form = new Map();
-        this.form[this.props.id] = {use:true};
+    }
+
+    defaultForm = () => {
+        var form = new Map();
+        form[this.props.id] = {use:true, internal: ""};
+        return form;
     }
 
     handleShow = event => {
+        var form = this.defaultForm();
         fetchBackend('catalog/_filtered_list', {parent:this.props.id})
             .then(response => response.json())
             .then(data => {
+                for (var i = 0 ; i < data.length ; ++i) {
+                    form[data[i].id] = {use:false, internal: ""};
+                }
                 this.setState({loading:false, items:data});
             })
-            .catch(e => this.setState({loading:false, items:[]}));
+            .catch(e => this.setState({loading:false, items:[]}))
+            .finally(this.setState({form:form}));
     }
 
     handleConfirm = event => {
-        postBackend('catalog/_own', {id:this.props.id}, this.form)
+        postBackend('catalog/_own', {id:this.props.id}, this.state.form)
             .catch(e => {})
             .finally((e) => {
                 this.handleHide(e);
@@ -138,22 +148,20 @@ export class FormOwn extends Component {
     }
 
     handleHide = event => {
-        this.setState({loading:true, items:[]});
+        this.setState({loading:true, items:[], form:this.defaultForm()});
         this.props.onClose();
     }
 
     handleCheckBox = (event, id) => {
-        if (!this.form[id]) {
-            this.form[id] = {};
-        }
-        this.form[id].use = event.target.checked;
+        var form = this.state.form;
+        form[id].use = event.target.checked;
+        this.setState({form:form});
     }
 
     handleInput = (event, id) => {
-        if (!this.form[id]) {
-            this.form[id] = {use:false};
-        }
-        this.form[id].internal = event.target.value;
+        var form = this.state.form;
+        form[id].internal = event.target.value;
+        this.setState({form:form});
     }
 
     render() {
@@ -172,6 +180,7 @@ export class FormOwn extends Component {
                       <Form.Label column xs={2}>Internal ID:</Form.Label>
                       <Col xs={10}>
                         <Form.Control type="text" id={this.props.id}
+                          value={this.state.form[this.props.id].internal}
                           onChange={e => this.handleInput(e, this.props.id)}/>
                       </Col>
                     </Form.Group>
@@ -187,11 +196,13 @@ export class FormOwn extends Component {
                             <Col xs={3}>
                               <Form.Control type="text"
                                 id={"I" + c.id}
+                                value={this.state.form[c.id].internal}
                                 onChange={e => this.handleInput(e, c.id)}/>
                             </Col>
                             <Col xs={9}>
                               <Form.Check custom type="checkbox"
                                 id={"C" + c.id}
+                                checked={this.state.form[c.id].use}
                                 label={c.type_title + " : "
                                   + (c.title_eng ? c.title_eng : c.title)}
                                 onChange={e => this.handleCheckBox(e, c.id)} />
