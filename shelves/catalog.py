@@ -296,6 +296,40 @@ def _own():
 
     return jsonify(result='success')
 
+@bp.route('/_update', methods=('POST',))
+@login_required
+@admin_required
+def _update():
+    id = int(request.args['id'])
+    catalog = get_catalog(id)
+    try:
+        field = request.json['field']
+        value = request.json['value']
+        if field not in ['title', 'title_eng', 'description',
+            'type_id', 'year', 'company_id']:
+            abort(403)
+        if field == 'year':
+            year = int(value)
+            if year < 1500 or year > 2100:
+                abort(403)
+        if field == 'company_id' and (get_company(value) is None):
+            abort(403)
+        if field == 'type_id' and (get_company_type(value) is None):
+            abort(403)
+        cursor = get_db_cursor()
+        # field is validated, use concatenation here
+        cursor.execute(
+            'UPDATE catalog SET ' + field + ' = %s WHERE id = %s',
+            (value, id)
+        )
+        db_commit()
+    except:
+        db_rollback()
+        abort(403)
+
+    return jsonify(result='success')
+
+
 ###############################################################################
 # Routes
 ###############################################################################

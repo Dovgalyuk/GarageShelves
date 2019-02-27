@@ -9,6 +9,7 @@ import Form from 'react-bootstrap/Form'
 import fetchBackend, { postBackend, BackendURL } from './Backend'
 import ImageListSection from './Image'
 import { ItemListSection } from './Item'
+import EditText from './EditText'
 
 class Logo extends Component {
     render() {
@@ -254,6 +255,11 @@ export class CatalogView extends Component {
         this.setState({showFormOwn:true});
     }
 
+    handleEditField = (field, value) => {
+        postBackend('catalog/_update', {id:this.props.match.params.id},
+            {field:field, value:value});
+    }
+
     handleFormOwnClose = event => {
         this.setState({showFormOwn:false});
     }
@@ -288,19 +294,25 @@ export class CatalogView extends Component {
                     </Col>
                     <Col xs={9} className="align-self-center">
                       <h1>
-                        { catalog.type_title } : { catalog.title_eng ? catalog.title_eng : catalog.title }
+                        <EditText prefix={catalog.type_title + " : "}
+                             value={ catalog.title_eng ? catalog.title_eng : catalog.title }
+                             hint="English title"
+                             onSave={v => this.handleEditField("title_eng", v)}/>
                       </h1>
-                      { catalog.title_eng && catalog.title
-                        && <h4 className="text-secondary">{ catalog.title }</h4>
-                      }
-                      <p className="text-secondary">
-                        { catalog.year &&
-                          <span className="badge badge-secondary">{ catalog.year }</span>
-                        }
+                      <h4 className="text-secondary">
+                         <EditText value={ catalog.title } hint="Native title"
+                                   onSave={v => this.handleEditField("title", v)}/>
+                      </h4>
+                      <div className="text-secondary">
+                        <span className="badge badge-secondary">
+                          <EditText value={ catalog.year || "" }
+                                    hint="Start of production" type="number"
+                                    onSave={v => this.handleEditField("year", v)}/>
+                        </span>
                         { catalog.company &&
                           <a href={ "/company/view/" + catalog.company_id }>{ catalog.company }</a>
                         }
-                      </p>
+                      </div>
                     </Col>
                     <Col xs={2} className="align-self-center">
                     { this.props.auth.isAuthenticated && catalog.is_physical &&
