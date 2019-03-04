@@ -41,6 +41,30 @@ def _get():
     id = request.args.get('id', -1, type=int)
     return jsonify(get_company(id))
 
+@bp.route('/_update', methods=('POST',))
+@login_required
+@admin_required
+def _update():
+    id = int(request.args['id'])
+    try:
+        company = get_company(id)
+        field = request.json['field']
+        value = request.json['value']
+        if field not in ['title']:
+            abort(403)
+        cursor = get_db_cursor()
+        # field is validated, use concatenation here
+        cursor.execute(
+            'UPDATE company SET ' + field + ' = %s WHERE id = %s',
+            (value, id)
+        )
+        db_commit()
+    except:
+        db_rollback()
+        abort(403)
+
+    return jsonify(result='success')
+
 ###############################################################################
 # Routes
 ###############################################################################

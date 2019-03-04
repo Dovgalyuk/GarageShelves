@@ -1,9 +1,10 @@
 import React, { Component, Fragment } from 'react'
-import fetchBackend, { BackendURL } from './Backend'
+import fetchBackend, { postBackend, BackendURL } from './Backend'
 import { CatalogListSection } from './Catalog'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
+import EditText from './EditText'
 
 function CompanyLogo(props) {
     return (
@@ -65,6 +66,11 @@ export class CompanyView extends Component {
             .catch(e => this.setState({loading:false}));
     }
 
+    handleEditField = (field, value) => {
+        postBackend('company/_update', {id:this.props.match.params.id},
+            {field:field, value:value});
+    }
+
     render() {
         if (this.state.loading) {
             return (
@@ -79,7 +85,8 @@ export class CompanyView extends Component {
                   <CompanyLogo id={this.state.company.id} img_id={this.state.company.logo_id} />
                   <Col>
                     <h1>
-                      { this.state.company.title }
+                      <EditText value={ this.state.company.title } hint="Company title"
+                                onSave={v => this.handleEditField("title", v)}/>
                     </h1>
                   </Col>
                 </Row>

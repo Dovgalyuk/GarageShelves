@@ -279,7 +279,7 @@ export class CatalogView extends Component {
 
     handleCompanyRender = (value, name) => {
         if (value > 0)
-            return <a href={"company/" + value}>{ name }</a>;
+            return <a href={"/company/view/" + value}>{ name }</a>;
         else
             return <span>{ name} </span>;
     }
