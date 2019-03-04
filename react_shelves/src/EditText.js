@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import Button from 'react-bootstrap/Button'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
+import ReactMarkdown from 'react-markdown';
 
 export default class EditText extends Component {
   constructor(props) {
@@ -59,7 +60,7 @@ export default class EditText extends Component {
   }
 
   _renderInput() {
-    if (this.props.type === 'textarea') {
+    if (this.props.type === 'textarea' || this.props.type === 'markdown') {
       return (
         <textarea
           ref={this.input}
@@ -124,20 +125,34 @@ export default class EditText extends Component {
       </div>
     )
   }
+
+  _renderValue = () => {
+    if (this.props.type === 'markdown') {
+      var val = this.state.value;
+      if (val === "")
+        return (<Button variant="link"
+                  ref={this.editButton}
+                  onClick={this._activateEditMode}
+                >
+                  <i className="fas fa-edit" />
+                </Button>);
+      return <ReactMarkdown source={ val } />;
+    } else {
+      return (<Fragment>
+                {this.props.prefix || ""}
+                {this.state.value === ""
+                   ? <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                   : this.state.value}
+              </Fragment>
+             );
+    }
+  }
+
   _renderViewMode = () => {
+    var val = this._renderValue();
     return (
       <div onDoubleClick={this._activateEditMode}>
-        {this.props.prefix || ""}
-        {this.state.value === ""
-           ? <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
-           : this.state.value}
-        {/* using double click instead of a button
-        <Button variant="link"
-          ref={this.editButton}
-          onClick={this._activateEditMode}
-        >
-          <i className="fas fa-edit" />
-        </Button> */}
+        {val}
       </div>
     )
   }
@@ -170,7 +185,7 @@ EditText.propTypes = {
   type: PropTypes.oneOf(
     [
       'text', 'textarea', 'email', 'number', 'date', 'datetime-local',
-      'time', 'month', 'url', 'week', 'tel'
+      'time', 'month', 'url', 'week', 'tel', 'markdown'
     ]
   ).isRequired,
   // Events

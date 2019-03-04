@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from 'react';
-import ReactMarkdown from 'react-markdown';
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
@@ -10,6 +9,7 @@ import fetchBackend, { postBackend, BackendURL } from './Backend'
 import ImageListSection from './Image'
 import { ItemListSection } from './Item'
 import EditText from './EditText'
+import EditDropDown from './EditDropDown'
 
 class Logo extends Component {
     render() {
@@ -268,6 +268,22 @@ export class CatalogView extends Component {
         this.itemsRef.handleUpdate();
     }
 
+    handleLoadCompanies = callback => {
+        fetchBackend('company/_filtered_list', {})
+            .then(response => response.json())
+            .then(data => {
+                callback(data.map(c => { return {value:c.id, name:c.title}; }));
+            })
+            .catch(e => {});
+    }
+
+    handleCompanyRender = (value, name) => {
+        if (value > 0)
+            return <a href={"company/" + value}>{ name }</a>;
+        else
+            return <span>{ name} </span>;
+    }
+
     render() {
         if (this.state.loading) {
             return (
@@ -304,13 +320,25 @@ export class CatalogView extends Component {
                                    onSave={v => this.handleEditField("title", v)}/>
                       </h4>
                       <div className="text-secondary">
-                        <span className="badge badge-secondary">
-                          <EditText value={ catalog.year || "" }
-                                    hint="Start of production" type="number"
-                                    onSave={v => this.handleEditField("year", v)}/>
-                        </span>
-                        { catalog.company &&
-                          <a href={ "/company/view/" + catalog.company_id }>{ catalog.company }</a>
+                          <span className="badge badge-secondary">
+                            <EditText value={ catalog.year || "" }
+                                      hint="Start of production year" type="number"
+                                      onSave={v => this.handleEditField("year", v)}/>
+                           </span>
+                           &nbsp;
+                          <EditDropDown value={catalog.company_id}
+                                        name={catalog.company}
+                                        hint={"Company name"}
+                                        defaultValue={-1}
+                                        defaultName="Unknown"
+                                        onLoadList={this.handleLoadCompanies}
+                                        onSave={v => this.handleEditField("company_id", v)}
+                                        onRender={this.handleCompanyRender}
+                          />
+                        { /*catalog.company
+                            ? <a href={ "/company/view/" + catalog.company_id }>{ catalog.company }</a>
+                            : " Unknown company"*/
+
                         }
                       </div>
                     </Col>
@@ -328,7 +356,9 @@ export class CatalogView extends Component {
                 <div className="row">
                   <div className="col-12">
                     <h3 className="pt-4">Description</h3>
-                    <ReactMarkdown source={ catalog.description } />
+                    <EditText value={catalog.description}
+                        type="markdown" hint="Catalog item description"
+                        onSave={v => this.handleEditField("description", v)}/>
                   </div>
                 </div>
 

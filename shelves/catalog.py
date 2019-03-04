@@ -312,9 +312,10 @@ def _update():
             year = int(value)
             if year < 1500 or year > 2100:
                 abort(403)
-        if field == 'company_id' and (get_company(value) is None):
-            abort(403)
-        if field == 'type_id' and (get_company_type(value) is None):
+        if field == 'company_id':
+            if (get_company(value) is None):
+                value = None
+        if field == 'type_id' and (get_catalog_type(value) is None):
             abort(403)
         cursor = get_db_cursor()
         # field is validated, use concatenation here
