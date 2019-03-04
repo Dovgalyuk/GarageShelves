@@ -1,10 +1,10 @@
 import React, { Component, Fragment } from 'react'
-import ReactMarkdown from 'react-markdown'
-import fetchBackend, { BackendURL } from './Backend'
+import fetchBackend, { postBackend, BackendURL } from './Backend'
 import ImageListSection from './Image'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
+import EditText from './EditText'
 
 function ItemLogo(props) {
     var size = props.is_main === 1 ? 240 : 60;
@@ -131,6 +131,11 @@ export class ItemView extends Component {
             .catch(e => this.setState({loading:false}));
     }
 
+    handleEditField = (field, value) => {
+        postBackend('item/_update', {id:this.props.match.params.id},
+            {field:field, value:value});
+    }
+
     render() {
         if (this.state.loading) {
             return (
@@ -159,7 +164,11 @@ export class ItemView extends Component {
                 </Col>
               </Row>
               <Row>
-                <Col xs={2}>Internal id {item.internal_id}</Col>
+                <Col xs={3}>
+                  <EditText value={ item.internal_id } hint="Internal id of the item"
+                            onSave={v => this.handleEditField("internal_id", v)}
+                            prefix="Internal id "/>
+                </Col>
                 <Col>In collection since {item.added}</Col>
               </Row>
             </div>
@@ -167,7 +176,9 @@ export class ItemView extends Component {
             <Row>
               <Col>
                 <h3 className="pt-4">Description</h3>
-                <ReactMarkdown source={ item.description } />
+                <EditText value={item.description}
+                    type="markdown" hint="Item description"
+                    onSave={v => this.handleEditField("description", v)}/>
               </Col>
             </Row>
 

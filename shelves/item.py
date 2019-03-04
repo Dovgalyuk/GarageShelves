@@ -164,6 +164,31 @@ def _delete_image():
 
     return jsonify(result='success')
 
+@bp.route('/_update', methods=('POST',))
+@login_required
+def _update():
+    id = int(request.args['id'])
+    item = get_item(id)
+    if not g.user['admin'] or (item['owner_id'] != g.user['id']):
+        abort(403)
+    try:
+        field = request.json['field']
+        value = request.json['value']
+        if field not in ['internal_id', 'description']:
+            abort(403)
+        cursor = get_db_cursor()
+        # field is validated, use concatenation here
+        cursor.execute(
+            'UPDATE item SET ' + field + ' = %s WHERE id = %s',
+            (value, id)
+        )
+        db_commit()
+    except:
+        db_rollback()
+        abort(403)
+
+    return jsonify(result='success')
+
 ###############################################################################
 # Routes
 ###############################################################################
