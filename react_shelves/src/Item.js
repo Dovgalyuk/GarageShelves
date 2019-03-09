@@ -158,13 +158,13 @@ export class ItemView extends Component {
               <Row>
                 <Col xs={12}>
                   <h3 className="pt-4 pb-2">
-                    Item of <a href={"/catalog/view/" + item.catalog_id}>{ item.type_title } &nbsp;:&nbsp;
+                    Item of <a href={"/catalog/view/" + item.catalog_id}>{ item.type_title }&nbsp;:&nbsp;
                                { item.title_eng ? item.title_eng : item.title }</a>
                   </h3>
                 </Col>
               </Row>
               <Row>
-                <Col xs={3}>
+                <Col xs={4}>
                   <EditText value={ item.internal_id } hint="Internal id of the item"
                             onSave={v => this.handleEditField("internal_id", v)}
                             prefix="Internal id "/>
@@ -178,7 +178,8 @@ export class ItemView extends Component {
                 <h3 className="pt-4">Description</h3>
                 <EditText value={item.description}
                     type="markdown" hint="Item description"
-                    onSave={v => this.handleEditField("description", v)}/>
+                    onSave={v => this.handleEditField("description", v)}
+                    inputProps={{rows:10, cols:80}}/>
               </Col>
             </Row>
 

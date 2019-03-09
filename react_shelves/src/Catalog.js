@@ -320,12 +320,13 @@ export class CatalogView extends Component {
                                    onSave={v => this.handleEditField("title", v)}/>
                       </h4>
                       <div className="text-secondary">
+                          Manufactured since&nbsp;
                           <span className="badge badge-secondary">
                             <EditText value={ catalog.year || "" }
                                       hint="Start of production year" type="number"
                                       onSave={v => this.handleEditField("year", v)}/>
-                           </span>
-                           &nbsp;
+                          </span>
+                          &nbsp;by&nbsp;
                           <EditDropDown value={catalog.company_id}
                                         name={catalog.company}
                                         hint={"Company name"}
@@ -335,19 +336,15 @@ export class CatalogView extends Component {
                                         onSave={v => this.handleEditField("company_id", v)}
                                         onRender={this.handleCompanyRender}
                           />
-                        { /*catalog.company
-                            ? <a href={ "/company/view/" + catalog.company_id }>{ catalog.company }</a>
-                            : " Unknown company"*/
-
-                        }
                       </div>
                     </Col>
                     <Col xs={2} className="align-self-center">
-                    { this.props.auth.isAuthenticated && catalog.is_physical &&
-                        <button type="button" className="btn btn-primary"
+                    { (this.props.auth.isAuthenticated && catalog.is_physical)
+                      ? <button type="button" className="btn btn-primary"
                                 onClick={this.handleOwnButton}>
                           I own this
                         </button>
+                      : <div></div>
                     }
                     </Col>
                   </Row>
@@ -358,7 +355,8 @@ export class CatalogView extends Component {
                     <h3 className="pt-4">Description</h3>
                     <EditText value={catalog.description}
                         type="markdown" hint="Catalog item description"
-                        onSave={v => this.handleEditField("description", v)}/>
+                        onSave={v => this.handleEditField("description", v)}
+                        inputProps={{rows:10, cols:80}}/>
                   </div>
                 </div>
 
