@@ -110,6 +110,10 @@ def get_catalog_type_id(name):
 # API Routes
 ###############################################################################
 
+@bp.route('/_types')
+def _types():
+    return jsonify(get_catalog_types())
+
 @bp.route('/<int:id>/_get_logo')
 def _get_logo(id):
     return jsonify(get_catalog_logo(id))
@@ -330,6 +334,62 @@ def _update():
 
     return jsonify(result='success')
 
+@bp.route('/_create', methods=('POST',))
+@login_required
+@admin_required
+def _create():
+    error = None;
+    parent = request.json['parent']
+    type_id = request.json['type_id']
+    title = request.json['title']
+    title_eng = request.json['title_eng']
+    description = request.json['description']
+    company_id = int(request.json['company_id'])
+    if company_id == -1:
+        company_id = None
+    year = None
+    if request.json['year'] != '':
+        try:
+            year = int(request.json['year'])
+            if year < 1500 or year > 2100:
+                error = 'Invalid year'
+        except:
+            error = 'Invalid year'
+
+    # assert that catalog type exists
+    get_catalog_type(type_id)
+    # assert that company exists
+    if (company_id is not None) and (get_company(company_id) is None):
+        error = 'Invalid company'
+
+    if title_eng is None or title_eng == "":
+        error = 'title_eng is required'
+
+    if error is not None:
+        abort(403)
+
+    try:
+        cursor = get_db_cursor()
+        cursor.execute(
+            'INSERT INTO catalog (type_id, title, title_eng, description, year, company_id)'
+            ' VALUES (%s, %s, %s, %s, %s, %s)',
+            (type_id, title, title_eng, description, year, company_id)
+        )
+        catalog_id = cursor.lastrowid
+        if parent and int(parent) > 0:
+            get_catalog(parent) # validate the parent
+            cursor.execute(
+                'INSERT INTO catalog_relation'
+                ' (catalog_id1, catalog_id2, type)'
+                ' VALUES (%s, %s, %s)',
+                (parent, catalog_id, Relation.REL_INCLUDES)
+            )
+        db_commit()
+    except:
+        db_rollback()
+        abort(403)
+
+    return jsonify(result='success')
 
 ###############################################################################
 # Routes

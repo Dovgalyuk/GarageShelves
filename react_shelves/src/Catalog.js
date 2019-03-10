@@ -10,6 +10,7 @@ import ImageListSection from './Image'
 import { ItemListSection } from './Item'
 import EditText from './EditText'
 import EditDropDown from './EditDropDown'
+import FormCatalogCreate from './Forms/CatalogCreate'
 
 class Logo extends Component {
     render() {
@@ -72,17 +73,25 @@ export class CatalogListSection extends Component {
         };
     }
 
+    handleUpdate = () => {
+        this.setState({loading:true},
+            () => {
+                fetchBackend('catalog/_filtered_list', this.props.filter)
+                    .then(response => response.json())
+                    .then(data => {
+                        var rows = [];
+                        while (data.length) {
+                            rows.push(data.splice(0, 3));
+                        }
+                        this.setState({loading:false, rows:rows});
+                    })
+                    .catch(e => this.setState({loading:false}));
+            }
+        );
+    }
+
     componentDidMount() {
-        fetchBackend('catalog/_filtered_list', this.props.filter)
-            .then(response => response.json())
-            .then(data => {
-                var rows = [];
-                while (data.length) {
-                    rows.push(data.splice(0, 3));
-                }
-                this.setState({loading:false, rows:rows});
-            })
-            .catch(e => this.setState({loading:false}));
+        this.handleUpdate();
     }
 
     render() {
@@ -239,6 +248,7 @@ export class CatalogView extends Component {
             loading:true,
             catalog:{},
             showFormOwn:false,
+            showFormCreate:false,
         };
     }
 
@@ -255,6 +265,10 @@ export class CatalogView extends Component {
         this.setState({showFormOwn:true});
     }
 
+    handleCreateButton = event => {
+        this.setState({showFormCreate:true});
+    }
+
     handleEditField = (field, value) => {
         postBackend('catalog/_update', {id:this.props.match.params.id},
             {field:field, value:value});
@@ -264,8 +278,23 @@ export class CatalogView extends Component {
         this.setState({showFormOwn:false});
     }
 
+    handleFormCreateClose = event => {
+        this.setState({showFormCreate:false});
+    }
+
     handleUpdateItems = () => {
-        this.itemsRef.handleUpdate();
+        if (this.itemsRef) {
+            this.itemsRef.handleUpdate();
+        }
+    }
+
+    handleUpdateCatalogItems = () => {
+        if (this.childrenRef) {
+            this.childrenRef.handleUpdate();
+        }
+        if (this.familiesRef) {
+            this.familiesRef.handleUpdate();
+        }
     }
 
     handleLoadCompanies = callback => {
@@ -308,7 +337,7 @@ export class CatalogView extends Component {
                     <Col xs={1} className="align-self-center">
                       <Logo img_id={catalog.logo_id} />
                     </Col>
-                    <Col xs={9} className="align-self-center">
+                    <Col xs={7} className="align-self-center">
                       <h1>
                         <EditText prefix={catalog.type_title + " : "}
                              value={ catalog.title_eng ? catalog.title_eng : catalog.title }
@@ -339,6 +368,15 @@ export class CatalogView extends Component {
                       </div>
                     </Col>
                     <Col xs={2} className="align-self-center">
+                    { (this.props.auth.isAuthenticated && this.props.auth.isAdmin)
+                      ? <button type="button" className="btn btn-primary"
+                                onClick={this.handleCreateButton}>
+                          Create subitem
+                        </button>
+                      : <div></div>
+                    }
+                    </Col>
+                    <Col xs={2} className="align-self-center">
                     { (this.props.auth.isAuthenticated && catalog.is_physical)
                       ? <button type="button" className="btn btn-primary"
                                 onClick={this.handleOwnButton}>
@@ -365,6 +403,7 @@ export class CatalogView extends Component {
 
                 { catalog.is_group === 1 &&
                   <CatalogListSection
+                    ref={(ref) => {this.familiesRef = ref;}}
                     filter={ {parent:catalog.id, notype:true, is_group:true} }
                     title="Includes the families" />
                 }
@@ -374,6 +413,7 @@ export class CatalogView extends Component {
                     title="Kits with this item" />
                 }
                 <CatalogListSection
+                    ref={(ref) => {this.childrenRef = ref;}}
                     filter={ {parent:catalog.id} }
                     title="Includes the following catalog items" />
 
@@ -389,6 +429,12 @@ export class CatalogView extends Component {
                          onClose={this.handleFormOwnClose}
                          handleUpdateItems={this.handleUpdateItems}
                          id={catalog.id} />
+              }
+              { this.props.auth.isAuthenticated && this.props.auth.isAdmin &&
+                <FormCatalogCreate open={this.state.showFormCreate}
+                         onClose={this.handleFormCreateClose}
+                         handleUpdateItems={this.handleUpdateCatalogItems}
+                         parent={catalog.id} />
               }
             </Fragment>
         );

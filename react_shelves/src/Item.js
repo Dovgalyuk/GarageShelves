@@ -52,27 +52,30 @@ export class ItemListSection extends Component {
     }
 
     handleUpdate = () => {
-        this.setState({loadingMain:true, loadingList:true});
-        fetchBackend('item/_filtered_list', {...this.props.filter, is_main:0})
-            .then(response => response.json())
-            .then(data => {
-                var rows = [];
-                while (data.length) {
-                    rows.push(data.splice(0, 3));
-                }
-                this.setState({loadingList:false, rows:rows});
-            })
-            .catch(e => this.setState({loadingList:false}));
-        if (this.props.filter.parent) {
-            fetchBackend('item/_filtered_list', {...this.props.filter, is_main:1})
+        this.setState({loadingMain:true, loadingList:true},
+          () => {
+            fetchBackend('item/_filtered_list', {...this.props.filter, is_main:0})
                 .then(response => response.json())
                 .then(data => {
-                    this.setState({loadingMain:false, main:data});
+                    var rows = [];
+                    while (data.length) {
+                        rows.push(data.splice(0, 3));
+                    }
+                    this.setState({loadingList:false, rows:rows});
                 })
-                .catch(e => this.setState({loadingMain:false}));
-        } else {
-            this.setState({loadingMain:false});
-        }
+                .catch(e => this.setState({loadingList:false}));
+            if (this.props.filter.parent) {
+                fetchBackend('item/_filtered_list', {...this.props.filter, is_main:1})
+                    .then(response => response.json())
+                    .then(data => {
+                        this.setState({loadingMain:false, main:data});
+                    })
+                    .catch(e => this.setState({loadingMain:false}));
+            } else {
+                this.setState({loadingMain:false});
+            }
+          }
+        );
     }
 
     componentDidMount() {
