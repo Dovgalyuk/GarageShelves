@@ -10,6 +10,7 @@ import EditText from './EditText'
 import EditDropDown from './EditDropDown'
 import FormCatalogCreate from './Forms/CatalogCreate'
 import FormOwn from './Forms/Own'
+import FormKitCreate from './Forms/KitCreate'
 
 class Logo extends Component {
     render() {
@@ -184,7 +185,11 @@ export class CatalogView extends Component {
     }
 
     handleCreateKitButton = event => {
-        this.setState({showFormKit:true});
+        this.setState({showFormCreateKit:true});
+    }
+
+    handleFormCreateKitClose = event => {
+        this.setState({showFormCreateKit:false});
     }
 
     handleCreateSubitemButton = event => {
@@ -207,6 +212,12 @@ export class CatalogView extends Component {
         }
         if (this.familiesRef) {
             this.familiesRef.handleUpdate();
+        }
+    }
+
+    handleUpdateKitItems = () => {
+        if (this.kitsRef) {
+            this.kitsRef.handleUpdate();
         }
     }
 
@@ -286,7 +297,7 @@ export class CatalogView extends Component {
                                 onClick={this.handleCreateSubitemButton}>
                           Create subitem
                         </button>
-                      : <div/>
+                      : <span/>
                     }
                     &nbsp;
                     { (this.props.auth.isAuthenticated && this.props.auth.isAdmin
@@ -295,7 +306,7 @@ export class CatalogView extends Component {
                                 onClick={this.handleCreateKitButton}>
                           Create kit
                         </button>
-                      : <div/>
+                      : <span/>
                     }
                     &nbsp;
                     { (this.props.auth.isAuthenticated && catalog.is_physical)
@@ -303,7 +314,7 @@ export class CatalogView extends Component {
                                 onClick={this.handleOwnButton}>
                           I own this
                         </button>
-                      : <div/>
+                      : <span/>
                     }
                     </Col>
                   </Row>
@@ -330,6 +341,7 @@ export class CatalogView extends Component {
                 }
                 { catalog.is_physical === 1 &&
                   <CatalogListSection
+                    ref={(ref) => {this.kitsRef = ref;}}
                     filter={ {type_name:"Kit", notype:true, includes:catalog.id} }
                     title="Kits with this item" />
                 }
@@ -356,6 +368,13 @@ export class CatalogView extends Component {
                          onClose={this.handleFormCreateSubitemClose}
                          handleUpdateItems={this.handleUpdateCatalogItems}
                          parent={catalog.id} />
+              }
+              { (this.props.auth.isAuthenticated && this.props.auth.isAdmin) &&
+                <FormKitCreate open={this.state.showFormCreateKit}
+                         onClose={this.handleFormCreateKitClose}
+                         handleUpdateItems={this.handleUpdateKitItems}
+                         main_id={catalog.id}
+                         main_title={catalog.title_eng || catalog.title} />
               }
             </Fragment>
         );

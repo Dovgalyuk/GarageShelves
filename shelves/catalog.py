@@ -400,6 +400,66 @@ def _create():
 
     return jsonify(result='success')
 
+@bp.route('/_create_kit', methods=('POST',))
+@login_required
+@admin_required
+def _create_kit():
+    id = int(request.args['id'])
+    catalog = get_catalog(id)
+    if not catalog['is_physical']:
+        abort(403)
+
+    kit_type = get_catalog_type_id('Kit')
+
+    title = request.json['title']
+    title_eng = request.json['title_eng']
+    if not title_eng:
+        abort(403)
+
+    try:
+        cursor = get_db_cursor()
+        cursor.execute(
+            'INSERT INTO catalog (type_id, title, title_eng, description, company_id)'
+            ' VALUES (%s, %s, %s, %s, %s)',
+            (kit_type, title, title_eng, '', catalog['company_id'],)
+        )
+        kit_id = cursor.lastrowid
+
+        # Add main item into the kit
+        cursor.execute(
+            'INSERT INTO catalog_relation'
+            ' (catalog_id1, catalog_id2, type)'
+            ' VALUES (%s, %s, %s), (%s, %s, %s)',
+            (kit_id, id, Relation.REL_INCLUDES,
+             kit_id, id, Relation.REL_MAIN_ITEM,)
+        )
+
+        for item in request.json['items']:
+            print(item)
+            title_item = item['title']
+            type_id = int(item['type'])
+            ct = get_catalog_type(type_id)
+            if not ct['is_physical']:
+                abort(403)
+            cursor.execute(
+                'INSERT INTO catalog (type_id, title, description, company_id)'
+                ' VALUES (%s, %s, %s, %s)',
+                (type_id, title_item, '', catalog['company_id'],)
+            )
+            item_id = cursor.lastrowid
+            cursor.execute(
+                'INSERT INTO catalog_relation'
+                ' (catalog_id1, catalog_id2, type)'
+                ' VALUES (%s, %s, %s)',
+                (kit_id, item_id, Relation.REL_INCLUDES,)
+            )
+        db_commit()
+    except:
+        db_rollback()
+        abort(403)
+
+    return jsonify(result='success')
+
 ###############################################################################
 # Routes
 ###############################################################################
@@ -814,68 +874,6 @@ def _relation_add():
     )
     db_commit()
     return ('', 204)
-
-@bp.route('/<int:id>/_create_kit', methods=('POST',))
-@login_required
-@admin_required
-def _create_kit(id):
-    catalog = get_catalog(id)
-    if not catalog['is_physical']:
-        abort(403)
-
-    kit_type = get_catalog_type_id('Kit')
-
-    title = request.form['title']
-    title_eng = request.form['title_eng']
-    if not title:
-        abort(403)
-
-    try:
-        cursor = get_db_cursor()
-        cursor.execute(
-            'INSERT INTO catalog (type_id, title, title_eng, description, company_id)'
-            ' VALUES (%s, %s, %s, %s, %s)',
-            (kit_type, title, title_eng, '', catalog['company_id'],)
-        )
-        kit_id = cursor.lastrowid
-
-        # Add main item into the kit
-        cursor.execute(
-            'INSERT INTO catalog_relation'
-            ' (catalog_id1, catalog_id2, type)'
-            ' VALUES (%s, %s, %s), (%s, %s, %s)',
-            (kit_id, id, Relation.REL_INCLUDES,
-             kit_id, id, Relation.REL_MAIN_ITEM,)
-        )
-
-        re_type = re.compile('type(\d+)')
-        for k, v in request.form.items():
-            m = re.search(re_type, k)
-            if m:
-                num = m.group(1)
-                title_item = request.form['title%s' % num]
-                type_id = int(v)
-                ct = get_catalog_type(type_id)
-                if not ct['is_physical']:
-                    abort(403)
-                cursor.execute(
-                    'INSERT INTO catalog (type_id, title, description, company_id)'
-                    ' VALUES (%s, %s, %s, %s)',
-                    (type_id, title_item, '', catalog['company_id'],)
-                )
-                item_id = cursor.lastrowid
-                cursor.execute(
-                    'INSERT INTO catalog_relation'
-                    ' (catalog_id1, catalog_id2, type)'
-                    ' VALUES (%s, %s, %s)',
-                    (kit_id, item_id, Relation.REL_INCLUDES,)
-                )
-        db_commit()
-    except:
-        db_rollback()
-        raise
-
-    return redirect(url_for('catalog.view', id=kit_id))
 
 @bp.route('/<int:id>/_delete')
 @login_required
