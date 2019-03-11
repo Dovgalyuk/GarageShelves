@@ -112,7 +112,15 @@ def get_catalog_type_id(name):
 
 @bp.route('/_types')
 def _types():
-    return jsonify(get_catalog_types())
+    cursor = get_db_cursor()
+    query = 'SELECT * FROM catalog_type WHERE 1=1'
+    params = ()
+    type_name = request.args.get('type_name')
+    if type_name:
+        query += ' AND title=%s'
+        params = (*params, type_name,)
+    cursor.execute(query, params)
+    return jsonify(cursor.fetchall())
 
 @bp.route('/<int:id>/_get_logo')
 def _get_logo(id):
@@ -339,7 +347,6 @@ def _update():
 @admin_required
 def _create():
     error = None;
-    parent = request.json['parent']
     type_id = request.json['type_id']
     title = request.json['title']
     title_eng = request.json['title_eng']
@@ -376,8 +383,10 @@ def _create():
             (type_id, title, title_eng, description, year, company_id)
         )
         catalog_id = cursor.lastrowid
-        if parent and int(parent) > 0:
-            get_catalog(parent) # validate the parent
+        if 'parent' in request.json:
+            parent = int(request.json['parent'])
+            # validate the parent
+            get_catalog(parent)
             cursor.execute(
                 'INSERT INTO catalog_relation'
                 ' (catalog_id1, catalog_id2, type)'

@@ -2,15 +2,14 @@ import React, { Component, Fragment } from 'react';
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
-import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
-import Form from 'react-bootstrap/Form'
 import fetchBackend, { postBackend, BackendURL } from './Backend'
 import ImageListSection from './Image'
 import { ItemListSection } from './Item'
 import EditText from './EditText'
 import EditDropDown from './EditDropDown'
 import FormCatalogCreate from './Forms/CatalogCreate'
+import FormOwn from './Forms/Own'
 
 class Logo extends Component {
     render() {
@@ -69,7 +68,8 @@ export class CatalogListSection extends Component {
         super(props);
         this.state = {
             loading: true,
-            rows: []
+            rows: [],
+            showFormCreate:false,
         };
     }
 
@@ -94,6 +94,14 @@ export class CatalogListSection extends Component {
         this.handleUpdate();
     }
 
+    handleCreateButton = event => {
+        this.setState({showFormCreate:true});
+    }
+
+    handleFormCreateClose = event => {
+        this.setState({showFormCreate:false});
+    }
+
     render() {
         if (this.state.loading) {
             return (
@@ -105,135 +113,35 @@ export class CatalogListSection extends Component {
             );
         }
         return <Fragment>
-                 {this.state.rows.length > 0 &&
-                   <div className="row"><div className="col-12">
-                     <h3 className="pt-4">
-                       {this.props.title}
-                     </h3>
-                   </div></div>
+                 { (this.state.rows.length > 0 || this.props.addButton) &&
+                   <Row>
+                     <Col>
+                       <h3 className="pt-4">
+                         {this.props.title} &nbsp;
+                       { (this.props.addButton
+                            && this.props.auth
+                            && this.props.auth.isAuthenticated
+                            && this.props.auth.isAdmin)
+                         && <Button type="button" className="btn btn-primary"
+                                    onClick={this.handleCreateButton}>
+                             Add new
+                           </Button>
+                       }
+                       </h3>
+                     </Col>
+                   </Row>
                  }
                  {this.state.rows.map((row) =>
                     <CatalogListRow key={row[0].id/*TODO*/} row={row} notype={this.props.filter.notype}/>)}
+                 { (this.props.addButton && this.props.auth
+                    && this.props.auth.isAuthenticated
+                    && this.props.auth.isAdmin)
+                    && <FormCatalogCreate open={this.state.showFormCreate}
+                           onClose={this.handleFormCreateClose}
+                           handleUpdateItems={this.handleUpdate}
+                           {...this.props.filter} />
+                 }
                </Fragment>;
-    }
-}
-
-export class FormOwn extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            loading:true,
-            items:[],
-            form:this.defaultForm()
-        };
-    }
-
-    defaultForm = () => {
-        var form = new Map();
-        form[this.props.id] = {use:true, internal: ""};
-        return form;
-    }
-
-    handleShow = event => {
-        var form = this.defaultForm();
-        fetchBackend('catalog/_filtered_list', {parent:this.props.id})
-            .then(response => response.json())
-            .then(data => {
-                for (var i = 0 ; i < data.length ; ++i) {
-                    form[data[i].id] = {use:false, internal: ""};
-                }
-                this.setState({loading:false, items:data});
-            })
-            .catch(e => this.setState({loading:false, items:[]}))
-            .finally(this.setState({form:form}));
-    }
-
-    handleConfirm = event => {
-        postBackend('catalog/_own', {id:this.props.id}, this.state.form)
-            .catch(e => {})
-            .finally((e) => {
-                this.handleHide(e);
-                this.props.handleUpdateItems();
-            });
-    }
-
-    handleHide = event => {
-        this.setState({loading:true, items:[], form:this.defaultForm()});
-        this.props.onClose();
-    }
-
-    handleCheckBox = (event, id) => {
-        var form = this.state.form;
-        form[id].use = event.target.checked;
-        this.setState({form:form});
-    }
-
-    handleInput = (event, id) => {
-        var form = this.state.form;
-        form[id].internal = event.target.value;
-        this.setState({form:form});
-    }
-
-    render() {
-        return (
-              <Modal show={this.props.open}
-                     size="lg"
-                     onShow={this.handleShow}
-                     onHide={this.handleHide}>
-                <Modal.Header closeButton>
-                  <h4>Confirm ownership of the catalog item</h4>
-                </Modal.Header>
-                <Modal.Body>
-                  { this.state.loading && <div>Loading...</div> }
-                  <Form>
-                    <Form.Group as={Row}>
-                      <Form.Label column xs={2}>Internal ID:</Form.Label>
-                      <Col xs={10}>
-                        <Form.Control type="text" id={this.props.id}
-                          value={this.state.form[this.props.id].internal}
-                          onChange={e => this.handleInput(e, this.props.id)}/>
-                      </Col>
-                    </Form.Group>
-                    { this.state.items.length > 0 &&
-                      <Form.Group>
-                        <h4>Also add the next items from the kit</h4>
-                      </Form.Group>
-                    }
-                    { this.state.items.map((c) =>
-                      <Fragment key={c.id}>
-                        { c.is_physical &&
-                          <Form.Group as={Row}>
-                            <Col xs={3}>
-                              <Form.Control type="text"
-                                id={"I" + c.id}
-                                value={this.state.form[c.id].internal}
-                                onChange={e => this.handleInput(e, c.id)}/>
-                            </Col>
-                            <Col xs={9}>
-                              <Form.Check custom type="checkbox"
-                                id={"C" + c.id}
-                                checked={this.state.form[c.id].use}
-                                label={c.type_title + " : "
-                                  + (c.title_eng ? c.title_eng : c.title)}
-                                onChange={e => this.handleCheckBox(e, c.id)} />
-                            </Col>
-                          </Form.Group>
-                        }
-                      </Fragment>)
-                    }
-                  </Form>
-                </Modal.Body>
-                <Modal.Footer>
-                  <Button variant="secondary" onClick={this.handleHide}>
-                    Close
-                  </Button>
-                  <Button variant="primary" onClick={this.handleConfirm}
-                    disabled={this.state.loading}>
-                    Confirm
-                  </Button>
-                </Modal.Footer>
-              </Modal>
-        );
     }
 }
 
@@ -248,7 +156,8 @@ export class CatalogView extends Component {
             loading:true,
             catalog:{},
             showFormOwn:false,
-            showFormCreate:false,
+            showFormCreateSubitem:false,
+            showFormCreateKit:false,
         };
     }
 
@@ -261,25 +170,29 @@ export class CatalogView extends Component {
             .catch(e => this.setState({loading:false}));
     }
 
-    handleOwnButton = event => {
-        this.setState({showFormOwn:true});
-    }
-
-    handleCreateButton = event => {
-        this.setState({showFormCreate:true});
-    }
-
     handleEditField = (field, value) => {
         postBackend('catalog/_update', {id:this.props.match.params.id},
             {field:field, value:value});
+    }
+
+    handleOwnButton = event => {
+        this.setState({showFormOwn:true});
     }
 
     handleFormOwnClose = event => {
         this.setState({showFormOwn:false});
     }
 
-    handleFormCreateClose = event => {
-        this.setState({showFormCreate:false});
+    handleCreateKitButton = event => {
+        this.setState({showFormKit:true});
+    }
+
+    handleCreateSubitemButton = event => {
+        this.setState({showFormCreateSubitem:true});
+    }
+
+    handleFormCreateSubitemClose = event => {
+        this.setState({showFormCreateSubitem:false});
     }
 
     handleUpdateItems = () => {
@@ -337,7 +250,7 @@ export class CatalogView extends Component {
                     <Col xs={1} className="align-self-center">
                       <Logo img_id={catalog.logo_id} />
                     </Col>
-                    <Col xs={7} className="align-self-center">
+                    <Col className="align-self-center">
                       <h1>
                         <EditText prefix={catalog.type_title + " : "}
                              value={ catalog.title_eng ? catalog.title_eng : catalog.title }
@@ -367,22 +280,30 @@ export class CatalogView extends Component {
                           />
                       </div>
                     </Col>
-                    <Col xs={2} className="align-self-center">
+                    <Col className="align-self-center">
                     { (this.props.auth.isAuthenticated && this.props.auth.isAdmin)
                       ? <button type="button" className="btn btn-primary"
-                                onClick={this.handleCreateButton}>
+                                onClick={this.handleCreateSubitemButton}>
                           Create subitem
                         </button>
-                      : <div></div>
+                      : <div/>
                     }
-                    </Col>
-                    <Col xs={2} className="align-self-center">
+                    &nbsp;
+                    { (this.props.auth.isAuthenticated && this.props.auth.isAdmin
+                        && catalog.is_physical)
+                      ? <button type="button" className="btn btn-primary"
+                                onClick={this.handleCreateKitButton}>
+                          Create kit
+                        </button>
+                      : <div/>
+                    }
+                    &nbsp;
                     { (this.props.auth.isAuthenticated && catalog.is_physical)
                       ? <button type="button" className="btn btn-primary"
                                 onClick={this.handleOwnButton}>
                           I own this
                         </button>
-                      : <div></div>
+                      : <div/>
                     }
                     </Col>
                   </Row>
@@ -430,9 +351,9 @@ export class CatalogView extends Component {
                          handleUpdateItems={this.handleUpdateItems}
                          id={catalog.id} />
               }
-              { this.props.auth.isAuthenticated && this.props.auth.isAdmin &&
-                <FormCatalogCreate open={this.state.showFormCreate}
-                         onClose={this.handleFormCreateClose}
+              { (this.props.auth.isAuthenticated && this.props.auth.isAdmin) &&
+                <FormCatalogCreate open={this.state.showFormCreateSubitem}
+                         onClose={this.handleFormCreateSubitemClose}
                          handleUpdateItems={this.handleUpdateCatalogItems}
                          parent={catalog.id} />
               }
@@ -451,18 +372,24 @@ export class Catalog extends Component {
           </div>
         </div>
         <CatalogListSection filter={ {type_name:"Computer family", noparent:"true",
-              notype:"true", is_group:"true"} } title="Computer families"/>
+              notype:"true", is_group:"true"} } title="Computer families"
+              auth={this.props.auth} addButton/>
         <CatalogListSection filter={ {type_name:"Console family", noparent:"true",
-              notype:"true", is_group:"true"} } title="Console families"/>
+              notype:"true", is_group:"true"} } title="Console families"
+              auth={this.props.auth} addButton/>
         <CatalogListSection filter={ {type_name:"Calculator family", noparent:"true",
-              notype:"true", is_group:"true"} } title="Calculator families"/>
+              notype:"true", is_group:"true"} } title="Calculator families"
+              auth={this.props.auth} addButton/>
 
         <CatalogListSection filter={ {type_name:"Computer",
-              notype:"true"} } title="Computers"/>
+              notype:"true"} } title="Computers"
+              auth={this.props.auth} addButton/>
         <CatalogListSection filter={ {type_name:"Console",
-              notype:"true"} } title="Consoles"/>
+              notype:"true"} } title="Consoles"
+              auth={this.props.auth} addButton/>
         <CatalogListSection filter={ {type_name:"Calculator",
-              notype:"true"} } title="Calculators"/>
+              notype:"true"} } title="Calculators"
+              auth={this.props.auth} addButton/>
       </>
     );
   }

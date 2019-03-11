@@ -27,7 +27,11 @@ class FormCatalogCreate extends Component {
     handleShow = event => {
         this.setState({form:this.defaultForm()}, this.validate);
         if (this.state.loadingTypes) {
-            fetchBackend('catalog/_types', {})
+            var filter = {};
+            if (this.props.type_name) {
+                filter.type_name = this.props.type_name;
+            }
+            fetchBackend('catalog/_types', filter)
                 .then(response => response.json())
                 .then(data => {
                     this.setState({loadingTypes:false, types:data,
