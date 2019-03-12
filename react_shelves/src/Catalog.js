@@ -3,6 +3,7 @@ import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
+import ListGroup from 'react-bootstrap/ListGroup'
 import fetchBackend, { postBackend, BackendURL } from './Backend'
 import ImageListSection from './Image'
 import { ItemListSection } from './Item'
@@ -11,6 +12,7 @@ import EditDropDown from './EditDropDown'
 import FormCatalogCreate from './Forms/CatalogCreate'
 import FormOwn from './Forms/Own'
 import FormKitCreate from './Forms/KitCreate'
+import FormFamilySelect from './Forms/FamilySelect'
 
 class Logo extends Component {
     render() {
@@ -75,20 +77,16 @@ export class CatalogListSection extends Component {
     }
 
     handleUpdate = () => {
-        this.setState({loading:true},
-            () => {
-                fetchBackend('catalog/_filtered_list', this.props.filter)
-                    .then(response => response.json())
-                    .then(data => {
-                        var rows = [];
-                        while (data.length) {
-                            rows.push(data.splice(0, 3));
-                        }
-                        this.setState({loading:false, rows:rows});
-                    })
-                    .catch(e => this.setState({loading:false}));
-            }
-        );
+        fetchBackend('catalog/_filtered_list', this.props.filter)
+            .then(response => response.json())
+            .then(data => {
+                var rows = [];
+                while (data.length) {
+                    rows.push(data.splice(0, 3));
+                }
+                this.setState({loading:false, rows:rows});
+            })
+            .catch(e => this.setState({loading:false}));
     }
 
     componentDidMount() {
@@ -143,6 +141,111 @@ export class CatalogListSection extends Component {
                            {...this.props.filter} />
                  }
                </Fragment>;
+    }
+}
+
+class CatalogFamilies extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            loading:true,
+            families:[],
+            showForm:false,
+        };
+    }
+
+    componentDidMount() {
+        this.handleUpdate();
+    }
+
+    handleUpdate = () => {
+        fetchBackend('catalog/_filtered_list',
+            {includes:this.props.id, is_group:true} )
+            .then(response => response.json())
+            .then(data => {
+                this.setState({loading:false, families:data});
+            })
+            .catch(e => this.setState({loading:false}));
+    }
+
+    handleDelete = (family) => {
+        postBackend('catalog/_relation_remove', {},
+            {id:this.props.id, family:family})
+            .catch(e => {})
+            .finally((e) => {
+                this.handleUpdate();
+            });
+    }
+
+    handleAdd = () => {
+        this.setState({showForm:true});
+    }
+
+    handleFormClose = () => {
+        this.setState({showForm:false});
+    }
+
+    handleFormSelect = (family) => {
+        postBackend('catalog/_relation_add', {},
+            {id2:this.props.id, id1:family})
+            .catch(e => {})
+            .finally((e) => {
+                this.handleUpdate();
+            });
+    }
+
+    render() {
+        if (this.state.loading) {
+            return <div/>;
+        }
+        return (
+            <Fragment>
+                <Row>
+                  <Col xs={1}>
+                  </Col>
+                  <Col>
+                    <ListGroup>
+                      { this.state.families.length > 0
+                        && <ListGroup.Item className="border-0 pt-0 pb-0" key={-1}>
+                            In families
+                          </ListGroup.Item>
+                      }
+                      { this.state.families.map((f) =>
+                          <ListGroup.Item key={f.id}
+                                className="border-0 pt-0 pb-0">
+                            {this.props.auth.isAdmin &&
+                              <Button variant="outline-danger"
+                                      onClick={() => this.handleDelete(f.id)}>
+                                <i className="fas fa-trash-alt"/>
+                              </Button>
+                            }
+                            &nbsp;
+                            <a href={"/catalog/view/" + f.id}>
+                              {f.title_eng || f.title}
+                            </a>
+                          </ListGroup.Item>
+                        )
+                      }
+                      { this.props.auth.isAdmin
+                        && <ListGroup.Item className="border-0 pt-0 pb-0" key={-2}>
+                            <Button variant="outline-primary"
+                                    onClick={this.handleAdd}>
+                              <i className="fas fa-plus"/>
+                            </Button>
+                            &nbsp;
+                            Add to family
+                          </ListGroup.Item>
+                      }
+                    </ListGroup>
+                  </Col>
+                </Row>
+                { (this.props.auth.isAuthenticated && this.props.auth.isAdmin) &&
+                    <FormFamilySelect open={this.state.showForm}
+                             onClose={this.handleFormClose}
+                             onSelect={this.handleFormSelect} />
+                }
+            </Fragment>
+        );
     }
 }
 
@@ -293,32 +396,34 @@ export class CatalogView extends Component {
                     </Col>
                     <Col className="align-self-center">
                     { (this.props.auth.isAuthenticated && this.props.auth.isAdmin)
-                      ? <button type="button" className="btn btn-primary"
+                      ? <Button variant="primary"
                                 onClick={this.handleCreateSubitemButton}>
                           Create subitem
-                        </button>
+                        </Button>
                       : <span/>
                     }
                     &nbsp;
                     { (this.props.auth.isAuthenticated && this.props.auth.isAdmin
                         && catalog.is_physical)
-                      ? <button type="button" className="btn btn-primary"
+                      ? <Button variant="primary"
                                 onClick={this.handleCreateKitButton}>
                           Create kit
-                        </button>
+                        </Button>
                       : <span/>
                     }
                     &nbsp;
                     { (this.props.auth.isAuthenticated && catalog.is_physical)
-                      ? <button type="button" className="btn btn-primary"
+                      ? <Button variant="primary"
                                 onClick={this.handleOwnButton}>
                           I own this
-                        </button>
+                        </Button>
                       : <span/>
                     }
                     </Col>
                   </Row>
                 </div>
+
+                <CatalogFamilies id={catalog.id} auth={this.props.auth}/>
 
                 <div className="row">
                   <div className="col-12">

@@ -460,6 +460,39 @@ def _create_kit():
 
     return jsonify(result='success')
 
+@bp.route('/_relation_remove', methods=('POST',))
+@admin_required
+def _relation_remove():
+    id = int(request.json['id'])
+    family = int(request.json['family'])
+    cursor = get_db_cursor()
+    cursor.execute(
+        'DELETE FROM catalog_relation'
+        ' WHERE catalog_id1=%s AND catalog_id2=%s AND type=%s',
+        (family, id, Relation.REL_INCLUDES,)
+    )
+    db_commit()
+    return jsonify(result='success')
+
+@bp.route('/_relation_add', methods=('POST',))
+@admin_required
+def _relation_add():
+    id1 = int(request.json['id1'])
+    id2 = int(request.json['id2'])
+
+    # assert the ids
+    get_catalog(id1)
+    get_catalog(id2)
+
+    cursor = get_db_cursor()
+    cursor.execute(
+        'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
+        ' VALUES (%s, %s, %s)',
+        (id1, id2, Relation.REL_INCLUDES,)
+    )
+    db_commit()
+    return jsonify(result='success')
+
 ###############################################################################
 # Routes
 ###############################################################################
@@ -851,26 +884,6 @@ def _family_remove():
         'DELETE FROM catalog_relation'
         ' WHERE catalog_id1=%s AND catalog_id2=%s AND type=%s',
         (family, id, Relation.REL_INCLUDES,)
-    )
-    db_commit()
-    return ('', 204)
-
-@bp.route('/_relation_add', methods=('POST',))
-@admin_required
-def _relation_add():
-    id1 = int(request.form['id1'])
-    id2 = int(request.form['id2'])
-    rel = Relation.REL_INCLUDES
-
-    # assert the ids
-    get_catalog(id1)
-    get_catalog(id2)
-
-    cursor = get_db_cursor()
-    cursor.execute(
-        'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
-        ' VALUES (%s, %s, %s)',
-        (id1, id2, Relation.REL_INCLUDES,)
     )
     db_commit()
     return ('', 204)
