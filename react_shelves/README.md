@@ -1,5 +1,35 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Installation
+
+	curl -sL https://deb.nodesource.com/setup_8.x | sudo bash -
+    sudo apt install nodejs
+    ln -s /usr/bin/nodejs /usr/bin/node
+    cd GarageShelves/react_shelves
+    npm install
+
+## Apache2 config for frontend
+
+	<VirtualHost *:8080>
+		#ServerName www.example.com
+
+		ServerAdmin webmaster@localhost
+		DocumentRoot /var/www/frontend
+
+		ErrorLog ${APACHE_LOG_DIR}/error.log
+		CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+		<Directory "/var/www/frontend">
+		    RewriteEngine on
+		    # Don't rewrite files or directories
+		    RewriteCond %{REQUEST_FILENAME} -f [OR]
+		    RewriteCond %{REQUEST_FILENAME} -d
+		    RewriteRule ^ - [L]
+		    # Rewrite everything else to index.html to allow html5 state links
+		    RewriteRule ^ index.html [L]
+		</Directory>
+	</VirtualHost>
+
 ## Available Scripts
 
 In the project directory, you can run:
