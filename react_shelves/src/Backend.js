@@ -1,6 +1,6 @@
 export function BackendURL(page, params)
 {
-    var url = "http://127.0.0.1:5000/" + page;
+    var url = process.env.REACT_APP_BACKEND_URL + page;
     var first = true;
     for (var p in params) {
         url += (first ? "?" : "&") + p + "=" + params[p];
