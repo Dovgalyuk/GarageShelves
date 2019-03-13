@@ -65,6 +65,28 @@ def _update():
 
     return jsonify(result='success')
 
+@bp.route('/_create', methods=('POST',))
+@login_required
+@admin_required
+def _create():
+    error = None
+    title = request.json['title']
+
+    if not title or title == '':
+        error = 'Title is required.'
+
+    if error is not None:
+        abort(403)
+
+    cursor = get_db_cursor()
+    cursor.execute(
+        'INSERT INTO company (title)'
+        ' VALUES (%s)',
+        (title,)
+    )
+    db_commit()
+    return jsonify(result='success')
+
 ###############################################################################
 # Routes
 ###############################################################################
@@ -74,32 +96,6 @@ def _update():
 def index():
     return render_template('company/index.html',
         companies=get_companies())
-
-@bp.route('/create', methods=('GET', 'POST'))
-@login_required
-@admin_required
-def create():
-    if request.method == 'POST':
-        error = None
-        title = request.form['title']
-
-        if not title:
-            error = 'Title is required.'
-
-        if error is not None:
-            flash(error)
-        else:
-            cursor = get_db_cursor()
-            cursor.execute(
-                'INSERT INTO company (title)'
-                ' VALUES (%s)',
-                (title,)
-            )
-            company_id = cursor.lastrowid
-            db_commit()
-            return redirect(url_for('company.view', id=company_id))
-
-    return render_template('company/create.html')
 
 @bp.route('/<int:id>')
 def view(id):

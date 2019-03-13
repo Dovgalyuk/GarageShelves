@@ -4,7 +4,9 @@ import { CatalogListSection } from './Catalog'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
+import Button from 'react-bootstrap/Button'
 import EditText from './EditText'
+import FormCompanyCreate from './Forms/CompanyCreate'
 
 function CompanyLogo(props) {
     return (
@@ -103,11 +105,12 @@ export class Companies extends Component {
         super(props);
         this.state = {
             loading:true,
-            rows:[]
+            rows:[],
+            showForm:false
         };
     }
 
-    componentDidMount() {
+    handleUpdateItems = () => {
         fetchBackend('company/_filtered_list', this.props.filter)
             .then(response => response.json())
             .then(data => {
@@ -120,6 +123,18 @@ export class Companies extends Component {
             .catch(e => this.setState({loading:false}));
     }
 
+    componentDidMount() {
+        this.handleUpdateItems();
+    }
+
+    handleCreateButton = event => {
+        this.setState({showForm:true});
+    }
+
+    handleFormClose = event => {
+        this.setState({showForm:false});
+    }
+
     render() {
         if (this.state.loading) {
             return (
@@ -130,12 +145,24 @@ export class Companies extends Component {
         return (
             <Container>
               <Row>
-                <div className="page-header">
+                <Col xs={10}>
                   <h1>Companies</h1>
-                </div>
+                </Col>
+                <Col xs={2}>
+                    { (this.props.auth.isAuthenticated && this.props.auth.isAdmin)
+                      ? <Button variant="primary"
+                                onClick={this.handleCreateButton}>
+                          Add company
+                        </Button>
+                      : <span/>
+                    }
+                </Col>
               </Row>
              {this.state.rows.map((row) =>
                 <CompaniesRow key={row[0].id/*TODO*/} row={row} />)}
+              <FormCompanyCreate open={this.state.showForm}
+                    onClose={this.handleFormClose}
+                    handleUpdateItems={this.handleUpdateItems}/>
             </Container>
         );
     }
