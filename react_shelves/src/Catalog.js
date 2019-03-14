@@ -4,6 +4,8 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 import ListGroup from 'react-bootstrap/ListGroup'
+import Tabs from 'react-bootstrap/Tabs'
+import Tab from 'react-bootstrap/Tab'
 import fetchBackend, { postBackend, BackendURL } from './Backend'
 import ImageListSection from './Image'
 import { ItemListSection } from './Item'
@@ -200,45 +202,39 @@ class CatalogFamilies extends Component {
         }
         return (
             <Fragment>
-                <Row>
-                  <Col xs={1}>
-                  </Col>
-                  <Col>
-                    <ListGroup>
-                      { this.state.families.length > 0
-                        && <ListGroup.Item className="border-0 pt-0 pb-0" key={-1}>
-                            In families
-                          </ListGroup.Item>
-                      }
-                      { this.state.families.map((f) =>
-                          <ListGroup.Item key={f.id}
-                                className="border-0 pt-0 pb-0">
-                            {this.props.auth.isAdmin &&
-                              <Button variant="outline-danger"
-                                      onClick={() => this.handleDelete(f.id)}>
-                                <i className="fas fa-trash-alt"/>
-                              </Button>
-                            }
-                            &nbsp;
-                            <a href={"/catalog/view/" + f.id}>
-                              {f.title_eng || f.title}
-                            </a>
-                          </ListGroup.Item>
-                        )
-                      }
-                      { this.props.auth.isAdmin
-                        && <ListGroup.Item className="border-0 pt-0 pb-0" key={-2}>
-                            <Button variant="outline-primary"
-                                    onClick={this.handleAdd}>
-                              <i className="fas fa-plus"/>
-                            </Button>
-                            &nbsp;
-                            Add to family
-                          </ListGroup.Item>
-                      }
-                    </ListGroup>
-                  </Col>
-                </Row>
+                <ListGroup>
+                  { this.state.families.length > 0
+                    && <ListGroup.Item className="border-0 pt-0 pb-0" key={-1}>
+                        In families
+                      </ListGroup.Item>
+                  }
+                  { this.state.families.map((f) =>
+                      <ListGroup.Item key={f.id}
+                            className="border-0 pt-0 pb-0">
+                        {this.props.auth.isAdmin &&
+                          <Button variant="outline-danger"
+                                  onClick={() => this.handleDelete(f.id)}>
+                            <i className="fas fa-trash-alt"/>
+                          </Button>
+                        }
+                        &nbsp;
+                        <a href={"/catalog/view/" + f.id}>
+                          {f.title_eng || f.title}
+                        </a>
+                      </ListGroup.Item>
+                    )
+                  }
+                  { this.props.auth.isAdmin
+                    && <ListGroup.Item className="border-0 pt-0 pb-0" key={-2}>
+                        <Button variant="outline-primary"
+                                onClick={this.handleAdd}>
+                          <i className="fas fa-plus"/>
+                        </Button>
+                        &nbsp;
+                        Add to family
+                      </ListGroup.Item>
+                  }
+                </ListGroup>
                 { (this.props.auth.isAuthenticated && this.props.auth.isAdmin) &&
                     <FormFamilySelect open={this.state.showForm}
                              onClose={this.handleFormClose}
@@ -361,10 +357,10 @@ export class CatalogView extends Component {
               <Container>
                 <div className="page-header">
                   <Row>
-                    <Col xs={1} className="align-self-center">
+                    <Col xs={1} className="align-self-top">
                       <Logo img_id={catalog.logo_id} />
                     </Col>
-                    <Col className="align-self-center">
+                    <Col xs={10} className="align-self-top">
                       <h1>
                         <EditText prefix={catalog.type_title + " : "}
                              value={ catalog.title_eng ? catalog.title_eng : catalog.title }
@@ -393,8 +389,10 @@ export class CatalogView extends Component {
                                         onRender={this.handleCompanyRender}
                           />
                       </div>
+
+                      <CatalogFamilies id={catalog.id} auth={this.props.auth}/>
                     </Col>
-                    <Col className="align-self-center">
+                    <Col xs={1} className="align-self-top">
                     { (this.props.auth.isAuthenticated && this.props.auth.isAdmin)
                       ? <Button variant="primary"
                                 onClick={this.handleCreateSubitemButton}>
@@ -422,8 +420,6 @@ export class CatalogView extends Component {
                     </Col>
                   </Row>
                 </div>
-
-                <CatalogFamilies id={catalog.id} auth={this.props.auth}/>
 
                 <div className="row">
                   <div className="col-12">
@@ -495,25 +491,32 @@ export class Catalog extends Component {
             <h1>Catalog</h1>
           </div>
         </div>
-        <CatalogListSection filter={ {type_name:"Computer family", noparent:"true",
-              notype:"true", is_group:"true"} } title="Computer families"
-              auth={this.props.auth} addButton/>
-        <CatalogListSection filter={ {type_name:"Console family", noparent:"true",
-              notype:"true", is_group:"true"} } title="Console families"
-              auth={this.props.auth} addButton/>
-        <CatalogListSection filter={ {type_name:"Calculator family", noparent:"true",
-              notype:"true", is_group:"true"} } title="Calculator families"
-              auth={this.props.auth} addButton/>
-
-        <CatalogListSection filter={ {type_name:"Computer",
-              notype:"true"} } title="Computers"
-              auth={this.props.auth} addButton/>
-        <CatalogListSection filter={ {type_name:"Console",
-              notype:"true"} } title="Consoles"
-              auth={this.props.auth} addButton/>
-        <CatalogListSection filter={ {type_name:"Calculator",
-              notype:"true"} } title="Calculators"
-              auth={this.props.auth} addButton/>
+        <Tabs defaultActiveKey="computers" transition={false}>
+          <Tab eventKey="computers" title="Computers">
+            <CatalogListSection filter={ {type_name:"Computer family", noparent:"true",
+                  notype:"true", is_group:"true"} } title="Computer families"
+                  auth={this.props.auth} addButton/>
+            <CatalogListSection filter={ {type_name:"Computer",
+                  notype:"true"} } title="Computers"
+                  auth={this.props.auth} addButton/>
+          </Tab>
+          <Tab eventKey="consoles" title="Consoles">
+            <CatalogListSection filter={ {type_name:"Console family", noparent:"true",
+                  notype:"true", is_group:"true"} } title="Console families"
+                  auth={this.props.auth} addButton/>
+            <CatalogListSection filter={ {type_name:"Console",
+                  notype:"true"} } title="Consoles"
+                  auth={this.props.auth} addButton/>
+          </Tab>
+          <Tab eventKey="calculators" title="Calculators">
+            <CatalogListSection filter={ {type_name:"Calculator family", noparent:"true",
+                  notype:"true", is_group:"true"} } title="Calculator families"
+                  auth={this.props.auth} addButton/>
+            <CatalogListSection filter={ {type_name:"Calculator",
+                  notype:"true"} } title="Calculators"
+                  auth={this.props.auth} addButton/>
+          </Tab>
+        </Tabs>
       </>
     );
   }

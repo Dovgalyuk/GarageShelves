@@ -4,7 +4,7 @@ import Col from 'react-bootstrap/Col'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import fetchBackend, { postBackend } from '../Backend'
+import { postBackend } from '../Backend'
 
 class FormCompanyCreate extends Component {
     constructor(props) {
