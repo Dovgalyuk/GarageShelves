@@ -6,7 +6,7 @@ import Button from 'react-bootstrap/Button'
 import ListGroup from 'react-bootstrap/ListGroup'
 import Tabs from 'react-bootstrap/Tabs'
 import Tab from 'react-bootstrap/Tab'
-import fetchBackend, { postBackend, BackendURL } from './Backend'
+import fetchBackend, { postBackend, BackendURL, uploadBackend } from './Backend'
 import ImageListSection from './Image'
 import { ItemListSection } from './Item'
 import EditText from './EditText'
@@ -17,14 +17,63 @@ import FormKitCreate from './Forms/KitCreate'
 import FormFamilySelect from './Forms/FamilySelect'
 
 class Logo extends Component {
-    render() {
-        if (this.props.img_id) {
-            return <img src={ BackendURL('uploads/view', { id:this.props.img_id } ) }
-                        alt="logo"
-                   />;
-        } else {
-            return <span className="text-muted"><i className="fas fa-laptop fa-4x"></i></span>;
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            img_id:this.props.img_id
         }
+    }
+
+    handleDoubleClick = () => {
+        if (this.props.main && this.props.auth.isAdmin) {
+            this.inputRef.click();
+        }
+    }
+
+    handleUpload = () => {
+        if (window.confirm('Do you want to upload new logo?')) {
+            uploadBackend('catalog/_set_logo', {id:this.props.id},
+                this.inputRef.files[0])
+                .then(response => response.json())
+                .then(response => {
+                    this.setState({img_id:null}, this.handleUpdate);
+                })
+                .catch(e => {});
+        }
+    }
+
+    handleUpdate = () => {
+        if (!this.state.img_id && this.props.id) {
+            fetchBackend('catalog/_get', {id:this.props.id})
+                .then(response => response.json())
+                .then(data => {
+                    this.setState({img_id:data.logo_id});
+                })
+                .catch(e => {});
+        }
+    }
+
+    componentDidMount() {
+        this.handleUpdate();
+    }
+
+    render() {
+        return (
+          <div onDoubleClick={this.handleDoubleClick} >
+            { this.state.img_id
+                ? <img src={ BackendURL('uploads/view', { id:this.state.img_id } ) }
+                        alt="logo"
+                   />
+                : <span className="text-muted"><i className="fas fa-laptop fa-4x"></i></span>
+            }
+            {(this.props.main && this.props.auth.isAdmin)
+                && <input type="file" style={{display: "none"}}
+                          ref={(ref) => {this.inputRef = ref;}}
+                          onChange={this.handleUpload} />
+            }
+          </div>
+        );
     }
 }
 
@@ -358,7 +407,8 @@ export class CatalogView extends Component {
                 <div className="page-header">
                   <Row>
                     <Col xs={1} className="align-self-top">
-                      <Logo img_id={catalog.logo_id} />
+                      <Logo id={catalog.id}
+                            main auth={this.props.auth}/>
                     </Col>
                     <Col xs={10} className="align-self-top">
                       <h1>

@@ -493,6 +493,38 @@ def _relation_add():
     db_commit()
     return jsonify(result='success')
 
+@bp.route('/_set_logo', methods=('POST',))
+@login_required
+@admin_required
+def _set_logo():
+    try:
+        id = int(request.args['id'])
+        catalog = get_catalog(id)
+
+        file = request.files['file']
+        file_id = upload_image(file, 64, 64)
+        if file_id is None:
+            # Only 64x64 images can be used as a logo
+            abort(400)
+
+        cursor = get_db_cursor()
+        cursor.execute(
+            'DELETE FROM catalog_attribute'
+            ' WHERE type=%s AND catalog_id=%s',
+            (Attribute.ATTR_LOGO, id,)
+        )
+        cursor.execute(
+            'INSERT INTO catalog_attribute (type, catalog_id, value_id)'
+            ' VALUES (%s, %s, %s)',
+            (Attribute.ATTR_LOGO, id, file_id,)
+        )
+        db_commit()
+    except:
+        db_rollback()
+        abort(403)
+
+    return jsonify(result='success')
+
 ###############################################################################
 # Routes
 ###############################################################################
