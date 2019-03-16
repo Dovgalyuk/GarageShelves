@@ -193,150 +193,61 @@ def _update():
 # Routes
 ###############################################################################
 
-@bp.route('/<int:id>')
-def view(id):
-    item = get_item(id)
-    return render_template('item/view.html', item=item)
+# @bp.route('/<int:id>/_delete')
+# @login_required
+# def _delete(id):
+#     item = get_item(id)
 
-@bp.route('/<int:id>/update', methods=('GET', 'POST'))
-@login_required
-def update(id):
-    item = get_item(id)
-    if not g.user['admin'] and item['owner_id'] != g.user['id']:
-        abort(403)
+#     if not g.user['admin'] and item['owner_id'] != g.user['id']:
+#         abort(403)
 
-    if request.method == 'POST':
-        description = request.form['description']
-        internal_id = request.form['internal_id']
-        db = get_db_cursor()
-        db.execute(
-            'UPDATE item SET description = %s, internal_id = %s'
-            ' WHERE id = %s',
-            (description, internal_id, id)
-        )
-        db_commit()
-        return redirect(url_for("item.view", id=id))
+#     cursor = get_db_cursor()
+#     # delete attributes
+#     cursor.execute(
+#         'DELETE FROM item_attribute WHERE item_id = %s',
+#         (id,)
+#     )
+#     # delete relations
+#     cursor.execute(
+#         'DELETE FROM item_relation WHERE item_id1 = %s OR item_id2 = %s',
+#         (id, id,)
+#     )
+#     # delete item
+#     cursor.execute('DELETE FROM item WHERE id = %s', (id,));
 
-    return render_template('item/update.html', item=item)
+#     db_commit()
 
+#     from shelves.collection import get_user_collection
+#     collection = get_user_collection(g.user['id'])
 
-@bp.route('/<int:id>/_delete')
-@login_required
-def _delete(id):
-    item = get_item(id)
+#     return redirect(url_for('collection.view', id=collection['id']))
 
-    if not g.user['admin'] and item['owner_id'] != g.user['id']:
-        abort(403)
+# @bp.route('/<int:id>/_add_to_kit')
+# @login_required
+# def _add_to_kit(id):
+#     kit_id = request.args.get('kit', -1, type=int)
 
-    cursor = get_db_cursor()
-    # delete attributes
-    cursor.execute(
-        'DELETE FROM item_attribute WHERE item_id = %s',
-        (id,)
-    )
-    # delete relations
-    cursor.execute(
-        'DELETE FROM item_relation WHERE item_id1 = %s OR item_id2 = %s',
-        (id, id,)
-    )
-    # delete item
-    cursor.execute('DELETE FROM item WHERE id = %s', (id,));
+#     item = get_item(id)
 
-    db_commit()
+#     if not g.user['admin'] and item['owner_id'] != g.user['id']:
+#         abort(403)
 
-    from shelves.collection import get_user_collection
-    collection = get_user_collection(g.user['id'])
+#     kit = get_item(kit_id)
 
-    return redirect(url_for('collection.view', id=collection['id']))
+#     cursor = get_db_cursor()
 
-@bp.route('/_items_filtered')
-def _items_filtered():
-    user_id = request.args.get('user', -1, type=int)
-    parent_id = request.args.get('parent', -1, type=int)
-    catalog_id = request.args.get('catalog', -1, type=int)
-    includes_id = request.args.get('includes', -1, type=int)
-    collection_id = request.args.get('collection', -1, type=int)
-    includes_catalog_id = request.args.get('includes_catalog', -1, type=int)
-    is_main = request.args.get('is_main', False, type=bool)
+#     # validate that the item is not already included anywhere
+#     cursor.execute('SELECT * FROM item_relation'
+#         ' WHERE item_id2 = %s AND type = %s',
+#         (id, Relation.REL_INCLUDES,))
+#     if cursor.fetchone():
+#         abort(403)
 
-    # TODO: check at frontend
-    if parent_id == -1 and is_main:
-        return jsonify(result='')
+#     cursor.execute(
+#         'INSERT INTO item_relation (item_id1, item_id2, type)'
+#         ' VALUES (%s, %s, %s)',
+#         (kit_id, id, Relation.REL_INCLUDES)
+#         )
+#     db_commit()
 
-    cursor = get_db_cursor()
-
-    query = 'SELECT i.id, i.description, c.id AS catalog_id,' \
-            ' c.title, c.title_eng, ct.title AS type_title, added,'        \
-            '       col.owner_id, i.internal_id, i.collection_id,' \
-            '       (SELECT value_id FROM item_attribute '    \
-            '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id' \
-            ' FROM item i JOIN catalog c ON i.catalog_id = c.id' \
-            ' JOIN catalog_type ct ON c.type_id = ct.id'         \
-            ' JOIN collection col ON i.collection_id = col.id'
-
-    where = ' WHERE 1 = 1'
-    params = (Attribute.ATTR_IMAGE,)
-
-    if user_id != -1:
-        where += ' AND col.owner_id = %s'
-        params = (*params, user_id)
-    if catalog_id != -1:
-        where += ' AND catalog_id = %s'
-        params = (*params, catalog_id)
-    if parent_id != -1:
-        parent = get_item(parent_id)
-        where += ' AND EXISTS (SELECT 1 FROM item_relation' \
-                 ' WHERE item_id1 = %s AND item_id2 = i.id AND type = %s)'
-        params = (*params, parent_id, Relation.REL_INCLUDES)
-        if is_main:
-            where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
-                     ' WHERE catalog_id1 = %s AND catalog_id2 = catalog_id AND type = %s)'
-            params = (*params, parent['catalog_id'], Relation.REL_MAIN_ITEM)
-    if includes_id != -1:
-        query += ' JOIN item_relation r2 ON r2.item_id1 = i.id'
-        where += ' AND r2.item_id2 = %s AND r2.type = %s'
-        params =(*params, includes_id, Relation.REL_INCLUDES)
-    if collection_id != -1:
-        where += ' AND col.id = %s'
-        params = (*params, collection_id)
-    if includes_catalog_id != -1:
-        where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
-                 ' WHERE type = %s AND catalog_id1 = c.id'     \
-                 ' AND catalog_id2 = %s)'
-        params = (*params, Relation.REL_INCLUDES, includes_catalog_id)
-    
-    cursor.execute(query + where, params)
-    #print(query + where)
-    result = cursor.fetchall()
-
-    return jsonify(result=result)
-
-@bp.route('/<int:id>/_add_to_kit')
-@login_required
-def _add_to_kit(id):
-    kit_id = request.args.get('kit', -1, type=int)
-
-    item = get_item(id)
-
-    if not g.user['admin'] and item['owner_id'] != g.user['id']:
-        abort(403)
-
-    kit = get_item(kit_id)
-
-    cursor = get_db_cursor()
-
-    # validate that the item is not already included anywhere
-    cursor.execute('SELECT * FROM item_relation'
-        ' WHERE item_id2 = %s AND type = %s',
-        (id, Relation.REL_INCLUDES,))
-    if cursor.fetchone():
-        abort(403)
-
-    cursor.execute(
-        'INSERT INTO item_relation (item_id1, item_id2, type)'
-        ' VALUES (%s, %s, %s)',
-        (kit_id, id, Relation.REL_INCLUDES)
-        )
-    db_commit()
-
-    return jsonify(result='')
+#     return jsonify(result='')

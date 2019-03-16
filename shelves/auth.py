@@ -177,34 +177,3 @@ def profile():
         flash(error)
 
     return render_template('auth/profile.html')
-
-@bp.route('/login', methods=('GET', 'POST'))
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        cursor = get_db_cursor()
-        error = None
-        cursor.execute(
-            'SELECT * FROM user WHERE username = %s', (username,)
-        )
-        user = cursor.fetchone()
-
-        if user is None:
-            error = 'Incorrect username.'
-        elif not check_password_hash(user['password'], password):
-            error = 'Incorrect password.'
-
-        if error is None:
-            session.clear()
-            session['user_id'] = user['id']
-            return redirect(url_for('index'))
-
-        flash(error)
-
-    return render_template('auth/login.html')
-
-@bp.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('index'))

@@ -57,9 +57,4 @@ def create_app(test_config=None):
     from . import company
     app.register_blueprint(company.bp)
 
-    @app.route('/')
-    def base():
-        return render_template('index.html')
-    app.add_url_rule('/', endpoint='index')
-
     return app

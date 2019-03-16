@@ -73,24 +73,6 @@ def _get():
 # Routes
 ###############################################################################
 
-@bp.route('/')
-def index():
-    db = get_db_cursor()
-    db.execute(
-        'SELECT c.id, title, description, created, owner_id, username,'
-        ' (SELECT COUNT(*) FROM item it WHERE it.collection_id=c.id) AS count'
-        ' FROM collection c JOIN user u ON c.owner_id = u.id'
-        ' ORDER BY created DESC'
-    )
-    collections = db.fetchall()
-    return render_template('collection/index.html', collections=collections)
-
-@bp.route('/<int:id>')
-def view(id):
-    collection = get_collection(id, False)
-
-    return render_template('collection/view.html', collection=collection)
-
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required
 def update(id):

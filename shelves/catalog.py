@@ -529,420 +529,142 @@ def _set_logo():
 # Routes
 ###############################################################################
 
-# All catalogs
-@bp.route('/')
-def index():
-    return render_template('catalog/index.html')
+# @bp.route('/_join', methods=('POST',))
+# @login_required
+# @admin_required
+# def _join():
+#     id1 = int(request.form['id1'])
+#     id2 = int(request.form['id2'])
+#     logo = int(request.form['logos'])
+#     title = request.form['title']
+#     title_eng = request.form['title_eng']
+#     year = request.form['year']
+#     description = request.form['description']
 
+#     if not title:
+#         abort(403)
 
-@bp.route('/create', methods=('GET', 'POST'))
-@bp.route('/create/<int:parent>', methods=('GET', 'POST'))
-@login_required
-@admin_required
-def create(parent = -1):
-    if request.method == 'POST':
-        if not g.user['admin']:
-            abort(403)
+#     if logo != 1 and logo != 2:
+#         abort(403)
 
-        error = None
-        type_id = request.form['type_id']
-        title = request.form['title']
-        title_eng = request.form['title_eng']
-        description = request.form['description']
-        company_id = int(request.form['company_id'])
-        if company_id == -1:
-            company_id = None
-        try:
-            year = int(request.form['year'])
-            if year < 1500 or year > 2100:
-                error = 'Invalid year.'
-        except:
-            year = None
+#     if year == '':
+#         year = None
 
-        # assert that catalog type exists
-        get_catalog_type(type_id)
-        # assert that company exists
-        if (company_id is not None) and (get_company(company_id) is None):
-            error = 'Invalid company.'
+#     # assert that catalog items exist
+#     c1 = get_catalog(id1)
+#     c2 = get_catalog(id2)
 
-        if not title:
-            error = 'Title is required.'
+#     if c1['company_id'] != c2['company_id']:
+#         abort(403)
 
-        if error is not None:
-            flash(error)
-        else:
-            parent = request.form['parent']
-            cursor = get_db_cursor()
-            cursor.execute(
-                'INSERT INTO catalog (type_id, title, title_eng, description, year, company_id)'
-                ' VALUES (%s, %s, %s, %s, %s, %s)',
-                (type_id, title, title_eng, description, year, company_id)
-            )
-            catalog_id = cursor.lastrowid
-            if parent and int(parent) > 0:
-                get_catalog(parent) # validate the parent
-                cursor.execute(
-                    'INSERT INTO catalog_relation'
-                    ' (catalog_id1, catalog_id2, type)'
-                    ' VALUES (%s, %s, %s)',
-                    (parent, catalog_id, Relation.REL_INCLUDES)
-                )
-            db_commit()
-            return redirect(url_for('catalog.view', id=catalog_id))
+#     if c1['type_id'] != c2['type_id']:
+#         abort(403)
 
-    catalog_types = get_catalog_types()
-    p = None
-    if parent != -1:
-        p = get_catalog(parent)
-    company_id = request.args.get('company', -1, type=int)
-    return render_template('catalog/create.html',
-        parent=p, catalog_types=catalog_types,
-        companies=get_companies(), company_id=company_id)
+#     cursor = get_db_cursor()
 
-@bp.route('/<int:id>')
-def view(id):
-    catalog = get_catalog(id)
+#     cursor.execute('SELECT * FROM catalog_relation'
+#         ' WHERE catalog_id1 = %s AND catalog_id2 = %s',
+#         (id1, id2,))
+#     if cursor.fetchone():
+#         abort(403)
 
-    return render_template('catalog/view.html',
-        catalog=catalog,
-        logo=get_catalog_logo(id))
+#     cursor.execute('SELECT * FROM catalog_relation'
+#         ' WHERE catalog_id1 = %s AND catalog_id2 = %s',
+#         (id2, id1,))
+#     if cursor.fetchone():
+#         abort(403)
 
-@bp.route('/<int:id>/update', methods=('GET', 'POST'))
-@login_required
-@admin_required
-def update(id):
-    catalog = get_catalog(id)
+#     # Set new parameters of the catalog item
+#     cursor.execute(
+#         'UPDATE catalog SET title = %s, title_eng = %s, description = %s,'
+#         ' year = %s'
+#         ' WHERE id = %s',
+#         (title, title_eng, description, year, id1,)
+#     )
 
-    if request.method == 'POST':
-        if not g.user['admin']:
-            abort(403)
+#     # Set new logo
+#     if logo == 2:
+#         cursor.execute(
+#             'DELETE FROM catalog_attribute'
+#             ' WHERE catalog_id = %s AND type = %s',
+#             (id1, Attribute.ATTR_LOGO,)
+#         )
+#     else:
+#         cursor.execute(
+#             'DELETE FROM catalog_attribute'
+#             ' WHERE catalog_id = %s AND type = %s',
+#             (id2, Attribute.ATTR_LOGO,)
+#         )
 
-        error = None
-        title = request.form['title']
-        title_eng = request.form['title_eng']
-        description = request.form['description']
-        type_id = request.form['type_id']
-        company_id = int(request.form['company_id'])
-        if company_id == -1:
-            company_id = None
-        try:
-            year = int(request.form['year'])
-            if year < 1500 or year > 2100:
-                error = 'Invalid year.'
-        except:
-            year = None
+#     # Redirect items
+#     cursor.execute(
+#         'UPDATE item SET catalog_id = %s WHERE catalog_id = %s',
+#         (id1, id2, )
+#     )
 
-        # assert that catalog type exists
-        get_catalog_type(type_id)
-        # assert that company exists
-        if (company_id is not None) and (get_company(company_id) is None):
-            error = 'Invalid company.'
+#     # Redirect attributes
+#     cursor.execute(
+#         'UPDATE catalog_attribute SET catalog_id = %s WHERE catalog_id = %s',
+#         (id1, id2, )
+#     )
 
-        if not title:
-            error = 'Title is required.'
+#     # Delete duplicate relations
+#     cursor.execute(
+#         'DELETE FROM catalog_relation WHERE catalog_id1 = %s AND type = %s'
+#         ' AND catalog_id2 IN (SELECT DISTINCT catalog_id2 FROM'
+#                              ' (SELECT * FROM catalog_relation'
+#                              ' WHERE catalog_id1 = %s AND type = %s) AS tmp)',
+#         (id2, Relation.REL_INCLUDES, id1, Relation.REL_INCLUDES,)
+#     )
+#     cursor.execute(
+#         'DELETE FROM catalog_relation WHERE catalog_id2 = %s AND type = %s'
+#         ' AND catalog_id1 IN (SELECT DISTINCT catalog_id1 FROM'
+#                              ' (SELECT * FROM catalog_relation'
+#                              ' WHERE catalog_id2 = %s AND type = %s) AS tmp)',
+#         (id2, Relation.REL_INCLUDES, id1, Relation.REL_INCLUDES,)
+#     )
 
-        file = None
-        file_id = None
-        if 'catalog_logo' in request.files:
-            file = request.files['catalog_logo']
-            if file.filename != '':
-                file_id = upload_image(file, 64, 64)
-                if file_id is None:
-                    error = 'Only 64x64 images can be used as a logo'
+#     # Redirect relations
+#     cursor.execute(
+#         'UPDATE catalog_relation SET catalog_id1 = %s WHERE catalog_id1 = %s',
+#         (id1, id2, )
+#     )
+#     cursor.execute(
+#         'UPDATE catalog_relation SET catalog_id2 = %s WHERE catalog_id2 = %s',
+#         (id1, id2, )
+#     )
 
-        if error is not None:
-            flash(error)
-        else:
-            cursor = get_db_cursor()
-            if file_id is not None:
-                cursor.execute(
-                    'DELETE FROM catalog_attribute'
-                    ' WHERE type=%s AND catalog_id=%s',
-                    (Attribute.ATTR_LOGO, id,)
-                )
-                cursor.execute(
-                    'INSERT INTO catalog_attribute (type, catalog_id, value_id)'
-                    ' VALUES (%s, %s, %s)',
-                    (Attribute.ATTR_LOGO, id, file_id,)
-                )
+#     # Delete old catalog item
+#     cursor.execute('DELETE FROM catalog WHERE id = %s', (id2,))
 
-            cursor.execute(
-                'UPDATE catalog SET title = %s, title_eng = %s,'
-                ' description = %s,'
-                ' type_id = %s,'
-                ' year = %s, company_id = %s'
-                ' WHERE id = %s',
-                (title, title_eng, description, type_id, year, company_id, id)
-            )
-            db_commit()
-            return redirect(url_for('catalog.view', id=id))
+#     # Commit all the changes
+#     db_commit()
 
-    return render_template('catalog/update.html',
-        catalog=catalog, catalog_types=get_catalog_types(),
-        companies=get_companies())
+#     return redirect(url_for('catalog.view', id=id1))
 
-@bp.route('/<int:id>/own', methods=('POST',))
-@login_required
-def own(id):
-    catalog = get_catalog(id)
+# @bp.route('/<int:id>/_delete')
+# @login_required
+# @admin_required
+# def _delete(id):
+#     # assert id is correct
+#     catalog = get_catalog(id)
 
-    if not catalog['is_physical']:
-        abort(403)
+#     cursor = get_db_cursor()
+#     # delete attributes
+#     cursor.execute(
+#         'DELETE FROM catalog_attribute WHERE catalog_id = %s',
+#         (id,)
+#     )
+#     # delete relations
+#     cursor.execute(
+#         'DELETE FROM catalog_relation WHERE catalog_id1 = %s OR catalog_id2 = %s',
+#         (id, id,)
+#     )
+#     # delete item
+#     cursor.execute('DELETE FROM catalog WHERE id = %s', (id,));
 
-    collection = get_user_collection(g.user['id'])
-    try:
-        cursor = get_db_cursor()
-        cursor.execute(
-            'INSERT INTO item (catalog_id, internal_id, description, collection_id)'
-            ' VALUES (%s, %s, %s, %s)',
-            (id, request.form['internal_id'], '', collection['id'])
-        )
-        item_id = cursor.lastrowid
+#     # TODO: delete child items for the kit?
 
-        if 'subitem' in request.form:
-            subitems = request.form.getlist('subitem')
-            for subitem in subitems:
-                # assert that catalog item exists
-                get_catalog(subitem)
-                cursor.execute(
-                    'INSERT INTO item (catalog_id, description, collection_id)'
-                    ' VALUES (%s, %s, %s)',
-                    (subitem, '', collection['id'])
-                )
-                subitem_id = cursor.lastrowid
-                cursor.execute(
-                    'INSERT INTO item_relation (item_id1, item_id2, type)'
-                    ' VALUES (%s, %s, %s)',
-                    (item_id, subitem_id, Relation.REL_INCLUDES)
-                )
+#     db_commit()
 
-        db_commit()
-    except:
-        db_rollback()
-        raise
-
-    return redirect(url_for('catalog.view', id=id))
-
-
-@bp.route('/_join', methods=('POST',))
-@login_required
-@admin_required
-def _join():
-    id1 = int(request.form['id1'])
-    id2 = int(request.form['id2'])
-    logo = int(request.form['logos'])
-    title = request.form['title']
-    title_eng = request.form['title_eng']
-    year = request.form['year']
-    description = request.form['description']
-
-    if not title:
-        abort(403)
-
-    if logo != 1 and logo != 2:
-        abort(403)
-
-    if year == '':
-        year = None
-
-    # assert that catalog items exist
-    c1 = get_catalog(id1)
-    c2 = get_catalog(id2)
-
-    if c1['company_id'] != c2['company_id']:
-        abort(403)
-
-    if c1['type_id'] != c2['type_id']:
-        abort(403)
-
-    cursor = get_db_cursor()
-
-    cursor.execute('SELECT * FROM catalog_relation'
-        ' WHERE catalog_id1 = %s AND catalog_id2 = %s',
-        (id1, id2,))
-    if cursor.fetchone():
-        abort(403)
-
-    cursor.execute('SELECT * FROM catalog_relation'
-        ' WHERE catalog_id1 = %s AND catalog_id2 = %s',
-        (id2, id1,))
-    if cursor.fetchone():
-        abort(403)
-
-    # Set new parameters of the catalog item
-    cursor.execute(
-        'UPDATE catalog SET title = %s, title_eng = %s, description = %s,'
-        ' year = %s'
-        ' WHERE id = %s',
-        (title, title_eng, description, year, id1,)
-    )
-
-    # Set new logo
-    if logo == 2:
-        cursor.execute(
-            'DELETE FROM catalog_attribute'
-            ' WHERE catalog_id = %s AND type = %s',
-            (id1, Attribute.ATTR_LOGO,)
-        )
-    else:
-        cursor.execute(
-            'DELETE FROM catalog_attribute'
-            ' WHERE catalog_id = %s AND type = %s',
-            (id2, Attribute.ATTR_LOGO,)
-        )
-
-    # Redirect items
-    cursor.execute(
-        'UPDATE item SET catalog_id = %s WHERE catalog_id = %s',
-        (id1, id2, )
-    )
-
-    # Redirect attributes
-    cursor.execute(
-        'UPDATE catalog_attribute SET catalog_id = %s WHERE catalog_id = %s',
-        (id1, id2, )
-    )
-
-    # Delete duplicate relations
-    cursor.execute(
-        'DELETE FROM catalog_relation WHERE catalog_id1 = %s AND type = %s'
-        ' AND catalog_id2 IN (SELECT DISTINCT catalog_id2 FROM'
-                             ' (SELECT * FROM catalog_relation'
-                             ' WHERE catalog_id1 = %s AND type = %s) AS tmp)',
-        (id2, Relation.REL_INCLUDES, id1, Relation.REL_INCLUDES,)
-    )
-    cursor.execute(
-        'DELETE FROM catalog_relation WHERE catalog_id2 = %s AND type = %s'
-        ' AND catalog_id1 IN (SELECT DISTINCT catalog_id1 FROM'
-                             ' (SELECT * FROM catalog_relation'
-                             ' WHERE catalog_id2 = %s AND type = %s) AS tmp)',
-        (id2, Relation.REL_INCLUDES, id1, Relation.REL_INCLUDES,)
-    )
-
-    # Redirect relations
-    cursor.execute(
-        'UPDATE catalog_relation SET catalog_id1 = %s WHERE catalog_id1 = %s',
-        (id1, id2, )
-    )
-    cursor.execute(
-        'UPDATE catalog_relation SET catalog_id2 = %s WHERE catalog_id2 = %s',
-        (id1, id2, )
-    )
-
-    # Delete old catalog item
-    cursor.execute('DELETE FROM catalog WHERE id = %s', (id2,))
-
-    # Commit all the changes
-    db_commit()
-
-    return redirect(url_for('catalog.view', id=id1))
-
-
-@bp.route('/_all_types')
-def _all_types():
-    return jsonify(result=get_catalog_types())
-
-@bp.route('/_catalog_filtered')
-def _catalog_filtered():
-    company_id = request.args.get('company', -1, type=int)
-    parent_id = request.args.get('parent', -1, type=int)
-    includes_id = request.args.get('includes', -1, type=int)
-    type_id = request.args.get('type_id', -1, type=int)
-    type_name = request.args.get('type_name')
-    name = request.args.get('name')
-    if type_name:
-        type_id = get_catalog_type_id(type_name)
-    noparent = request.args.get('noparent', False, type=bool)
-    is_main = request.args.get('is_main', False, type=bool)
-    is_group = request.args.get('is_group', False, type=bool)
-
-    cursor = get_db_cursor()
-    query = 'SELECT c.id, c.title, c.title_eng,' \
-            ' description, created, c.type_id,'   \
-            ' ct.title as type_title, ct.is_physical, img.id as logo,'    \
-            ' year, com.title as company, c.company_id,'               \
-            ' (SELECT COUNT(*) FROM catalog cc'                        \
-            '   JOIN catalog_relation r WHERE cc.id=r.catalog_id2'     \
-            '   AND c.id=r.catalog_id1 AND r.type=%s) AS count'        \
-            ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'\
-            ' LEFT JOIN (SELECT * FROM catalog_attribute WHERE type = %s) a ON c.id = a.catalog_id'    \
-            ' LEFT JOIN image img ON a.value_id = img.id'              \
-            ' LEFT JOIN company com ON com.id = c.company_id'            
-    suffix = ' ORDER BY c.title'
-    where = ' WHERE 1 = 1'
-    params = (Relation.REL_INCLUDES,Attribute.ATTR_LOGO,)
-    # parameters are integer - insert them without escaping
-    if company_id != -1:
-        where += ' AND com.id = %d' % company_id
-    if parent_id != -1:
-        if is_main:
-            rel = Relation.REL_MAIN_ITEM
-        else:
-            rel = Relation.REL_INCLUDES
-        where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
-                 '      WHERE catalog_id1 = %s AND catalog_id2 = c.id AND type = %s)'
-        params = (*params, parent_id, rel,)
-    if includes_id != -1:
-        query += ' JOIN catalog_relation r3 ON r3.catalog_id1 = c.id'
-        where += ' AND r3.catalog_id2 = %d' % includes_id \
-              +  ' AND r3.type = %d' % Relation.REL_INCLUDES
-    if type_id != -1:
-        where += ' AND ct.id = %d' % type_id
-    if noparent:
-        where += ' AND NOT EXISTS (SELECT 1 FROM catalog_relation' \
-                 '      WHERE catalog_id2 = c.id AND type = %d)' % Relation.REL_INCLUDES
-    if name:
-        # TODO: spaces are not supported in the template?
-        where += ' AND c.title LIKE %s'
-        params = (*params, '%' + name + '%', )
-    if is_group:
-        where += ' AND ct.is_group = TRUE'
-    else:
-        where += ' AND ct.is_group = FALSE'
-
-    cursor.execute(query + where + suffix, params)
-    result = cursor.fetchall()
-    #print(query + where + suffix)
-
-    return jsonify(result=result)
-
-@bp.route('/_family_remove', methods=('POST',))
-@admin_required
-def _family_remove():
-    id = int(request.form['id'])
-    family = int(request.form['family'])
-    cursor = get_db_cursor()
-    cursor.execute(
-        'DELETE FROM catalog_relation'
-        ' WHERE catalog_id1=%s AND catalog_id2=%s AND type=%s',
-        (family, id, Relation.REL_INCLUDES,)
-    )
-    db_commit()
-    return ('', 204)
-
-@bp.route('/<int:id>/_delete')
-@login_required
-@admin_required
-def _delete(id):
-    # assert id is correct
-    catalog = get_catalog(id)
-
-    cursor = get_db_cursor()
-    # delete attributes
-    cursor.execute(
-        'DELETE FROM catalog_attribute WHERE catalog_id = %s',
-        (id,)
-    )
-    # delete relations
-    cursor.execute(
-        'DELETE FROM catalog_relation WHERE catalog_id1 = %s OR catalog_id2 = %s',
-        (id, id,)
-    )
-    # delete item
-    cursor.execute('DELETE FROM catalog WHERE id = %s', (id,));
-
-    # TODO: delete child items for the kit?
-
-    db_commit()
-
-    return redirect(url_for('catalog.index'))
+#     return redirect(url_for('catalog.index'))
