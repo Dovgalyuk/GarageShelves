@@ -21,8 +21,8 @@ def load_logged_in_user():
         cursor = get_db_cursor()
         # TODO: multiple collections
         cursor.execute(
-            'SELECT user.id as id, username, admin, collection.id as col_id'
-            ' FROM user '
+            'SELECT user.id as id, username, admin, collection.id as col_id,'
+            ' email FROM user '
             ' LEFT JOIN collection ON user.id = collection.owner_id'
             ' WHERE user.id = %s',
             (user_id,)
@@ -58,14 +58,12 @@ def admin_required(view):
 
 @bp.route('/_login')
 def _login():
-    print(request.cookies)
-    print(request.args)
-    username = request.args.get('username')
-    password = request.args.get('password')
+    login = request.args.get('login').strip()
+    password = request.args.get('password').strip()
     cursor = get_db_cursor()
     error = None
     cursor.execute(
-        'SELECT * FROM user WHERE username = %s', (username,)
+        'SELECT * FROM user WHERE email = %s', (login,)
     )
     user = cursor.fetchone()
 
@@ -88,12 +86,58 @@ def _session():
 
     return jsonify(user_id=g.user['id'],
                    is_admin=g.user['admin'],
-                   username=g.user['username'])
+                   username=g.user['username'],
+                   email=g.user['email'])
 
 @bp.route('/_logout')
 def _logout():
     session.clear()
     return jsonify(error='No session')
+
+@bp.route('/set_username')
+@login_required
+def set_username():
+    username = request.args.get('username').strip()
+    cursor = get_db_cursor()
+    cursor.execute(
+        'UPDATE user SET username = %s WHERE id = %s',
+        (username, g.user['id'])
+    )
+    db_commit()
+    return jsonify(result='success')
+
+@bp.route('/set_password')
+@login_required
+def set_password():
+    old_password = request.args.get('old_password').strip()
+    new_password = request.args.get('new_password').strip()
+    new_password = generate_password_hash(new_password)
+
+    error = None
+    if not old_password:
+        error = 'Password is required.'
+
+    if not new_password or new_password == '':
+        error = 'New password is required.'
+
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT * FROM user WHERE id = %s', (g.user['id'],)
+    )
+    user = cursor.fetchone()
+
+    if not check_password_hash(user['password'], old_password):
+        error = 'Incorrect password.'
+
+    if error:
+        return jsonify(error=error)
+
+    cursor.execute(
+        'UPDATE user SET password = %s WHERE id = %s',
+        (new_password, g.user['id'])
+    )
+    db_commit()
+    return jsonify(result='success')
 
 ###############################################################################
 # Old Routes

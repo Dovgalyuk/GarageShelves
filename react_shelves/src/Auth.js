@@ -1,4 +1,8 @@
 import React, { Component } from 'react';
+import Row from 'react-bootstrap/Row'
+import Col from 'react-bootstrap/Col'
+import Alert from 'react-bootstrap/Alert'
+import Button from 'react-bootstrap/Button'
 import fetchBackend from './Backend'
 
 export class Login extends Component {
@@ -6,7 +10,8 @@ export class Login extends Component {
     super(props);
 
     this.state = {
-      username: "",
+      alert: null,
+      login: "",
       password: "",
     };
   }
@@ -26,9 +31,11 @@ export class Login extends Component {
             if (response.user_id > 0) {
                 this.props.auth.userHasAuthenticated(true);
                 this.props.history.push("/");
+            } else {
+                throw new Error();
             }
         })
-        .catch(error => alert('Invalid login/password'));
+        .catch(e => this.setState({alert:'Invalid login/password'}));
   }
 
   render() {
@@ -39,12 +46,21 @@ export class Login extends Component {
             <h1>Log in</h1>
           </div>
         </div>
-        <form onSubmit={this.handleSubmit}>
+        { this.state.alert
+          && <Row>
+               <Col>
+                 <Alert variant="danger">
+                   {this.state.alert}
+                 </Alert>
+               </Col>
+             </Row>
+        }
+        <form>
           <div className="form-group row">
-            <label className="col-2 control-label" htmlFor="username">Username</label>
+            <label className="col-2 control-label" htmlFor="login">Login</label>
             <div className="col-10">
-              <input className="form-control" name="username" id="username"
-                     value={this.state.username}
+              <input className="form-control" name="login" id="login"
+                     value={this.state.login}
                      onChange={this.handleChange}
                      required />
             </div>
@@ -60,7 +76,9 @@ export class Login extends Component {
           </div>
           <div className="form-group row">
             <div className="offset-2 col-10">
-              <input type="submit" value="Log in" />
+              <Button variant="primary" onClick={this.handleSubmit}>
+                Log in
+              </Button>
             </div>
           </div>
         </form>

@@ -1,6 +1,7 @@
 import React, { Component, Fragment, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import Navbar from './Navbar';
+import Profile from './Routes/Profile';
 import { Collections, CollectionView } from './Collection';
 import { Companies, CompanyView } from './Company';
 import { Catalog, CatalogView } from './Catalog';
@@ -23,6 +24,7 @@ class App extends Component {
       isAuthenticating: true,
       username: "",
       user_id: -1,
+      email:"",
     };
   }
 
@@ -31,6 +33,7 @@ class App extends Component {
                       isAdmin: false,
                       isAuthenticating: false,
                       username: "",
+                      email: "",
                       user_id: -1 });
   }
 
@@ -43,6 +46,7 @@ class App extends Component {
                                   isAdmin:response.is_admin,
                                   username:response.username,
                                   user_id: response.user_id,
+                                  email: response.email,
                                   isAuthenticating: false });
               } else {
                   this.logout();
@@ -73,6 +77,7 @@ class App extends Component {
         isAdmin: this.state.isAdmin,
         username: this.state.username,
         user_id: this.state.user_id,
+        email: this.state.email,
         userHasAuthenticated: this.userHasAuthenticated
     } };
 
@@ -105,6 +110,8 @@ class App extends Component {
                 <AppliedRoute path="/item/view/:id" component={ItemView}
                               props={childProps} />
                 <AppliedRoute path="/login" exact component={Login}
+                              props={childProps} />
+                <AppliedRoute path="/profile" exact component={Profile}
                               props={childProps} />
                 <Route component={NotFound} />
               </Switch>
