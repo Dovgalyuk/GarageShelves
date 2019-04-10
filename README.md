@@ -5,7 +5,23 @@ Web-based system for managing private tech collections
 
 ```
 sudo apt install python3-pip libffi-dev libmysqlclient-dev
-sudo pip3 install -r requirements.txt
+sudo pip3 install -r shelves/requirements.txt
+mkdir instance
+cp shelves/config.cfg instance
+```
+Now edit config.cfg in the instance subdirectory.
+
+### Setup mysql
+
+```
+sudo apt install mysql-server
+sudo mysql_secure_installation
+mysql -u root -p < shelves/schema.sql
+```
+
+### Setup Apache web server
+
+```
 sudo apt install apache2-dev
 sudo pip3 install mod_wsgi
 ```
@@ -31,3 +47,15 @@ LoadModule wsgi_module "/usr/local/lib/python3.5/dist-packages/mod_wsgi/server/m
     </Directory>
 </VirtualHost>
 ```
+
+## Development
+
+Flask-based server
+```
+export FLASK_ENV=development
+export FLASK_APP=shelves
+python3 -m flask run
+```
+
+[React-based frontend](react_shelves/README.md)
+

@@ -1,3 +1,7 @@
+DROP DATABASE GarageShelves;
+CREATE DATABASE GarageShelves;
+USE GarageShelves;
+
 DROP TABLE IF EXISTS catalog_attribute;
 DROP TABLE IF EXISTS catalog_relation;
 DROP TABLE IF EXISTS item_relation;
@@ -14,7 +18,7 @@ CREATE TABLE user (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
   username VARCHAR(64) UNIQUE NOT NULL,
   password TEXT NOT NULL,
-  email VARCHAR(128) UNIQUE NOT NULL,
+  email VARCHAR(128) UNIQUE NOT NULL DEFAULT "",
   admin BOOLEAN NOT NULL DEFAULT 0
 );
 
@@ -118,10 +122,10 @@ CREATE TABLE item_relation (
 );
 
 -- default user
-INSERT INTO user (username, password, admin)
+INSERT INTO user (username, password, admin, email)
   -- user admin, password admin
   VALUES ("admin", "pbkdf2:sha256:50000$g307uMdl$7da6a054398f31081232bae9b62883a660b74fa4444c571db546a200dd18415b",
-  	      1);
+  	      1, "admin@admin.ru");
 
 -- admin's collection
 INSERT INTO collection (owner_id, title, description)
