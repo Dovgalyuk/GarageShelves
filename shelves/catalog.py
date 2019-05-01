@@ -310,7 +310,6 @@ def _own():
 
 @bp.route('/_update', methods=('POST',))
 @login_required
-@admin_required
 def _update():
     id = int(request.args['id'])
     catalog = get_catalog(id)
@@ -334,6 +333,12 @@ def _update():
         cursor.execute(
             'UPDATE catalog SET ' + field + ' = %s WHERE id = %s',
             (value, id)
+        )
+#        if not g.user.admin:
+        cursor.execute(
+            'INSERT INTO catalog_history (catalog_id, user_id, field, value)'
+            ' VALUES (%s, %s, %s, %s)',
+            (id, g.user['id'], field, value)
         )
         db_commit()
     except:

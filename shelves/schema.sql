@@ -2,6 +2,7 @@ DROP DATABASE GarageShelves;
 CREATE DATABASE GarageShelves;
 USE GarageShelves;
 
+DROP TABLE IF EXISTS catalog_history;
 DROP TABLE IF EXISTS catalog_attribute;
 DROP TABLE IF EXISTS catalog_relation;
 DROP TABLE IF EXISTS item_relation;
@@ -60,6 +61,19 @@ CREATE TABLE catalog (
   FOREIGN KEY (type_id) REFERENCES catalog_type (id),
   FOREIGN KEY (owner_id) REFERENCES user (id),
   FOREIGN KEY (company_id) REFERENCES company (id)
+);
+
+CREATE TABLE catalog_history (
+  id INTEGER PRIMARY KEY AUTO_INCREMENT,
+  catalog_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  field TEXT NOT NULL,
+  value TEXT NOT NULL,
+
+  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (catalog_id) REFERENCES catalog (id),
+  FOREIGN KEY (user_id) REFERENCES user (id)
 );
 
 CREATE TABLE item (
