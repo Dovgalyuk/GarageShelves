@@ -2,6 +2,7 @@ import React, { Component, Fragment, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import Navbar from './Navbar';
 import Profile from './Routes/Profile';
+import Register from './Routes/Register';
 import { Collections, CollectionView } from './Collection';
 import { Companies, CompanyView } from './Company';
 import { Catalog, CatalogView } from './Catalog';
@@ -112,6 +113,8 @@ class App extends Component {
                 <AppliedRoute path="/login" exact component={Login}
                               props={childProps} />
                 <AppliedRoute path="/profile" exact component={Profile}
+                              props={childProps} />
+                <AppliedRoute path="/register" exact component={Register}
                               props={childProps} />
                 <Route component={NotFound} />
               </Switch>

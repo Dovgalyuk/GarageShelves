@@ -1,4 +1,5 @@
 import functools
+import re
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for,
@@ -139,48 +140,55 @@ def set_password():
     db_commit()
     return jsonify(result='success')
 
-###############################################################################
-# Old Routes
-###############################################################################
-
-@bp.route('/register', methods=('GET', 'POST'))
+@bp.route('/register', methods=('POST',))
 def register():
-    if request.method == 'POST':
-        username = request.form['username']
+    print(request.json)
+    try:
+        email = request.json['email'].strip()
+        username = request.json['username'].strip()
         username = username[:64]
-        password = request.form['password']
-        collection_title = request.form['collection_title']
-        collection_description = request.form['collection_description']
-        cursor = get_db_cursor()
-        error = None
+        password = request.json['password'].strip()
+        collection_title = request.json['collection_title']
+        collection_description = request.json['collection_desc']
+    except:
+        return jsonify(error='Missing some parameters')
 
-        if not username:
-            error = 'Username is required.'
-        elif not password:
-            error = 'Password is required.'
-        elif not collection_title:
-            error = 'Collection title is required.'
+    error = None
+    cursor = get_db_cursor()
+
+    if not email or not re.match("[^@]+@[^@]+.[^@]+", email):
+        error = 'Valid E-mail is required.'
+    elif not username:
+        error = 'Username is required.'
+    elif not password:
+        error = 'Password is required.'
+    elif not collection_title:
+        error = 'Collection title is required.'
+    else:
+        cursor.execute(
+            'SELECT id FROM user WHERE email = %s', (email,)
+        )
+        if cursor.fetchone() is not None:
+            error = 'User with email {} is already registered.'.format(email)
         else:
             cursor.execute(
                 'SELECT id FROM user WHERE username = %s', (username,)
             )
             if cursor.fetchone() is not None:
-                error = 'User {} is already registered.'.format(username)
+                error = 'User with name {} is already registered.'.format(username)
 
-        if error is None:
-            cursor.execute(
-                'INSERT INTO user (username, password) VALUES (%s, %s)',
-                (username, generate_password_hash(password))
-            )
-            id = cursor.lastrowid
-            cursor.execute(
-                'INSERT INTO collection (title, description, owner_id)'
-                ' VALUES (%s, %s, %s)',
-                (collection_title, collection_description, id)
-            )
-            db_commit()
-            return redirect(url_for('auth.login'))
+    if error is None:
+        cursor.execute(
+            'INSERT INTO user (email, username, password) VALUES (%s, %s, %s)',
+            (email, username, generate_password_hash(password))
+        )
+        id = cursor.lastrowid
+        cursor.execute(
+            'INSERT INTO collection (title, description, owner_id)'
+            ' VALUES (%s, %s, %s)',
+            (collection_title, collection_description, id)
+        )
+        db_commit()
+        return jsonify(result='success')
 
-        flash(error)
-
-    return render_template('auth/register.html')
+    return jsonify(error=error)
