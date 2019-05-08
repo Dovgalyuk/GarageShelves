@@ -95,6 +95,16 @@ def _logout():
     session.clear()
     return jsonify(error='No session')
 
+@bp.route('/get')
+def get():
+    id = int(request.args.get('id'))
+    cursor = get_db_cursor()
+
+    cursor.execute(
+        'SELECT username FROM user WHERE id = %s',
+        (id,)
+    )
+    return jsonify(cursor.fetchone())
 
 @bp.route('/set_username', methods=('POST',))
 @login_required

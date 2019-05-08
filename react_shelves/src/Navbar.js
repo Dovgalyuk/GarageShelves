@@ -41,31 +41,12 @@ class Navbar extends Component {
               ? <Nav href="#" onClick={this.handleLogout}>Logout</Nav>
               : <Nav href="/login">Login</Nav>
             }
-{/*            {% if g.user %}
-              <li className="nav-item {% if request.endpoint == ep %}active{% endif %}">
-                <a className="nav-link" href="{{ url_for('collection.view', id=g.user['col_id']) }}">{{ g.user['username'] }}</a>
-              </li>
-              {% if g.user.admin %}
-                {# global settings will be here #}
-              {% endif %}
-              {{ nav('auth.profile', 'Profile') }}
-              {{ nav('auth.logout', 'Sign out') }}
-              <li className="nav-item"></li>
-              <li className="nav-item dropdown">
-                <a className="nav-link dropdown-toggle" href="#" id="editCatalogDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  Edit catalog
-                </a>
-                <div className="dropdown-menu" aria-labelledby="editCatalogDropdown">
-                  <a className="dropdown-item" href="#" id="catalogItemJoin">Join</a>
-                  {% block menu %}
-                  {% endblock menu %}
-                </div>
-              </li>
-            {% else %}
-              {{ nav('auth.register', 'Register') }}
-              {{ nav('auth.login', 'Login') }}
-            {% endif %}
-*/}          
+            {this.props.auth.isAdmin
+              ? <li className="nav-item justify-content-end">
+                  <a className="nav-link" href="/changelog">Change log</a>
+                </li>
+              : <Nav></Nav>
+            }
           </ul>
         </div>
       </nav>

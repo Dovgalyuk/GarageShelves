@@ -68,7 +68,8 @@ CREATE TABLE catalog_history (
   catalog_id INTEGER NOT NULL,
   user_id INTEGER NOT NULL,
   field TEXT NOT NULL,
-  value TEXT NOT NULL,
+  value TEXT NULL,
+  old_value TEXT NULL,
 
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

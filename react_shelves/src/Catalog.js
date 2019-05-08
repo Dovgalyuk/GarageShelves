@@ -16,7 +16,7 @@ import FormOwn from './Forms/Own'
 import FormKitCreate from './Forms/KitCreate'
 import FormFamilySelect from './Forms/FamilySelect'
 
-class Logo extends Component {
+export class Logo extends Component {
     constructor(props) {
         super(props);
 

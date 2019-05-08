@@ -336,9 +336,10 @@ def _update():
         )
 #        if not g.user.admin:
         cursor.execute(
-            'INSERT INTO catalog_history (catalog_id, user_id, field, value)'
-            ' VALUES (%s, %s, %s, %s)',
-            (id, g.user['id'], field, value)
+            'INSERT INTO catalog_history'
+            ' (catalog_id, user_id, field, value, old_value)'
+            ' VALUES (%s, %s, %s, %s, %s)',
+            (id, g.user['id'], field, value, catalog[field])
         )
         db_commit()
     except:
