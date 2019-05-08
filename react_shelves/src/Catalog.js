@@ -61,7 +61,7 @@ export class Logo extends Component {
     render() {
         return (
           <div onDoubleClick={this.handleDoubleClick} >
-            { this.state.img_id
+            { this.state.img_id && this.state.img_id !== -1
                 ? <img src={ BackendURL('uploads/view', { id:this.state.img_id } ) }
                         alt="logo"
                    />
@@ -83,7 +83,7 @@ class CatalogItem extends Component {
         return <div className="col-4">
                  <div className="row pt-4">
                    <div className="col-3 align-self-center">
-                     <Logo id={this.props.item.id} img_id={this.props.item.logo_id} />
+                     <Logo id={this.props.item.id} img_id={this.props.item.logo_id ? this.props.item.logo_id : -1} />
                    </div>
                    <div className="col-9">
                      <a className="action" href={"/catalog/view/" + this.props.item.id}>
