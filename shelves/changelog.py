@@ -8,6 +8,19 @@ from shelves.db import get_db_cursor, db_commit
 
 bp = Blueprint('changelog', __name__, url_prefix='/changelog')
 
+def get_item(id):
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT * FROM catalog_history ch'
+        ' WHERE id = %s', (id,)
+        )
+    it = cursor.fetchone()
+    if it is None:
+        abort(403, "Catalog history id {0} doesn't exist.".format(id))
+
+    return it
+
+
 ###############################################################################
 # API Routes
 ###############################################################################
@@ -24,3 +37,41 @@ def list():
         ' ORDER BY ch.created'
         )
     return jsonify(cursor.fetchall())
+
+@bp.route('/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve():
+    id = int(request.args['id'])
+    item = get_item(id)
+
+    cursor = get_db_cursor()
+    cursor.execute(
+        'UPDATE catalog SET ' + item['field'] + ' = %s WHERE id = %s',
+        (item['value'], item['catalog_id'],)
+    )
+    cursor.execute(
+        'DELETE FROM catalog_history WHERE id = %s', (id,)
+    )
+    db_commit()
+
+    return jsonify(result='success')
+
+@bp.route('/undo', methods=['POST'])
+@login_required
+@admin_required
+def undo():
+    id = int(request.args['id'])
+    item = get_item(id)
+
+    cursor = get_db_cursor()
+    cursor.execute(
+        'UPDATE catalog SET ' + item['field'] + ' = %s WHERE id = %s',
+        (item['old_value'], item['catalog_id'],)
+    )
+    cursor.execute(
+        'DELETE FROM catalog_history WHERE id = %s', (id,)
+    )
+    db_commit()
+
+    return jsonify(result='success')
