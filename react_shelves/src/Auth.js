@@ -3,7 +3,7 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Alert from 'react-bootstrap/Alert'
 import Button from 'react-bootstrap/Button'
-import fetchBackend from './Backend'
+import { postBackend } from './Backend'
 
 export class Login extends Component {
   constructor(props) {
@@ -25,14 +25,15 @@ export class Login extends Component {
   handleSubmit = (event) => {
     event.preventDefault();
 
-    fetchBackend('auth/_login', this.state)
+    postBackend('auth/_login', {},
+          { login:this.state.login, password:this.state.password })
         .then(response => response.json())
         .then(response => {
             if (response.user_id > 0) {
                 this.props.auth.userHasAuthenticated(true);
                 this.props.history.push("/");
             } else {
-                throw new Error();
+                this.setState({alert:response.error})
             }
         })
         .catch(e => this.setState({alert:'Invalid login/password'}));
@@ -57,7 +58,9 @@ export class Login extends Component {
         }
         <form>
           <div className="form-group row">
-            <label className="col-2 control-label" htmlFor="login">Login</label>
+            <label className="col-2 control-label" htmlFor="login">
+              Login (E-mail)
+            </label>
             <div className="col-10">
               <input className="form-control" name="login" id="login"
                      value={this.state.login}

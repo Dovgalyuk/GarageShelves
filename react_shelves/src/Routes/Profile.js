@@ -4,7 +4,7 @@ import Col from 'react-bootstrap/Col'
 import Alert from 'react-bootstrap/Alert'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import fetchBackend from '../Backend'
+import { postBackend } from '../Backend'
 
 export class Profile extends Component {
   constructor(props) {
@@ -20,6 +20,12 @@ export class Profile extends Component {
     };
   }
 
+  componentDidUpdate() {
+    if (!this.props.auth.isAuthenticated) {
+        this.props.history.push("/");
+    }
+  }
+
   handleChange = (event) => {
     this.setState({
       [event.target.id]: event.target.value
@@ -30,11 +36,15 @@ export class Profile extends Component {
     event.preventDefault();
 
     // set username
-    fetchBackend('auth/set_username', {username:this.state.username})
+    postBackend('auth/set_username', {username:this.state.username})
         .then(response => response.json())
         .then(response => {
-            this.setState({alert:"Your changes were saved successfully", error:null});
-            this.props.auth.userHasAuthenticated(true);
+            if (response.error) {
+                this.setState({error:response.error, alert:null});
+            } else {
+                this.setState({alert:"Your changes were saved successfully", error:null});
+                this.props.auth.userHasAuthenticated(true);
+            }
         })
         .catch();
   }
@@ -43,7 +53,7 @@ export class Profile extends Component {
     event.preventDefault();
 
     // set password
-    fetchBackend('auth/set_password',
+    postBackend('auth/set_password',
             {old_password:this.state.old_password, new_password:this.state.new_password})
         .then(response => response.json())
         .then(response => {

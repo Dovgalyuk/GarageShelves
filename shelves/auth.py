@@ -57,10 +57,10 @@ def admin_required(view):
 # API Routes
 ###############################################################################
 
-@bp.route('/_login')
+@bp.route('/_login', methods=('POST',))
 def _login():
-    login = request.args.get('login').strip()
-    password = request.args.get('password').strip()
+    login = request.json.get('login').strip()
+    password = request.json.get('password').strip()
     cursor = get_db_cursor()
     error = None
     cursor.execute(
@@ -78,7 +78,7 @@ def _login():
         session['user_id'] = user['id']
         return jsonify(user_id=user['id'])
 
-    return jsonify(error='No session')
+    return jsonify(error=error)
 
 @bp.route('/_session')
 def _session():
@@ -90,16 +90,25 @@ def _session():
                    username=g.user['username'],
                    email=g.user['email'])
 
-@bp.route('/_logout')
+@bp.route('/_logout', methods=('POST',))
 def _logout():
     session.clear()
     return jsonify(error='No session')
 
-@bp.route('/set_username')
+
+@bp.route('/set_username', methods=('POST',))
 @login_required
 def set_username():
     username = request.args.get('username').strip()
     cursor = get_db_cursor()
+
+    cursor.execute(
+        'SELECT id FROM user WHERE username = %s AND id <> %s',
+        (username,g.user['id'],)
+    )
+    if cursor.fetchone() is not None:
+        return jsonify(error='User with name {} is already registered.'.format(username))
+
     cursor.execute(
         'UPDATE user SET username = %s WHERE id = %s',
         (username, g.user['id'])
@@ -107,7 +116,8 @@ def set_username():
     db_commit()
     return jsonify(result='success')
 
-@bp.route('/set_password')
+
+@bp.route('/set_password', methods=('POST',))
 @login_required
 def set_password():
     old_password = request.args.get('old_password').strip()
@@ -139,6 +149,7 @@ def set_password():
     )
     db_commit()
     return jsonify(result='success')
+
 
 @bp.route('/register', methods=('POST',))
 def register():

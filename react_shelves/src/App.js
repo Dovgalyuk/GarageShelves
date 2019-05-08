@@ -9,7 +9,7 @@ import { Catalog, CatalogView } from './Catalog';
 import { ItemView } from './Item';
 import Login from './Auth';
 import AppliedRoute from "./AppliedRoute";
-import fetchBackend from './Backend'
+import fetchBackend, { postBackend } from './Backend'
 
 class NotFound extends Component {
   render() { return "Not found"; }
@@ -62,7 +62,7 @@ class App extends Component {
 
   userHasAuthenticated = authenticated => {
       if (!authenticated) {
-          fetchBackend('auth/_logout')
+          postBackend('auth/_logout')
               .catch(error => {})
               .finally(() => this.logout());
       }
