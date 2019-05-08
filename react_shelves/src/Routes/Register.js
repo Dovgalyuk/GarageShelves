@@ -11,7 +11,6 @@ export class Register extends Component {
     super(props);
 
     this.state = {
-      alert: null,
       error: null,
       email: "",
       username: "",
@@ -44,9 +43,9 @@ export class Register extends Component {
         .then(response => {
             if (response.error) {
                 this.setState({error:response.error, alert:null});
-                //this.props.auth.userHasAuthenticated(true);
             } else {
-                this.setState({alert:"Registration successful", error:null});
+                this.props.auth.userHasAuthenticated(true);
+                this.props.history.push("/");
             }
         })
         .catch();
@@ -73,15 +72,6 @@ export class Register extends Component {
             <h1>Registration</h1>
           </div>
         </div>
-        { this.state.alert
-          && <Row>
-               <Col>
-                 <Alert variant="primary">
-                   {this.state.alert}
-                 </Alert>
-               </Col>
-             </Row>
-        }
         { this.state.error
           && <Row>
                <Col>

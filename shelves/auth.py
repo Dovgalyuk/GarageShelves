@@ -142,7 +142,8 @@ def set_password():
 
 @bp.route('/register', methods=('POST',))
 def register():
-    print(request.json)
+    if not g.user is None:
+        return jsonify(error='Please logout before registering')
     try:
         email = request.json['email'].strip()
         username = request.json['username'].strip()
@@ -189,6 +190,8 @@ def register():
             (collection_title, collection_description, id)
         )
         db_commit()
+        session.clear()
+        session['user_id'] = id
         return jsonify(result='success')
 
     return jsonify(error=error)
