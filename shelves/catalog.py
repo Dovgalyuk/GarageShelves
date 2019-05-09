@@ -334,13 +334,13 @@ def _update():
             'UPDATE catalog SET ' + field + ' = %s WHERE id = %s',
             (value, id)
         )
-#        if not g.user.admin:
-        cursor.execute(
-            'INSERT INTO catalog_history'
-            ' (catalog_id, user_id, field, value, old_value)'
-            ' VALUES (%s, %s, %s, %s, %s)',
-            (id, g.user['id'], field, value, catalog[field])
-        )
+        if not g.user['admin']:
+            cursor.execute(
+                'INSERT INTO catalog_history'
+                ' (catalog_id, user_id, field, value, old_value)'
+                ' VALUES (%s, %s, %s, %s, %s)',
+                (id, g.user['id'], field, value, catalog[field])
+            )
         db_commit()
     except:
         db_rollback()
