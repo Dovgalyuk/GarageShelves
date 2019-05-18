@@ -43,7 +43,7 @@ class Navbar extends Component {
             }
             {this.props.auth.isAdmin
               ? <li className="nav-item justify-content-end">
-                  <a className="nav-link" href="/changelog">Change log</a>
+                  <a className="nav-link" href="/changelog">Changes log</a>
                 </li>
               : <Nav></Nav>
             }

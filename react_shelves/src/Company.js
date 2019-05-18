@@ -5,7 +5,7 @@ import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
-import EditText from './EditText'
+import EditText from './Editors/Text'
 import FormCompanyCreate from './Forms/CompanyCreate'
 
 function CompanyLogo(props) {

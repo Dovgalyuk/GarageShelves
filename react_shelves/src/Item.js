@@ -4,7 +4,7 @@ import ImageListSection from './Image'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
-import EditText from './EditText'
+import EditText from './Editors/Text'
 
 function ItemLogo(props) {
     var size = props.is_main === 1 ? 240 : 60;
