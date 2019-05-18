@@ -38,9 +38,11 @@ export default class EditText extends Component {
   }
 
   _activateEditMode = () => {
-    this.setState({
-      editing: true
-    })
+    if (!this.props.canEdit || this.props.canEdit()) {
+      this.setState({
+        editing: true
+      })
+    }
   }
 
   _onSave = () => {
@@ -129,13 +131,15 @@ export default class EditText extends Component {
   _renderValue = () => {
     if (this.props.type === 'markdown') {
       var val = this.state.value;
-      if (val === "")
-        return (<Button variant="link"
-                  ref={this.editButton}
-                  onClick={this._activateEditMode}
-                >
-                  <i className="fas fa-edit" />
-                </Button>);
+      if (val === ""
+          && (!this.props.canEdit || this.props.canEdit())) {
+          return (<Button variant="link"
+                    ref={this.editButton}
+                    onClick={this._activateEditMode}
+                  >
+                    <i className="fas fa-edit" />
+                  </Button>);
+      }
       return <ReactMarkdown source={ val } />;
     } else {
       return (<Fragment>
@@ -191,4 +195,5 @@ EditText.propTypes = {
   // Events
   onCancel: PropTypes.func,
   onSave: PropTypes.func.isRequired,
+  canEdit: PropTypes.func,
 }

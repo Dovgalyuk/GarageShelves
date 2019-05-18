@@ -68,9 +68,10 @@ export class Logo extends Component {
                 : <span className="text-muted"><i className="fas fa-laptop fa-4x"></i></span>
             }
             {(this.props.main && this.props.auth.isAdmin)
-                && <input type="file" style={{display: "none"}}
+                ? <input type="file" style={{display: "none"}}
                           ref={(ref) => {this.inputRef = ref;}}
                           onChange={this.handleUpload} />
+                : <div/>
             }
           </div>
         );
@@ -96,15 +97,19 @@ class CatalogItem extends Component {
                     <span className="badge badge-secondary">{this.props.item.year}</span>
                     &nbsp;
                     {this.props.item.company
-                        && <a className="text-secondary"
+                        ? <a className="text-secondary"
                             href={"/company/view/" + this.props.item.company_id}>
                             {this.props.item.company}
-                        </a>}
+                          </a>
+                        : <div/>}
                     &nbsp;
                     {this.props.item.count > 0
-                        && <span className="badge badge-secondary">{
+                        ? <span className="badge badge-secondary">{
                             this.props.item.count + ' item' + (this.props.item.count > 1 ? 's' : '')
-                        }</span>}
+                            }
+                          </span>
+                        : <div/>
+                    }
                  </p>
                  </div></div>
                </div>;
@@ -163,8 +168,8 @@ export class CatalogListSection extends Component {
             );
         }
         return <Fragment>
-                 { (this.state.rows.length > 0 || this.props.addButton) &&
-                   <Row>
+                 { (this.state.rows.length > 0 || this.props.addButton)
+                   && <Row>
                      <Col>
                        <h3 className="pt-4">
                          {this.props.title} &nbsp;
@@ -172,10 +177,11 @@ export class CatalogListSection extends Component {
                             && this.props.auth
                             && this.props.auth.isAuthenticated
                             && this.props.auth.isAdmin)
-                         && <Button type="button" className="btn btn-primary"
+                         ? <Button type="button" className="btn btn-primary"
                                     onClick={this.handleCreateButton}>
                              Add new
                            </Button>
+                         : <div/>
                        }
                        </h3>
                      </Col>
@@ -186,10 +192,11 @@ export class CatalogListSection extends Component {
                  { (this.props.addButton && this.props.auth
                     && this.props.auth.isAuthenticated
                     && this.props.auth.isAdmin)
-                    && <FormCatalogCreate open={this.state.showFormCreate}
+                    ? <FormCatalogCreate open={this.state.showFormCreate}
                            onClose={this.handleFormCreateClose}
                            handleUpdateItems={this.handleUpdate}
                            {...this.props.filter} />
+                    : <div/>
                  }
                </Fragment>;
     }
@@ -253,18 +260,20 @@ class CatalogFamilies extends Component {
             <Fragment>
                 <ListGroup>
                   { this.state.families.length > 0
-                    && <ListGroup.Item className="border-0 pt-0 pb-0" key={-1}>
+                    ? <ListGroup.Item className="border-0 pt-0 pb-0" key={-1}>
                         In families
                       </ListGroup.Item>
+                    : <div/>
                   }
                   { this.state.families.map((f) =>
                       <ListGroup.Item key={f.id}
                             className="border-0 pt-0 pb-0">
-                        {this.props.auth.isAdmin &&
-                          <Button variant="outline-danger"
+                        {this.props.auth.isAdmin
+                          ? <Button variant="outline-danger"
                                   onClick={() => this.handleDelete(f.id)}>
-                            <i className="fas fa-trash-alt"/>
-                          </Button>
+                              <i className="fas fa-trash-alt"/>
+                            </Button>
+                          : <div/>
                         }
                         &nbsp;
                         <a href={"/catalog/view/" + f.id}>
@@ -274,7 +283,7 @@ class CatalogFamilies extends Component {
                     )
                   }
                   { this.props.auth.isAdmin
-                    && <ListGroup.Item className="border-0 pt-0 pb-0" key={-2}>
+                    ? <ListGroup.Item className="border-0 pt-0 pb-0" key={-2}>
                         <Button variant="outline-primary"
                                 onClick={this.handleAdd}>
                           <i className="fas fa-plus"/>
@@ -282,12 +291,14 @@ class CatalogFamilies extends Component {
                         &nbsp;
                         Add to family
                       </ListGroup.Item>
+                    : <div/>
                   }
                 </ListGroup>
-                { (this.props.auth.isAuthenticated && this.props.auth.isAdmin) &&
-                    <FormFamilySelect open={this.state.showForm}
+                { (this.props.auth.isAuthenticated && this.props.auth.isAdmin)
+                    ? <FormFamilySelect open={this.state.showForm}
                              onClose={this.handleFormClose}
                              onSelect={this.handleFormSelect} />
+                    : <div/>
                 }
             </Fragment>
         );
@@ -322,6 +333,10 @@ export class CatalogView extends Component {
     handleEditField = (field, value) => {
         postBackend('catalog/_update', {id:this.props.match.params.id},
             {field:field, value:value});
+    }
+
+    canEdit = () => {
+        return this.props.auth.isAuthenticated && !this.state.loading;
     }
 
     handleOwnButton = event => {
@@ -415,10 +430,12 @@ export class CatalogView extends Component {
                         <EditText prefix={catalog.type_title + " : "}
                              value={ catalog.title_eng ? catalog.title_eng : catalog.title }
                              hint="English title"
+                             canEdit = {this.canEdit}
                              onSave={v => this.handleEditField("title_eng", v)}/>
                       </h1>
                       <h4 className="text-secondary">
                          <EditText value={ catalog.title } hint="Native title"
+                                   canEdit = {this.canEdit}
                                    onSave={v => this.handleEditField("title", v)}/>
                       </h4>
                       <div className="text-secondary">
@@ -426,6 +443,7 @@ export class CatalogView extends Component {
                           <span className="badge badge-secondary">
                             <EditText value={ catalog.year || "" }
                                       hint="Start of production year" type="number"
+                                      canEdit = {this.canEdit}
                                       onSave={v => this.handleEditField("year", v)}/>
                           </span>
                           &nbsp;by&nbsp;
@@ -434,6 +452,7 @@ export class CatalogView extends Component {
                                         hint={"Company name"}
                                         defaultValue={-1}
                                         defaultName="Unknown"
+                                        canEdit = {this.canEdit}
                                         onLoadList={this.handleLoadCompanies}
                                         onSave={v => this.handleEditField("company_id", v)}
                                         onRender={this.handleCompanyRender}
@@ -476,6 +495,7 @@ export class CatalogView extends Component {
                     <h3 className="pt-4">Description</h3>
                     <EditText value={catalog.description}
                         type="markdown" hint="Catalog item description"
+                        canEdit = {this.canEdit}
                         onSave={v => this.handleEditField("description", v)}
                         inputProps={{rows:10, cols:80}}/>
                   </div>
@@ -484,48 +504,54 @@ export class CatalogView extends Component {
                 <ImageListSection id={ catalog.id } entity="catalog"
                     title="Catalog item images" auth={this.props.auth} />
 
-                { catalog.is_group === 1 &&
-                  <CatalogListSection
-                    ref={(ref) => {this.familiesRef = ref;}}
-                    filter={ {parent:catalog.id, notype:true, is_group:true} }
-                    title="Includes the families" />
+                { catalog.is_group === 1
+                  ? <CatalogListSection
+                      ref={(ref) => {this.familiesRef = ref;}}
+                      filter={ {parent:catalog.id, notype:true, is_group:true} }
+                      title="Includes the families" />
+                  : <div/>
                 }
-                { catalog.is_physical === 1 &&
-                  <CatalogListSection
-                    ref={(ref) => {this.kitsRef = ref;}}
-                    filter={ {type_name:"Kit", notype:true, includes:catalog.id} }
-                    title="Kits with this item" />
+                { catalog.is_physical === 1
+                  ? <CatalogListSection
+                      ref={(ref) => {this.kitsRef = ref;}}
+                      filter={ {type_name:"Kit", notype:true, includes:catalog.id} }
+                      title="Kits with this item" />
+                  : <div/>
                 }
                 <CatalogListSection
                     ref={(ref) => {this.childrenRef = ref;}}
                     filter={ {parent:catalog.id} }
                     title="Includes the following catalog items" />
 
-                { this.props.auth.isAuthenticated &&
-                    <ItemListSection
+                { this.props.auth.isAuthenticated
+                    ? <ItemListSection
                         ref={(ref) => {this.itemsRef = ref;}}
                         filter={ {catalog:catalog.id, user:this.props.auth.user_id} }
                         title="Items in your collection" />
+                    : <div/>
                 }
               </Container>
-              { this.props.auth.isAuthenticated &&
-                <FormOwn open={this.state.showFormOwn}
+              { this.props.auth.isAuthenticated
+                ? <FormOwn open={this.state.showFormOwn}
                          onClose={this.handleFormOwnClose}
                          handleUpdateItems={this.handleUpdateItems}
                          id={catalog.id} />
+                : <div/>
               }
-              { (this.props.auth.isAuthenticated && this.props.auth.isAdmin) &&
-                <FormCatalogCreate open={this.state.showFormCreateSubitem}
+              { (this.props.auth.isAuthenticated && this.props.auth.isAdmin)
+                ? <FormCatalogCreate open={this.state.showFormCreateSubitem}
                          onClose={this.handleFormCreateSubitemClose}
                          handleUpdateItems={this.handleUpdateCatalogItems}
                          parent={catalog.id} />
+                : <div/>
               }
-              { (this.props.auth.isAuthenticated && this.props.auth.isAdmin) &&
-                <FormKitCreate open={this.state.showFormCreateKit}
+              { (this.props.auth.isAuthenticated && this.props.auth.isAdmin)
+                ? <FormKitCreate open={this.state.showFormCreateKit}
                          onClose={this.handleFormCreateKitClose}
                          handleUpdateItems={this.handleUpdateKitItems}
                          main_id={catalog.id}
                          main_title={catalog.title_eng || catalog.title} />
+                : <div/>
               }
             </Fragment>
         );

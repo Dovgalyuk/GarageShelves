@@ -126,8 +126,9 @@ export default class EditDropDown extends Component {
       nameElem = this.props.onRender(this.state.value, this.state.name);
     else
       nameElem = <span> { name } </span>;
+    var canEdit = !this.props.canEdit || this.props.canEdit();
     return (
-      <span onDoubleClick={this._activateEditMode}>
+      <span onDoubleClick={canEdit ? this._activateEditMode : null}>
         {this.props.hint
           ? <OverlayTrigger
               placement="bottom"
@@ -137,13 +138,16 @@ export default class EditDropDown extends Component {
             </OverlayTrigger>
           : { nameElem }
         }
-        <Button
-          ref={this.editButton}
-          variant="link"
-          onClick={this._activateEditMode}
-        >
-          <i className="fas fa-edit" />
-        </Button>
+        { canEdit
+          ? <Button
+              ref={this.editButton}
+              variant="link"
+              onClick={this._activateEditMode}
+            >
+              <i className="fas fa-edit" />
+            </Button>
+          : <div/>
+        }
       </span>
     )
   }
@@ -172,4 +176,5 @@ EditDropDown.propTypes = {
   onLoadList: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
   onRender: PropTypes.func,
+  canEdit: PropTypes.func,
 }

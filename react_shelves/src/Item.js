@@ -24,7 +24,7 @@ function Item(props) {
     return <div className={"col-" + size + " align-self-center"}>
              <ItemLogo id={props.item.id} img_id={props.item.img_id}
                        is_main={props.is_main} />
-             { props.is_main === 1 && <br /> }
+             { props.is_main === 1 ? <br /> : <div/> }
              <strong><a className={"action" + (props.is_main === 1 ? " fa-2x" : "")}
                         href={"/item/view/" + props.item.id}>
                {props.item.type_title + " : "
@@ -93,17 +93,19 @@ export class ItemListSection extends Component {
             );
         }
         return <Fragment>
-                 {(this.state.rows.length > 0 || this.state.main.length > 0) &&
-                   <Row><Col>
-                     <h3 className="pt-4">
-                       {this.props.title}
-                     </h3>
-                   </Col></Row>
+                 {(this.state.rows.length > 0 || this.state.main.length > 0)
+                   ? <Row><Col>
+                       <h3 className="pt-4">
+                         {this.props.title}
+                       </h3>
+                     </Col></Row>
+                   : <div/>
                  }
-                 {this.state.main.length > 0 &&
-                    <Row className="pt-4">
-                      <Item item={this.state.main[0]} is_main={1} />
-                    </Row>
+                 {this.state.main.length > 0
+                   ? <Row className="pt-4">
+                       <Item item={this.state.main[0]} is_main={1} />
+                     </Row>
+                   : <div/>
                  }
                  {this.state.rows.map((row) =>
                     <ItemListRow key={row[0].id/*TODO*/} row={row} />)
@@ -139,6 +141,11 @@ export class ItemView extends Component {
             {field:field, value:value});
     }
 
+    canEdit = () => {
+        return this.props.auth.isAuthenticated
+              && this.props.auth.user_id == this.state.item.owner_id;
+    }
+
     render() {
         if (this.state.loading) {
             return (
@@ -169,6 +176,7 @@ export class ItemView extends Component {
               <Row>
                 <Col xs={4}>
                   <EditText value={ item.internal_id } hint="Internal id of the item"
+                            canEdit={this.canEdit}
                             onSave={v => this.handleEditField("internal_id", v)}
                             prefix="Internal id "/>
                 </Col>
@@ -180,6 +188,7 @@ export class ItemView extends Component {
               <Col>
                 <h3 className="pt-4">Description</h3>
                 <EditText value={item.description}
+                    canEdit={this.canEdit}
                     type="markdown" hint="Item description"
                     onSave={v => this.handleEditField("description", v)}
                     inputProps={{rows:10, cols:80}}/>
