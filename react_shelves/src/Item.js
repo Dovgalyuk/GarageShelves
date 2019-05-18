@@ -143,7 +143,7 @@ export class ItemView extends Component {
 
     canEdit = () => {
         return this.props.auth.isAuthenticated
-              && this.props.auth.user_id == this.state.item.owner_id;
+              && this.props.auth.user_id === this.state.item.owner_id;
     }
 
     render() {

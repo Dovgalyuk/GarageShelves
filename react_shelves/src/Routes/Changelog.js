@@ -1,9 +1,37 @@
 import React, { Component, Fragment } from 'react';
+import ReactMarkdown from 'react-markdown';
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 import fetchBackend, { postBackend } from '../Backend'
 import { Logo } from '../Catalog'
+
+function ChangeField(props) {
+    if (props.field === "year") {
+        return (
+            <Fragment>
+                Year from&nbsp;
+                <span className="badge badge-secondary">{props.old_value}</span>
+                &nbsp;to <span className="badge badge-secondary">{props.value}</span>
+            </Fragment>);
+    }
+    if (props.field === "description") {
+        return (
+            <Fragment>
+                Description
+                <hr />
+                <ReactMarkdown source={ props.old_value } />
+                <hr />
+                <ReactMarkdown source={ props.value } />
+                <hr />
+            </Fragment>);
+    }
+    return (<Fragment>
+                <p>Field={props.field}</p>
+                <p>Old Value={props.old_value}</p>
+                <p>Value={props.value}</p>
+            </Fragment>);
+}
 
 class ChangeItem extends Component {
     constructor(props) {
@@ -59,11 +87,11 @@ class ChangeItem extends Component {
                           {this.state.catalog.title_eng ? this.state.catalog.title_eng : this.state.catalog.title}</h5>
                     </a>
                 }
-                <p>Field={this.props.item.field}</p>
-                <p>Old Value={this.props.item.old_value}</p>
-                <p>Value={this.props.item.value}</p>
+                <ChangeField field={this.props.item.field}
+                             old_value={this.props.item.old_value}
+                             value={this.props.item.value} />
                 { !this.state.loadingUser &&
-                  <p>Changed by <span class="font-italic">{this.state.user.username}</span> at <span class="font-italic">{this.props.item.created}</span>
+                  <p>Changed by <span className="font-italic">{this.state.user.username}</span> at <span className="font-italic">{this.props.item.created}</span>
                   </p>
                 }
               </Col>
@@ -77,6 +105,7 @@ class ChangeItem extends Component {
                       onClick={this.handleUndo}>
                   Undo
                 </Button>
+                &nbsp;
               </Col>
             </Row>
         );
