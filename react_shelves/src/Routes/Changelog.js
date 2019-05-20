@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
+import ReactDiffViewer from 'react-diff-viewer'
 import fetchBackend, { postBackend } from '../Backend'
 import { Logo } from '../Catalog'
 
@@ -19,11 +20,12 @@ function ChangeField(props) {
         return (
             <Fragment>
                 Description
-                <hr />
-                <ReactMarkdown source={ props.old_value } />
-                <hr />
-                <ReactMarkdown source={ props.value } />
-                <hr />
+                <ReactDiffViewer
+                    oldValue={props.old_value}
+                    newValue={props.value}
+                    splitView={false}
+                    hideLineNumbers={true}
+                />
             </Fragment>);
     }
     return (<Fragment>
