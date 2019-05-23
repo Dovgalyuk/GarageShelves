@@ -106,6 +106,22 @@ def get_catalog_type_id(name):
 
     return ct['id']
 
+def create_catalog(cursor, type_id, title, title_eng, description, year, company_id):
+    cursor.execute(
+        'INSERT INTO catalog (type_id, title, title_eng, description, year, company_id)'
+        ' VALUES (%s, %s, %s, %s, %s, %s)',
+        (type_id, title, title_eng, description, year, company_id)
+    )
+    catalog_id = cursor.lastrowid
+    if not g.user['admin']:
+        cursor.execute(
+            'INSERT INTO catalog_history'
+            ' (catalog_id, user_id, field, value, old_value)'
+            ' VALUES (%s, %s, %s, %s, %s)',
+            (catalog_id, g.user['id'], "create", "", "")
+        )
+    return catalog_id
+
 ###############################################################################
 # API Routes
 ###############################################################################
@@ -350,7 +366,6 @@ def _update():
 
 @bp.route('/_create', methods=('POST',))
 @login_required
-@admin_required
 def _create():
     error = None;
     type_id = request.json['type_id']
@@ -383,12 +398,9 @@ def _create():
 
     try:
         cursor = get_db_cursor()
-        cursor.execute(
-            'INSERT INTO catalog (type_id, title, title_eng, description, year, company_id)'
-            ' VALUES (%s, %s, %s, %s, %s, %s)',
-            (type_id, title, title_eng, description, year, company_id)
-        )
-        catalog_id = cursor.lastrowid
+        catalog_id = create_catalog(cursor,
+            type_id, title, title_eng, description, year, company_id)
+
         if 'parent' in request.json:
             parent = int(request.json['parent'])
             # validate the parent
@@ -408,7 +420,6 @@ def _create():
 
 @bp.route('/_create_kit', methods=('POST',))
 @login_required
-@admin_required
 def _create_kit():
     id = int(request.args['id'])
     catalog = get_catalog(id)
@@ -424,12 +435,8 @@ def _create_kit():
 
     try:
         cursor = get_db_cursor()
-        cursor.execute(
-            'INSERT INTO catalog (type_id, title, title_eng, description, company_id)'
-            ' VALUES (%s, %s, %s, %s, %s)',
-            (kit_type, title, title_eng, '', catalog['company_id'],)
-        )
-        kit_id = cursor.lastrowid
+        kit_id = create_catalog(cursor,
+            kit_type, title, title_eng, '', None, catalog['company_id'])
 
         # Add main item into the kit
         cursor.execute(
@@ -447,12 +454,8 @@ def _create_kit():
             ct = get_catalog_type(type_id)
             if not ct['is_physical']:
                 abort(403)
-            cursor.execute(
-                'INSERT INTO catalog (type_id, title, description, company_id)'
-                ' VALUES (%s, %s, %s, %s)',
-                (type_id, title_item, '', catalog['company_id'],)
-            )
-            item_id = cursor.lastrowid
+            item_id = create_catalog(cursor,
+                type_id, title_item, '', '', None, catalog['company_id'])
             cursor.execute(
                 'INSERT INTO catalog_relation'
                 ' (catalog_id1, catalog_id2, type)'

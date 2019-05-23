@@ -175,8 +175,7 @@ export class CatalogListSection extends Component {
                          {this.props.title} &nbsp;
                        { (this.props.addButton
                             && this.props.auth
-                            && this.props.auth.isAuthenticated
-                            && this.props.auth.isAdmin)
+                            && this.props.auth.isAuthenticated)
                          ? <Button type="button" className="btn btn-primary"
                                     onClick={this.handleCreateButton}>
                              Add new
@@ -190,8 +189,7 @@ export class CatalogListSection extends Component {
                  {this.state.rows.map((row) =>
                     <CatalogListRow key={row[0].id/*TODO*/} row={row} notype={this.props.filter.notype}/>)}
                  { (this.props.addButton && this.props.auth
-                    && this.props.auth.isAuthenticated
-                    && this.props.auth.isAdmin)
+                    && this.props.auth.isAuthenticated)
                     ? <FormCatalogCreate open={this.state.showFormCreate}
                            onClose={this.handleFormCreateClose}
                            handleUpdateItems={this.handleUpdate}
@@ -462,7 +460,7 @@ export class CatalogView extends Component {
                       <CatalogFamilies id={catalog.id} auth={this.props.auth}/>
                     </Col>
                     <Col xs={1} className="align-self-top">
-                    { (this.props.auth.isAuthenticated && this.props.auth.isAdmin)
+                    { (this.props.auth.isAuthenticated)
                       ? <Button variant="primary"
                                 onClick={this.handleCreateSubitemButton}>
                           Create subitem
@@ -470,8 +468,7 @@ export class CatalogView extends Component {
                       : <span/>
                     }
                     &nbsp;
-                    { (this.props.auth.isAuthenticated && this.props.auth.isAdmin
-                        && catalog.is_physical)
+                    { (this.props.auth.isAuthenticated && catalog.is_physical)
                       ? <Button variant="primary"
                                 onClick={this.handleCreateKitButton}>
                           Create kit
@@ -538,14 +535,14 @@ export class CatalogView extends Component {
                          id={catalog.id} />
                 : <div/>
               }
-              { (this.props.auth.isAuthenticated && this.props.auth.isAdmin)
+              { (this.props.auth.isAuthenticated)
                 ? <FormCatalogCreate open={this.state.showFormCreateSubitem}
                          onClose={this.handleFormCreateSubitemClose}
                          handleUpdateItems={this.handleUpdateCatalogItems}
                          parent={catalog.id} />
                 : <div/>
               }
-              { (this.props.auth.isAuthenticated && this.props.auth.isAdmin)
+              { (this.props.auth.isAuthenticated)
                 ? <FormKitCreate open={this.state.showFormCreateKit}
                          onClose={this.handleFormCreateKitClose}
                          handleUpdateItems={this.handleUpdateKitItems}

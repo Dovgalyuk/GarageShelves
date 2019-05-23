@@ -104,6 +104,9 @@ function ChangeField(props) {
     if (props.field === "company_id") {
         return <ChangeCompany company1={props.old_value} company2={props.value} />;
     }
+    if (props.field === "create") {
+        return "";
+    }
     return (<Fragment>
                 <p>Field={props.field}</p>
                 <p>Old Value={props.old_value}</p>
@@ -158,18 +161,22 @@ class ChangeItem extends Component {
                 <Logo id={this.props.item.catalog_id} />
               </Col>
               <Col>
-                { !this.state.loadingCatalog &&
-                    <a className="action" href={"/catalog/view/" + this.props.item.id}>
-                      <h5>{this.state.catalog.type_title
+                { !this.state.loadingCatalog
+                    ? <h5>
+                        {this.props.item.field === "create" ? "Created " : "Changed "}
+                        <a className="action" href={"/catalog/view/" + this.props.item.id}>
+                          {this.state.catalog.type_title
                                ? this.state.catalog.type_title + " : " : ""}
-                          {this.state.catalog.title_eng ? this.state.catalog.title_eng : this.state.catalog.title}</h5>
-                    </a>
+                          {this.state.catalog.title_eng ? this.state.catalog.title_eng : this.state.catalog.title}
+                        </a>
+                      </h5>
+                    : ""
                 }
                 <ChangeField field={this.props.item.field}
                              old_value={this.props.item.old_value || ""}
                              value={this.props.item.value || ""} />
                 { !this.state.loadingUser &&
-                  <p>Changed by <span className="font-italic">{this.state.user.username}</span> at <span className="font-italic">{this.props.item.created}</span>
+                  <p>by <span className="font-italic">{this.state.user.username}</span> at <span className="font-italic">{this.props.item.created}</span>
                   </p>
                 }
                 <hr/>
@@ -180,11 +187,16 @@ class ChangeItem extends Component {
                   Approve
                 </Button>
                 &nbsp;
-                <Button variant="danger"
-                      onClick={this.handleUndo}>
-                  Undo
-                </Button>
-                &nbsp;
+                { this.props.item.field !== "create"
+                    ? <Fragment>
+                        <Button variant="danger"
+                          onClick={this.handleUndo}>
+                          Undo
+                        </Button>
+                        &nbsp;
+                      </Fragment>
+                    : ""
+                }
               </Col>
             </Row>
         );
