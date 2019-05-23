@@ -71,7 +71,7 @@ export class Logo extends Component {
                 ? <input type="file" style={{display: "none"}}
                           ref={(ref) => {this.inputRef = ref;}}
                           onChange={this.handleUpload} />
-                : <div/>
+                : ""
             }
           </div>
         );
@@ -101,14 +101,14 @@ class CatalogItem extends Component {
                             href={"/company/view/" + this.props.item.company_id}>
                             {this.props.item.company}
                           </a>
-                        : <div/>}
+                        : ""}
                     &nbsp;
                     {this.props.item.count > 0
                         ? <span className="badge badge-secondary">{
                             this.props.item.count + ' item' + (this.props.item.count > 1 ? 's' : '')
                             }
                           </span>
-                        : <div/>
+                        : ""
                     }
                  </p>
                  </div></div>
