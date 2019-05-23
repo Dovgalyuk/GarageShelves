@@ -4,11 +4,13 @@ import Navbar from './Navbar';
 import Profile from './Routes/Profile';
 import Register from './Routes/Register';
 import Changelog from './Routes/Changelog';
-import { Collections, CollectionView } from './Collection';
-import { Companies, CompanyView } from './Company';
+import CollectionView from './Routes/CollectionView';
+import Collections from './Routes/Collections';
+import CompanyView from "./Routes/CompanyView";
+import Companies from "./Routes/Companies";
 import Catalog from './Routes/Catalog';
 import CatalogView from './Routes/CatalogView';
-import { ItemView } from './Item';
+import ItemView from './Routes/ItemView';
 import Login from './Auth';
 import AppliedRoute from "./AppliedRoute";
 import fetchBackend, { postBackend } from './Backend'
