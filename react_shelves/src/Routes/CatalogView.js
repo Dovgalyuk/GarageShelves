@@ -12,6 +12,7 @@ import EditText from '../Editors/Text'
 import EditDropDown from '../Editors/DropDown'
 import ImageListSection from '../Image'
 import { ItemListSection } from '../Item'
+import { CatalogComments } from '../Comment'
 
 export default class CatalogView extends Component {
     constructor(props) {
@@ -233,6 +234,8 @@ export default class CatalogView extends Component {
                         title="Items in your collection" />
                     : <div/>
                 }
+                <CatalogComments id={this.state.catalog.id}
+                                 auth={this.props.auth} />
               </Container>
               { this.props.auth.isAuthenticated
                 ? <FormOwn open={this.state.showFormOwn}

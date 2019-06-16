@@ -2,6 +2,9 @@ DROP DATABASE GarageShelves;
 CREATE DATABASE GarageShelves;
 USE GarageShelves;
 
+DROP TABLE IF EXISTS catalog_comment;
+DROP TABLE IF EXISTS item_comment;
+DROP TABLE IF EXISTS comment;
 DROP TABLE IF EXISTS catalog_history;
 DROP TABLE IF EXISTS catalog_attribute;
 DROP TABLE IF EXISTS catalog_relation;
@@ -134,6 +137,29 @@ CREATE TABLE item_relation (
 
   FOREIGN KEY (item_id1) REFERENCES item (id),
   FOREIGN KEY (item_id2) REFERENCES item (id)
+);
+
+CREATE TABLE comment (
+  id INTEGER PRIMARY KEY AUTO_INCREMENT,
+  user_id INTEGER NOT NULL,
+  message TEXT NOT NULL,
+  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (user_id) REFERENCES user (id)
+);
+
+CREATE TABLE catalog_comment (
+  comment_id INTEGER PRIMARY KEY NOT NULL,
+  ref_id INTEGER NOT NULL,
+  FOREIGN KEY (comment_id) REFERENCES comment (id),
+  FOREIGN KEY (ref_id) REFERENCES catalog (id)
+);
+
+CREATE TABLE item_comment (
+  comment_id INTEGER PRIMARY KEY NOT NULL,
+  ref_id INTEGER NOT NULL,
+  FOREIGN KEY (comment_id) REFERENCES comment (id),
+  FOREIGN KEY (ref_id) REFERENCES item (id)
 );
 
 -- default user

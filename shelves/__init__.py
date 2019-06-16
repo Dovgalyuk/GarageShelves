@@ -60,4 +60,7 @@ def create_app(test_config=None):
     from . import changelog
     app.register_blueprint(changelog.bp)
 
+    from . import comment
+    app.register_blueprint(comment.bp)
+
     return app
