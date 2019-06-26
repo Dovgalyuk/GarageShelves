@@ -36,7 +36,7 @@ def catalog():
             ' INNER JOIN catalog_comment cc ON cc.comment_id = c.id'
             ' INNER JOIN user u ON u.id = c.user_id'
             ' WHERE cc.ref_id = %s'
-            ' ORDER BY c.created', (id,)
+            ' ORDER BY c.created DESC', (id,)
             )
 
         return jsonify(cursor.fetchall())
@@ -77,7 +77,7 @@ def item():
             ' INNER JOIN item_comment ii ON ii.comment_id = c.id'
             ' INNER JOIN user u ON u.id = c.user_id'
             ' WHERE ii.ref_id = %s'
-            ' ORDER BY c.created', (id,)
+            ' ORDER BY c.created DESC', (id,)
             )
 
         return jsonify(cursor.fetchall())
