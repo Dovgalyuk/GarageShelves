@@ -83,7 +83,7 @@ class CommentEditor extends Component {
     onSend = () => {
       var value = this.state.value;
       this.setState({value:""});
-      postBackend('comment/catalog/add', {},
+      postBackend('comment/' + this.props.section + '/add', {},
         {id:this.props.id, comment:value})
         .catch(e => {})
         .finally(e => {this.props.onUpdate()});
@@ -109,25 +109,35 @@ class CommentEditor extends Component {
     }
 }
 
-export class CatalogComments extends Component {
-    // constructor(props) {
-    //     super(props);
-    // }
+class CommentsSection extends Component {
+  onUpdate = () => {
+      this.list.handleUpdate();
+  }
 
-    onUpdate = () => {
-        this.list.handleUpdate();
-    }
+  render() {
+      return (
+        <>
+          <CommentsHeader/>
+          <CommentList ref={(ref) => {this.list = ref;}}
+                       section={this.props.section} id={this.props.id} />
+          <CommentEditor section={this.props.section} auth={this.props.auth}
+                         id={this.props.id}
+                         onUpdate={this.onUpdate}/>
+        </>
+      );
+  }
+}
 
-    render() {
-        return (
-          <>
-            <CommentsHeader/>
-            <CommentList ref={(ref) => {this.list = ref;}}
-                         section="catalog" id={this.props.id} />
-            <CommentEditor section="catalog" auth={this.props.auth}
-                           id={this.props.id}
-                           onUpdate={this.onUpdate}/>
-          </>
-        );
-    }
+export function CatalogComments(props) {
+    return (
+        <CommentsSection section="catalog" auth={props.auth}
+                         id={props.id} />
+    );
+}
+
+export function ItemComments(props) {
+  return (
+      <CommentsSection section="item" auth={props.auth}
+                       id={props.id} />
+  );
 }

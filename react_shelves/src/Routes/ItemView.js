@@ -6,6 +6,7 @@ import fetchBackend, { postBackend } from '../Backend'
 import EditText from '../Editors/Text'
 import ImageListSection from '../Image'
 import { ItemListSection } from '../Item'
+import { ItemComments } from '../Comment'
 
 export default class ItemView extends Component {
     constructor(props) {
@@ -95,6 +96,8 @@ export default class ItemView extends Component {
                 filter={ {parent:item.id} }
                 title="Includes the items" />
 
+            <ItemComments id={item.id}
+                          auth={this.props.auth} />
           </Container>
         );
     }

@@ -65,3 +65,44 @@ def catalog_add():
         return jsonify(result='success')
     except:
         abort(400)
+
+@bp.route('/item')
+def item():
+    try:
+        id = request.args['id']
+        cursor = get_db_cursor()
+        cursor.execute(
+            'SELECT c.id, c.message, c.user_id, c.created,'
+            ' u.username FROM comment c'
+            ' INNER JOIN item_comment ii ON ii.comment_id = c.id'
+            ' INNER JOIN user u ON u.id = c.user_id'
+            ' WHERE ii.ref_id = %s'
+            ' ORDER BY c.created', (id,)
+            )
+
+        return jsonify(cursor.fetchall())
+    except:
+        abort(400)
+
+@bp.route('/item/add', methods=['POST'])
+@login_required
+def item_add():
+    try:
+        id = request.json['id']
+        comment = request.json['comment']
+        user_id = g.user['id']
+
+        cursor = get_db_cursor()
+        cursor.execute(
+            'INSERT INTO comment (user_id, message)'
+            ' VALUES (%s, %s)', (user_id, comment)
+        )
+        comment_id = cursor.lastrowid
+        cursor.execute(
+            'INSERT INTO item_comment (comment_id, ref_id)'
+            ' VALUES (%s, %s)', (comment_id, id)
+        )
+        db_commit()
+        return jsonify(result='success')
+    except:
+        abort(400)
