@@ -50,11 +50,14 @@ LoadModule wsgi_module "/usr/local/lib/python3.5/dist-packages/mod_wsgi/server/m
 
 ## Development
 
-Flask-based server
+Flask-based backend
 ```
-export FLASK_ENV=development
-export FLASK_APP=shelves
-python3 -m flask run
+./devel_be.sh
+```
+
+React-based frontend
+```
+./devel_fe.sh
 ```
 
 [React-based frontend](react_shelves/README.md)

@@ -17,16 +17,44 @@ function CommentsHeader() {
 
 function Comment(props) {
     return (
-      <Row>
-        <Col xs={1} sm={2}>
-          <h5>{props.comment.username}</h5>
-          <br/>
-          <span className="font-italic">{props.comment.created}</span>
-        </Col>
-        <Col>
-          <ReactMarkdown source={props.comment.message} />
-        </Col>
-      </Row>
+      <>
+        <Row>
+          <Col>
+            <span className="font-weight-bold">{props.comment.username} </span>
+            at
+            <span className="font-italic"> {props.comment.created}</span>
+              { props.showRefs ?
+                  <>
+                    <span> commented the {
+                      props.comment.catalog_id
+                        ? "catalog "
+                        : "collection "}
+                      item </span>
+                    <a href={
+                        props.comment.catalog_id
+                          ? "catalog/view/" + props.comment.catalog_id
+                          : "item/view/" + props.comment.item_id
+                    }>{
+                      props.comment.catalog_title_eng
+                        ? props.comment.catalog_title_eng
+                        : props.comment.catalog_title
+                    }</a>
+                  </>
+              : <div/>
+              }
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <ReactMarkdown className="border" source={props.comment.message} />
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            &nbsp;
+          </Col>
+        </Row>
+      </>
     );
 }
 
@@ -62,7 +90,8 @@ class CommentList extends Component {
           <>
             { this.state.list.map(c => <Comment key={c.id}
                                                 counter={++counter}
-                                                comment={c}/>) }
+                                                comment={c}
+                                                showRefs={this.props.showRefs}/>) }
           </>
         );
     }
@@ -139,5 +168,18 @@ export function ItemComments(props) {
   return (
       <CommentsSection section="item" auth={props.auth}
                        id={props.id} />
+  );
+}
+
+export function LatestComments(props) {
+  return (
+    <>
+      <Row>
+        <Col>
+          <h3 className="pt-4">Latest catalog and collection comments</h3>
+        </Col>
+      </Row>
+      <CommentList section="latest" showRefs={true} />
+    </>    
   );
 }

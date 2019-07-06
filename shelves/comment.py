@@ -106,3 +106,33 @@ def item_add():
         return jsonify(result='success')
     except:
         abort(400)
+
+@bp.route('/latest')
+def latest():
+    try:
+        cursor = get_db_cursor()
+        cursor.execute(
+            'SELECT c.id, c.message, c.user_id, c.created,'
+            ' u.username, cc.ref_id AS catalog_id, ic.ref_id AS item_id,'
+            ' CASE WHEN cat.title IS NOT NULL'
+            '   THEN cat.title'
+            '   ELSE icat.title'
+            ' END AS catalog_title,'
+            ' CASE WHEN cat.title_eng IS NOT NULL'
+            '   THEN cat.title_eng'
+            '   ELSE icat.title_eng'
+            ' END AS catalog_title_eng'
+            ' FROM comment c'
+            ' INNER JOIN user u ON u.id = c.user_id'
+            ' LEFT OUTER JOIN catalog_comment cc ON cc.comment_id = c.id'
+            ' LEFT OUTER JOIN catalog cat ON cc.ref_id = cat.id'
+            ' LEFT OUTER JOIN item_comment ic ON ic.comment_id = c.id'
+            ' LEFT OUTER JOIN item it ON ic.ref_id = it.id'
+            ' LEFT OUTER JOIN catalog icat ON it.catalog_id = icat.id'
+            ' ORDER BY c.created DESC'
+            ' LIMIT 10'
+            )
+
+        return jsonify(cursor.fetchall())
+    except:
+        abort(400)
