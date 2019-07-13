@@ -293,3 +293,12 @@ export class CatalogFamilies extends Component {
         );
     }
 }
+
+export function CatalogLatest(props) {
+    return (
+        <CatalogListSection
+            title="Latest added catalog items"
+            filter={{latest:10}}
+        />
+    );
+}

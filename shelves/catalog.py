@@ -165,6 +165,9 @@ def _filtered_list():
     noparent = request.args.get('noparent', False, type=bool)
     is_main = request.args.get('is_main', False, type=bool)
     is_group = request.args.get('is_group', False, type=bool)
+    latest = request.args.get('latest', -1, type=int)
+    if latest > 100:
+        return abort(400)
 
     cursor = get_db_cursor()
     query = 'SELECT c.id, c.title, c.title_eng,'                       \
@@ -180,9 +183,11 @@ def _filtered_list():
             ' LEFT JOIN catalog_attribute a_logo'                      \
             ' ON (c.id = a_logo.catalog_id AND a_logo.type = %s)'
     suffix = ' ORDER BY c.title'
+    # parameters are integer - insert them without escaping
+    if latest > 0:
+        suffix = ' ORDER BY c.created DESC LIMIT %d' % latest
     where = ' WHERE 1 = 1'
     params = (Relation.REL_INCLUDES,Attribute.ATTR_LOGO,)
-    # parameters are integer - insert them without escaping
     if company_id != -1:
         where += ' AND com.id = %d' % company_id
     if parent_id != -1:
