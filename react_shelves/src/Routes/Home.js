@@ -3,6 +3,7 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import { LatestComments } from '../Comment'
 import { CatalogLatest } from '../Catalog'
+import { ItemLatest } from '../Item'
 
 export class Home extends Component {
   render() {
@@ -25,6 +26,7 @@ export class Home extends Component {
       </Row>
       <LatestComments />
       <CatalogLatest />
+      <ItemLatest />
     </>);
   }
 }

@@ -27,6 +27,14 @@ function Item(props) {
                {props.item.type_title + " : "
                    + (props.item.title_eng ? props.item.title_eng : props.item.title) }
              </a></strong>
+             { props.item.username
+               ? <>
+                   <br/>{"Owned by "}
+                   <a href={"/collection/view/" + props.item.collection_id}>
+                     {props.item.username}
+                   </a>
+                 </>
+               : <div/>}
            </div>;
 }
 
@@ -111,3 +119,11 @@ export class ItemListSection extends Component {
     }
 }
 
+export function ItemLatest(props) {
+    return (
+        <ItemListSection
+          title="Latest collected items"
+          filter={{latest:10}}
+        />
+    );
+}

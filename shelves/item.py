@@ -55,17 +55,27 @@ def _filtered_list():
     collection_id = request.args.get('collection', -1, type=int)
     includes_catalog_id = request.args.get('includes_catalog', -1, type=int)
     is_main = request.args.get('is_main', -1, type=int)
+    latest = request.args.get('latest', -1, type=int)
+    if latest and latest > 100:
+        latest = 10
 
     cursor = get_db_cursor()
 
+    add_fields = ''
+    add_tables = ''
+    if latest > 0:
+        add_fields = ' u.username,'
+        add_tables = ' JOIN user u ON u.id = col.owner_id'
     query = 'SELECT i.id, i.description, c.id AS catalog_id,' \
             ' c.title, c.title_eng, ct.title AS type_title, added,'        \
             '       col.owner_id, i.internal_id, i.collection_id,' \
+            + add_fields + \
             '       (SELECT value_id FROM item_attribute '    \
             '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id' \
             ' FROM item i JOIN catalog c ON i.catalog_id = c.id' \
             ' JOIN catalog_type ct ON c.type_id = ct.id'         \
-            ' JOIN collection col ON i.collection_id = col.id'
+            ' JOIN collection col ON i.collection_id = col.id' \
+            + add_tables
 
     where = ' WHERE 1 = 1'
     params = (Attribute.ATTR_IMAGE,)
@@ -98,6 +108,9 @@ def _filtered_list():
                  ' WHERE type = %s AND catalog_id1 = c.id'     \
                  ' AND catalog_id2 = %s)'
         params = (*params, Relation.REL_INCLUDES, includes_catalog_id)
+
+    if latest > 0:
+        where += " ORDER BY i.added DESC LIMIT %d" % latest
     
     cursor.execute(query + where, params)
     #print(query + where)
