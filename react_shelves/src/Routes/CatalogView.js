@@ -7,7 +7,8 @@ import fetchBackend, { postBackend } from '../Backend'
 import FormCatalogCreate from '../Forms/CatalogCreate'
 import FormOwn from '../Forms/Own'
 import FormKitCreate from '../Forms/KitCreate'
-import { Logo, CatalogListSection, CatalogFamilies } from '../Catalog'
+import FormModificationCreate from '../Forms/ModificationCreate'
+import { Logo, CatalogListSection, CatalogFamilies, CatalogMain } from '../Catalog'
 import EditText from '../Editors/Text'
 import EditDropDown from '../Editors/DropDown'
 import ImageListSection from '../Image'
@@ -23,6 +24,7 @@ export default class CatalogView extends Component {
             showFormOwn:false,
             showFormCreateSubitem:false,
             showFormCreateKit:false,
+            showFormCreateModification:false,
         };
     }
 
@@ -68,6 +70,14 @@ export default class CatalogView extends Component {
         this.setState({showFormCreateSubitem:false});
     }
 
+    handleCreateModificationButton = event => {
+        this.setState({showFormCreateModification:true});
+    }
+
+    handleFormCreateModificationClose = event => {
+      this.setState({showFormCreateModification:false});
+    }
+
     handleUpdateItems = () => {
         if (this.itemsRef) {
             this.itemsRef.handleUpdate();
@@ -88,6 +98,12 @@ export default class CatalogView extends Component {
             this.kitsRef.handleUpdate();
         }
     }
+
+    handleUpdateModificationItems = () => {
+      if (this.modificationsRef) {
+          this.modificationsRef.handleUpdate();
+      }
+  }
 
     handleLoadCompanies = callback => {
         fetchBackend('company/_filtered_list', {})
@@ -112,6 +128,7 @@ export default class CatalogView extends Component {
             );
         }
         const catalog = this.state.catalog;
+        const is_software = catalog.type_title === 'Software';
         if (!catalog.id) {
             return (
             <div className="row">
@@ -143,6 +160,7 @@ export default class CatalogView extends Component {
                                    canEdit = {this.canEdit}
                                    onSave={v => this.handleEditField("title", v)}/>
                       </h4>
+                      <CatalogMain id={catalog.id} />
                       <div className="text-secondary">
                           Manufactured since&nbsp;
                           <span className="badge badge-secondary">
@@ -167,7 +185,8 @@ export default class CatalogView extends Component {
                       <CatalogFamilies id={catalog.id} auth={this.props.auth}/>
                     </Col>
                     <Col xs={1} className="align-self-top">
-                    { (this.props.auth.isAuthenticated)
+                    { this.props.auth.isAuthenticated
+                      && (catalog.is_group === 1 || catalog.is_kit === 1)
                       ? <Button variant="primary"
                                 onClick={this.handleCreateSubitemButton}>
                           Create subitem
@@ -175,10 +194,22 @@ export default class CatalogView extends Component {
                       : <span/>
                     }
                     &nbsp;
-                    { (this.props.auth.isAuthenticated && catalog.is_physical)
+                    { (this.props.auth.isAuthenticated
+                        && (catalog.is_physical
+                            /* There can be kits referencing to software */
+                            || is_software))
                       ? <Button variant="primary"
                                 onClick={this.handleCreateKitButton}>
                           Create kit
+                        </Button>
+                      : <span/>
+                    }
+                    &nbsp;
+                    { (this.props.auth.isAuthenticated
+                        && !catalog.is_kit && !catalog.is_group)
+                      ? <Button variant="primary"
+                                onClick={this.handleCreateModificationButton}>
+                          Create modification
                         </Button>
                       : <span/>
                     }
@@ -215,7 +246,7 @@ export default class CatalogView extends Component {
                       title="Includes the families" />
                   : <div/>
                 }
-                { catalog.is_physical === 1
+                { catalog.is_physical === 1 || is_software
                   ? <CatalogListSection
                       ref={(ref) => {this.kitsRef = ref;}}
                       filter={ {type_name:"Kit", notype:true, includes:catalog.id} }
@@ -226,6 +257,11 @@ export default class CatalogView extends Component {
                     ref={(ref) => {this.childrenRef = ref;}}
                     filter={ {parent:catalog.id} }
                     title="Includes the following catalog items" />
+
+                <CatalogListSection
+                    ref={(ref) => {this.modificationsRef = ref;}}
+                    filter={ {modification:1, main:catalog.id} }
+                    title="Catalog item modifications" />
 
                 { this.props.auth.isAuthenticated
                     ? <ItemListSection
@@ -244,7 +280,8 @@ export default class CatalogView extends Component {
                          id={catalog.id} />
                 : <div/>
               }
-              { (this.props.auth.isAuthenticated)
+              { this.props.auth.isAuthenticated
+                && (catalog.is_group === 1 || catalog.is_kit === 1)
                 ? <FormCatalogCreate open={this.state.showFormCreateSubitem}
                          onClose={this.handleFormCreateSubitemClose}
                          handleUpdateItems={this.handleUpdateCatalogItems}
@@ -255,6 +292,14 @@ export default class CatalogView extends Component {
                 ? <FormKitCreate open={this.state.showFormCreateKit}
                          onClose={this.handleFormCreateKitClose}
                          handleUpdateItems={this.handleUpdateKitItems}
+                         main_id={catalog.id}
+                         main_title={catalog.title_eng || catalog.title} />
+                : <div/>
+              }
+              { (this.props.auth.isAuthenticated)
+                ? <FormModificationCreate open={this.state.showFormCreateModification}
+                         onClose={this.handleFormCreateModificationClose}
+                         handleUpdateItems={this.handleUpdateModificationItems}
                          main_id={catalog.id}
                          main_title={catalog.title_eng || catalog.title} />
                 : <div/>

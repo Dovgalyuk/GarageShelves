@@ -152,6 +152,23 @@ def _get():
 
     return jsonify(catalog)
 
+@bp.route('/_get_main')
+def _get_main():
+    id = request.args.get('id', -1, type=int)
+
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT r.catalog_id1 AS id FROM catalog c'
+        ' LEFT JOIN catalog_relation r ON c.id = r.catalog_id2'
+        ' WHERE r.type = %s AND c.id = %s',
+        (Relation.REL_MODIFICATION, id,))
+    res = cursor.fetchone()
+    if res is None:
+        return jsonify(data=None)
+
+    catalog = get_catalog_full(res['id'])
+    return jsonify(catalog)
+
 @bp.route('/_filtered_list')
 def _filtered_list():
     company_id = request.args.get('company', -1, type=int)
@@ -164,6 +181,11 @@ def _filtered_list():
         type_id = get_catalog_type_id(type_name)
     noparent = request.args.get('noparent', False, type=bool)
     is_main = request.args.get('is_main', False, type=bool)
+
+    # modification flag and the possible referenced item
+    modification = request.args.get('modification', -1, type=int)
+    main_id = request.args.get('main', -1, type=int)
+
     is_group = request.args.get('is_group', False, type=bool)
     latest = request.args.get('latest', -1, type=int)
     if latest > 100:
@@ -191,13 +213,23 @@ def _filtered_list():
     if company_id != -1:
         where += ' AND com.id = %d' % company_id
     if parent_id != -1:
-        if is_main:
-            rel = Relation.REL_MAIN_ITEM
-        else:
-            rel = Relation.REL_INCLUDES
         where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
                  '      WHERE catalog_id1 = %s AND catalog_id2 = c.id AND type = %s)'
-        params = (*params, parent_id, rel,)
+        params = (*params, parent_id, Relation.REL_INCLUDES,)
+    if is_main:
+        where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
+                 '      WHERE catalog_id2 = c.id AND type = %s)'
+        params = (*params, Relation.REL_MAIN_ITEM,)
+    if modification != -1:
+        where += ' AND'
+        if modification == 0:
+            where += ' NOT'
+        where += ' EXISTS (SELECT 1 FROM catalog_relation WHERE'
+        if main_id != -1:
+            where += ' catalog_id1 = %s AND'
+            params = (*params, main_id,)
+        where += ' catalog_id2 = c.id AND type = %s)'
+        params = (*params, Relation.REL_MODIFICATION,)
     if includes_id != -1:
         query += ' JOIN catalog_relation r3 ON r3.catalog_id1 = c.id'
         where += ' AND r3.catalog_id2 = %d' % includes_id \
@@ -372,7 +404,7 @@ def _update():
 @bp.route('/_create', methods=('POST',))
 @login_required
 def _create():
-    error = None;
+    error = None
     type_id = request.json['type_id']
     title = request.json['title']
     title_eng = request.json['title_eng']
@@ -423,12 +455,56 @@ def _create():
 
     return jsonify(result='success')
 
+@bp.route('/_create_modification', methods=('POST',))
+@login_required
+def _create_modification():
+    error = None
+    id = int(request.args['id'])
+    catalog = get_catalog(id)
+    title = request.json['title']
+    title_eng = request.json['title_eng']
+    description = request.json['description']
+    year = None
+    if request.json['year'] != '':
+        try:
+            year = int(request.json['year'])
+            if year < 1500 or year > 2100:
+                error = 'Invalid year'
+        except:
+            error = 'Invalid year'
+
+    if title_eng is None or title_eng == "":
+        error = 'title_eng is required'
+
+    if error is not None:
+        abort(403)
+
+    try:
+        cursor = get_db_cursor()
+        catalog_id = create_catalog(cursor,
+            catalog['type_id'], title, title_eng, description,
+            year, catalog['company_id'])
+
+        cursor.execute(
+            'INSERT INTO catalog_relation'
+            ' (catalog_id1, catalog_id2, type)'
+            ' VALUES (%s, %s, %s)',
+            (id, catalog_id, Relation.REL_MODIFICATION)
+        )
+        db_commit()
+    except Exception as e:
+        print(e)
+        db_rollback()
+        abort(403)
+
+    return jsonify(result='success')
+
 @bp.route('/_create_kit', methods=('POST',))
 @login_required
 def _create_kit():
     id = int(request.args['id'])
     catalog = get_catalog(id)
-    if not catalog['is_physical']:
+    if not catalog['is_physical'] and catalog['type_title'] != 'Software':
         abort(403)
 
     kit_type = get_catalog_type_id('Kit')
@@ -453,7 +529,6 @@ def _create_kit():
         )
 
         for item in request.json['items']:
-            print(item)
             title_item = item['title']
             type_id = int(item['type'])
             ct = get_catalog_type(type_id)

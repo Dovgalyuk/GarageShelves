@@ -187,7 +187,7 @@ INSERT INTO catalog_type (title) VALUES ("Cable/Adapter");
 INSERT INTO catalog_type (title) VALUES ("Book");
 INSERT INTO catalog_type (title) VALUES ("Manual");
 INSERT INTO catalog_type (title) VALUES ("Schematics");
-INSERT INTO catalog_type (title) VALUES ("Software");
+INSERT INTO catalog_type (title, is_physical) VALUES ("Software", 0);
 INSERT INTO catalog_type (title) VALUES ("Data storage");
 INSERT INTO catalog_type (title) VALUES ("Other");
 

@@ -89,8 +89,8 @@ class FormOwn extends Component {
                     }
                     { this.state.items.map((c) =>
                       <Fragment key={c.id}>
-                        { c.is_physical &&
-                          <Form.Group as={Row}>
+                        { c.is_physical
+                          ? <Form.Group as={Row}>
                             <Col xs={3}>
                               <Form.Control type="text"
                                 id={"I" + c.id}
@@ -106,6 +106,7 @@ class FormOwn extends Component {
                                 onChange={e => this.handleCheckBox(e, c.id)} />
                             </Col>
                           </Form.Group>
+                          : <div/>
                         }
                       </Fragment>)
                     }
