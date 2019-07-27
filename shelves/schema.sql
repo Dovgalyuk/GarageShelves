@@ -1,4 +1,4 @@
-DROP DATABASE GarageShelves;
+# DROP DATABASE GarageShelves;
 CREATE DATABASE GarageShelves;
 USE GarageShelves;
 
