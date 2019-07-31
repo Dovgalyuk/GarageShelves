@@ -191,6 +191,8 @@ def _filtered_list():
     if latest > 100:
         return abort(400)
 
+    storage_id = request.args.get('storage', -1, type=int)
+
     cursor = get_db_cursor()
     query = 'SELECT c.id, c.title, c.title_eng,'                       \
             ' created, c.type_id,'                                     \
@@ -247,6 +249,11 @@ def _filtered_list():
         where += ' AND ct.is_group = TRUE'
     else:
         where += ' AND ct.is_group = FALSE'
+
+    if storage_id != -1:
+        where += ' AND EXISTS (SELECT 1 FROM catalog_item_relation' \
+                 '     WHERE catalog_id = c.id AND item_id = %s AND type = %s)'
+        params = (*params, storage_id, Relation.REL_STORED,)
 
     #print(query + where + suffix)
     #print(params)

@@ -139,6 +139,16 @@ CREATE TABLE item_relation (
   FOREIGN KEY (item_id2) REFERENCES item (id)
 );
 
+CREATE TABLE catalog_item_relation (
+  id INTEGER PRIMARY KEY AUTO_INCREMENT,
+  catalog_id INTEGER NOT NULL,
+  item_id INTEGER NOT NULL,
+  type INTEGER NOT NULL,
+
+  FOREIGN KEY (catalog_id) REFERENCES catalog (id),
+  FOREIGN KEY (item_id) REFERENCES item (id)
+);
+
 CREATE TABLE comment (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
   user_id INTEGER NOT NULL,

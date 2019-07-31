@@ -4,10 +4,11 @@ from flask import (
 from werkzeug.exceptions import abort
 
 from shelves.auth import (login_required)
-from shelves.db import get_db_cursor, db_commit
+from shelves.db import get_db_cursor, db_commit, db_rollback
 from shelves.uploads import upload_image
 from shelves.relation import Relation
 from shelves.attribute import Attribute
+from shelves.catalog import get_catalog
 
 bp = Blueprint('item', __name__, url_prefix='/item')
 
@@ -201,6 +202,33 @@ def _update():
         abort(403)
 
     return jsonify(result='success')
+
+@bp.route('/_add_software', methods=('POST',))
+@login_required
+def _add_software():
+    id = int(request.args['id'])
+    item = get_item(id)
+    if item['type_title'] != 'Data storage':
+        abort(403)
+    if not g.user['admin'] or (item['owner_id'] != g.user['id']):
+        abort(403)
+    try:
+        soft_id = request.json['software']
+        soft = get_catalog(soft_id)
+        if soft['type_title'] != 'Software':
+            abort(403)
+        cursor = get_db_cursor()
+        cursor.execute(
+            'INSERT INTO catalog_item_relation (catalog_id, item_id, type)'
+            ' VALUES (%s, %s, %s)',
+            (soft_id, id, Relation.REL_STORED)
+            )
+        db_commit()
+    except:
+        db_rollback()
+        abort(403)
+
+    return jsonify(result='success')    
 
 ###############################################################################
 # Routes

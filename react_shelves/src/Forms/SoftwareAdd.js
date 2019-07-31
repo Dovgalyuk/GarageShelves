@@ -6,23 +6,23 @@ import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import fetchBackend from '../Backend'
 
-class FormFamilySelect extends Component {
+class FormSoftwareAdd extends Component {
     constructor(props) {
         super(props);
         this.state = {
             loading:true,
-            families:[],
-            family:-1
+            list:[],
+            software:-1
         };
     }
 
     handleShow = event => {
         if (this.state.loading) {
-            fetchBackend('catalog/_filtered_list', {is_group:true})
+            fetchBackend('catalog/_filtered_list', {type_name:'Software'})
                 .then(response => response.json())
                 .then(data => {
-                    this.setState({loading:false, families:data,
-                                   family:data[0].id});
+                    this.setState({loading:false, list:data,
+                                   software:data[0].id});
                 })
                 .catch(e => this.props.onClose());
         }
@@ -38,7 +38,7 @@ class FormFamilySelect extends Component {
 
     handleSelect = () => {
         this.props.onClose();
-        this.props.onSelect(this.state.family);
+        this.props.onSelect(this.state.software);
     }
 
     render() {
@@ -47,7 +47,7 @@ class FormFamilySelect extends Component {
                    onShow={this.handleShow}
                    onHide={this.handleHide}>
               <Modal.Header closeButton>
-                <h4>Select family</h4>
+                <h4>Add software</h4>
               </Modal.Header>
               <Modal.Body>
                 { this.state.loading && <div>Loading...</div> }
@@ -55,9 +55,9 @@ class FormFamilySelect extends Component {
                   <Form.Group as={Row}>
                     <Col>
                       <Form.Control as="select" id="family"
-                        defaultValue={this.state.family}
+                        defaultValue={this.state.software}
                         onChange={this.handleChange}>
-                        { this.state.families.map((f, i) =>
+                        { this.state.list.map((f, i) =>
                           <option key={i} value={f.id}>
                             {f.title_eng || f.title}
                           </option>)
@@ -72,7 +72,7 @@ class FormFamilySelect extends Component {
                   Close
                 </Button>
                 <Button variant="primary" onClick={this.handleSelect}>
-                  Select family
+                  Add software
                 </Button>
               </Modal.Footer>
             </Modal>
@@ -80,4 +80,4 @@ class FormFamilySelect extends Component {
     }
 }
 
-export default FormFamilySelect;
+export default FormSoftwareAdd;

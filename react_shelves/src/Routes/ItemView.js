@@ -2,18 +2,22 @@ import React, { Component } from 'react'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
+import Button from 'react-bootstrap/Button'
 import fetchBackend, { postBackend } from '../Backend'
 import EditText from '../Editors/Text'
 import ImageListSection from '../Image'
 import { ItemListSection } from '../Item'
+import { CatalogListSection } from '../Catalog'
 import { ItemComments } from '../Comment'
+import FormSoftwareAdd from '../Forms/SoftwareAdd'
 
 export default class ItemView extends Component {
     constructor(props) {
         super(props);
         this.state = {
             loading:true,
-            item:{}
+            item:{},
+            showFormAddSoftware:false,
         };
     }
 
@@ -34,6 +38,29 @@ export default class ItemView extends Component {
     canEdit = () => {
         return this.props.auth.isAuthenticated
               && this.props.auth.user_id === this.state.item.owner_id;
+    }
+
+    handleAddSoftwareButton = event => {
+      this.setState({showFormAddSoftware:true});
+    }
+
+    handleFormAddSoftwareClose = event => {
+      this.setState({showFormAddSoftware:false});
+    }
+
+    handleUpdateSoftware = () => {
+      if (this.softwareRef) {
+          this.softwareRef.handleUpdate();
+      }
+    }
+
+    handleSoftwareSelect = (software) => {
+      postBackend('item/_add_software', {id:this.state.item.id},
+          {software:software})
+          .catch(e => {})
+          .finally((e) => {
+              this.handleUpdateSoftware();
+          });
     }
 
     render() {
@@ -71,6 +98,16 @@ export default class ItemView extends Component {
                             prefix="Internal id "/>
                 </Col>
                 <Col>In collection since {item.added}</Col>
+                <Col xs={1} className="align-self-top">
+                    { this.props.auth.isAuthenticated
+                      && item.owner_id === this.props.auth.user_id
+                      ? <Button variant="primary"
+                                onClick={this.handleAddSoftwareButton}>
+                          Add software
+                        </Button>
+                      : <span/>
+                    }
+                </Col>
               </Row>
             </div>
 
@@ -92,12 +129,26 @@ export default class ItemView extends Component {
             <ItemListSection
                 filter={ {includes:item.id} }
                 title="Included by the item" />
+
             <ItemListSection
                 filter={ {parent:item.id} }
                 title="Includes the items" />
 
+            <CatalogListSection
+                ref={(ref) => {this.softwareRef = ref;}}
+                filter={ {storage:item.id} }
+                title="Includes the software" />
+
             <ItemComments id={item.id}
                           auth={this.props.auth} />
+
+            { this.props.auth.isAuthenticated
+                && item.owner_id === this.props.auth.user_id
+              ? <FormSoftwareAdd open={this.state.showFormAddSoftware}
+                        onClose={this.handleFormAddSoftwareClose}
+                        onSelect={this.handleSoftwareSelect} />
+              : <div/>
+            }
           </Container>
         );
     }
