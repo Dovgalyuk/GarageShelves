@@ -14,6 +14,7 @@ import EditDropDown from '../Editors/DropDown'
 import ImageListSection from '../Image'
 import { ItemListSection } from '../Item'
 import { CatalogComments } from '../Comment'
+import FormSoftwareAdd from '../Forms/SoftwareAdd'
 
 export default class CatalogView extends Component {
     constructor(props) {
@@ -25,6 +26,7 @@ export default class CatalogView extends Component {
             showFormCreateSubitem:false,
             showFormCreateKit:false,
             showFormCreateModification:false,
+            showFormAddSoftware:false,
         };
     }
 
@@ -121,6 +123,29 @@ export default class CatalogView extends Component {
             return <span>{ name} </span>;
     }
 
+    handleAddSoftwareButton = event => {
+      this.setState({showFormAddSoftware:true});
+    }
+
+    handleFormAddSoftwareClose = event => {
+      this.setState({showFormAddSoftware:false});
+    }
+
+    handleUpdateSoftware = () => {
+      if (this.softwareRef) {
+          this.softwareRef.handleUpdate();
+      }
+    }
+
+    handleSoftwareSelect = (software) => {
+      postBackend('catalog/_software_add', {},
+          {id:this.state.catalog.id, software:software})
+          .catch(e => {})
+          .finally((e) => {
+              this.handleUpdateSoftware();
+          });
+    }
+
     render() {
         if (this.state.loading) {
             return (
@@ -214,6 +239,15 @@ export default class CatalogView extends Component {
                       : <span/>
                     }
                     &nbsp;
+                    { this.props.auth.isAuthenticated
+                          && catalog.type_title === "Data storage"
+                      ? <Button variant="primary"
+                                onClick={this.handleAddSoftwareButton}>
+                          Add software
+                        </Button>
+                      : <span/>
+                    }
+                    &nbsp;
                     { (this.props.auth.isAuthenticated && catalog.is_physical)
                       ? <Button variant="primary"
                                 onClick={this.handleOwnButton}>
@@ -259,6 +293,11 @@ export default class CatalogView extends Component {
                     title="Includes the following catalog items" />
 
                 <CatalogListSection
+                    ref={(ref) => {this.softwareRef = ref;}}
+                    filter={ {storage:catalog.id} }
+                    title="Includes the software" />
+
+                <CatalogListSection
                     ref={(ref) => {this.modificationsRef = ref;}}
                     filter={ {modification:1, main:catalog.id} }
                     title="Catalog item modifications" />
@@ -302,6 +341,13 @@ export default class CatalogView extends Component {
                          handleUpdateItems={this.handleUpdateModificationItems}
                          main_id={catalog.id}
                          main_title={catalog.title_eng || catalog.title} />
+                : <div/>
+              }
+              { this.props.auth.isAuthenticated
+                    && catalog.type_title === "Data storage"
+                ? <FormSoftwareAdd open={this.state.showFormAddSoftware}
+                          onClose={this.handleFormAddSoftwareClose}
+                          onSelect={this.handleSoftwareSelect} />
                 : <div/>
               }
             </>

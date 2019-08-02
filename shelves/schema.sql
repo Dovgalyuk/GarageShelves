@@ -186,7 +186,7 @@ INSERT INTO collection (owner_id, title, description)
 INSERT INTO catalog_type (title) VALUES ("Nothing");
 INSERT INTO catalog_type (title, is_physical, is_group) VALUES ("Computer Family", 0, 1);
 INSERT INTO catalog_type (title) VALUES ("Computer");
-INSERT INTO catalog_type (title, is_physical, is_group) VALUES ("Console family", 0, 1);
+INSERT INTO catalog_type (title, is_physical, is_group) VALUES ("Console Family", 0, 1);
 INSERT INTO catalog_type (title) VALUES ("Console");
 INSERT INTO catalog_type (title, is_physical, is_group) VALUES ("Calculator Family", 0, 1);
 INSERT INTO catalog_type (title) VALUES ("Calculator");
@@ -199,6 +199,7 @@ INSERT INTO catalog_type (title) VALUES ("Manual");
 INSERT INTO catalog_type (title) VALUES ("Schematics");
 INSERT INTO catalog_type (title, is_physical) VALUES ("Software", 0);
 INSERT INTO catalog_type (title) VALUES ("Data storage");
+INSERT INTO catalog_type (title, is_physical, is_group) VALUES ("Data storage Family", 0, 1);
 INSERT INTO catalog_type (title) VALUES ("Other");
 
 -- default catalogs

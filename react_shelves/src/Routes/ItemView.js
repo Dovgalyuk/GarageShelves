@@ -55,8 +55,8 @@ export default class ItemView extends Component {
     }
 
     handleSoftwareSelect = (software) => {
-      postBackend('item/_add_software', {id:this.state.item.id},
-          {software:software})
+      postBackend('item/_software_add', {},
+          {id:this.state.item.id, software:software})
           .catch(e => {})
           .finally((e) => {
               this.handleUpdateSoftware();
@@ -100,6 +100,7 @@ export default class ItemView extends Component {
                 <Col>In collection since {item.added}</Col>
                 <Col xs={1} className="align-self-top">
                     { this.props.auth.isAuthenticated
+                      && item.type_title === "Data storage"
                       && item.owner_id === this.props.auth.user_id
                       ? <Button variant="primary"
                                 onClick={this.handleAddSoftwareButton}>
@@ -136,13 +137,14 @@ export default class ItemView extends Component {
 
             <CatalogListSection
                 ref={(ref) => {this.softwareRef = ref;}}
-                filter={ {storage:item.id} }
+                filter={ {storage_item:item.id} }
                 title="Includes the software" />
 
             <ItemComments id={item.id}
                           auth={this.props.auth} />
 
             { this.props.auth.isAuthenticated
+                && item.type_title === "Data storage"
                 && item.owner_id === this.props.auth.user_id
               ? <FormSoftwareAdd open={this.state.showFormAddSoftware}
                         onClose={this.handleFormAddSoftwareClose}

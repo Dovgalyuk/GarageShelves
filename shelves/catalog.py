@@ -122,6 +122,28 @@ def create_catalog(cursor, type_id, title, title_eng, description, year, company
         )
     return catalog_id
 
+def add_ownership(cursor, id, internal_id, collection_id):
+    cursor.execute(
+        'INSERT INTO item (catalog_id, internal_id, description, collection_id)'
+        ' VALUES (%s, %s, %s, %s)',
+        (id, internal_id, '', collection_id)
+    )
+    item_id = cursor.lastrowid
+    # check if there was software on the data storage catalog item
+    cursor.execute(
+        'SELECT s.id FROM catalog s'
+        ' LEFT JOIN catalog_relation r ON r.catalog_id1 = s.id'
+        ' WHERE r.type = %s AND r.catalog_id2 = %s',
+        (Relation.REL_STORED, id,)
+    )
+    for soft in cursor.fetchall():
+        cursor.execute(
+            'INSERT INTO catalog_item_relation (catalog_id, item_id, type)'
+            '    VALUES (%s, %s, %s)',
+            (soft['id'], item_id, Relation.REL_STORED,)
+        )
+    return item_id
+
 ###############################################################################
 # API Routes
 ###############################################################################
@@ -192,6 +214,7 @@ def _filtered_list():
         return abort(400)
 
     storage_id = request.args.get('storage', -1, type=int)
+    storage_item_id = request.args.get('storage_item', -1, type=int)
 
     cursor = get_db_cursor()
     query = 'SELECT c.id, c.title, c.title_eng,'                       \
@@ -250,9 +273,13 @@ def _filtered_list():
     else:
         where += ' AND ct.is_group = FALSE'
 
-    if storage_id != -1:
+    if storage_item_id != -1:
         where += ' AND EXISTS (SELECT 1 FROM catalog_item_relation' \
-                 '     WHERE catalog_id = c.id AND item_id = %s AND type = %s)'
+                 '      WHERE catalog_id = c.id AND item_id = %s AND type = %s)'
+        params = (*params, storage_item_id, Relation.REL_STORED,)
+    if storage_id != -1:
+        where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
+                 '     WHERE catalog_id1 = c.id AND catalog_id2 = %s AND type = %s)'
         params = (*params, storage_id, Relation.REL_STORED,)
 
     #print(query + where + suffix)
@@ -299,7 +326,7 @@ def _upload_image():
 @admin_required
 def _delete_image():
     id = request.args.get('id', -1, type=int)
-    catalog = get_catalog(id)
+    get_catalog(id)
 
     img = request.args.get('img', -1, type=int)
 
@@ -332,12 +359,7 @@ def _own():
         if 'internal' in main:
             iid = main['internal']
         cursor = get_db_cursor()
-        cursor.execute(
-            'INSERT INTO item (catalog_id, internal_id, description, collection_id)'
-            ' VALUES (%s, %s, %s, %s)',
-            (id, iid, '', collection['id'])
-        )
-        item_id = cursor.lastrowid
+        item_id = add_ownership(cursor, id, iid, collection['id'])
 
         for subitem, attr in request.json.items():
             subid = int(subitem)
@@ -349,12 +371,7 @@ def _own():
                 iid = ''
                 if 'internal' in attr:
                     iid = attr['internal']
-                cursor.execute(
-                    'INSERT INTO item (catalog_id, internal_id, description, collection_id)'
-                    ' VALUES (%s, %s, %s, %s)',
-                    (subid, iid, '', collection['id'])
-                )
-                subitem_id = cursor.lastrowid
+                subitem_id = add_ownership(cursor, subid, iid, collection['id'])
                 cursor.execute(
                     'INSERT INTO item_relation (item_id1, item_id2, type)'
                     ' VALUES (%s, %s, %s)',
@@ -556,9 +573,9 @@ def _create_kit():
 
     return jsonify(result='success')
 
-@bp.route('/_relation_remove', methods=('POST',))
+@bp.route('/_family_remove', methods=('POST',))
 @admin_required
-def _relation_remove():
+def _family_remove():
     id = int(request.json['id'])
     family = int(request.json['family'])
     cursor = get_db_cursor()
@@ -570,9 +587,9 @@ def _relation_remove():
     db_commit()
     return jsonify(result='success')
 
-@bp.route('/_relation_add', methods=('POST',))
+@bp.route('/_family_add', methods=('POST',))
 @admin_required
-def _relation_add():
+def _family_add():
     id1 = int(request.json['id1'])
     id2 = int(request.json['id2'])
 
@@ -585,6 +602,27 @@ def _relation_add():
         'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
         ' VALUES (%s, %s, %s)',
         (id1, id2, Relation.REL_INCLUDES,)
+    )
+    db_commit()
+    return jsonify(result='success')
+
+@bp.route('/_software_add', methods=('POST',))
+@admin_required
+def _software_add():
+    id = int(request.json['id'])
+    software = int(request.json['software'])
+
+    # assert the ids
+    get_catalog(id)
+    soft = get_catalog(software)
+    if soft['type_title'] != 'Software':
+        abort(403)
+
+    cursor = get_db_cursor()
+    cursor.execute(
+        'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
+        ' VALUES (%s, %s, %s)',
+        (software, id, Relation.REL_STORED,)
     )
     db_commit()
     return jsonify(result='success')

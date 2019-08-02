@@ -216,7 +216,7 @@ export class CatalogFamilies extends Component {
     }
 
     handleDelete = (family) => {
-        postBackend('catalog/_relation_remove', {},
+        postBackend('catalog/_family_remove', {},
             {id:this.props.id, family:family})
             .catch(e => {})
             .finally((e) => {
@@ -233,7 +233,7 @@ export class CatalogFamilies extends Component {
     }
 
     handleFormSelect = (family) => {
-        postBackend('catalog/_relation_add', {},
+        postBackend('catalog/_family_add', {},
             {id2:this.props.id, id1:family})
             .catch(e => {})
             .finally((e) => {

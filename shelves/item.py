@@ -203,10 +203,10 @@ def _update():
 
     return jsonify(result='success')
 
-@bp.route('/_add_software', methods=('POST',))
+@bp.route('/_software_add', methods=('POST',))
 @login_required
-def _add_software():
-    id = int(request.args['id'])
+def _software_add():
+    id = request.json['id']
     item = get_item(id)
     if item['type_title'] != 'Data storage':
         abort(403)

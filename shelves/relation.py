@@ -9,5 +9,6 @@ class Relation:
     # Modification of the catalog item
     #   first item is the common one
     REL_MODIFICATION = 3
-    # Software stored on the storage item
+    # Software located on the storage
+    #   first item is the software
     REL_STORED = 4

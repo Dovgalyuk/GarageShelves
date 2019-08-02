@@ -54,7 +54,7 @@ class FormSoftwareAdd extends Component {
                 <Form>
                   <Form.Group as={Row}>
                     <Col>
-                      <Form.Control as="select" id="family"
+                      <Form.Control as="select" id="software"
                         defaultValue={this.state.software}
                         onChange={this.handleChange}>
                         { this.state.list.map((f, i) =>
