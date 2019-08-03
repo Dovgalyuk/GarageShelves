@@ -100,6 +100,7 @@ export class ItemListSection extends Component {
         }
         return <Fragment>
                  {(this.state.rows.length > 0 || this.state.main.length > 0)
+                  && this.props.title
                    ? <Row><Col>
                        <h3 className="pt-4">
                          {this.props.title}

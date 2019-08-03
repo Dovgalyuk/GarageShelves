@@ -8,7 +8,7 @@ from shelves.db import get_db_cursor, db_commit, db_rollback
 from shelves.uploads import upload_image
 from shelves.relation import Relation
 from shelves.attribute import Attribute
-from shelves.catalog import get_catalog
+from shelves.catalog import get_catalog, get_catalog_type_id
 
 bp = Blueprint('item', __name__, url_prefix='/item')
 
@@ -60,6 +60,11 @@ def _filtered_list():
     if latest and latest > 100:
         latest = 10
 
+    type_id = -1
+    type_name = request.args.get('type_name')
+    if type_name:
+        type_id = get_catalog_type_id(type_name)
+
     cursor = get_db_cursor()
 
     add_fields = ''
@@ -109,6 +114,9 @@ def _filtered_list():
                  ' WHERE type = %s AND catalog_id1 = c.id'     \
                  ' AND catalog_id2 = %s)'
         params = (*params, Relation.REL_INCLUDES, includes_catalog_id)
+    if type_id != -1:
+        where += ' AND c.type_id = %s'
+        params = (*params, type_id)
 
     if latest > 0:
         where += " ORDER BY i.added DESC LIMIT %d" % latest
