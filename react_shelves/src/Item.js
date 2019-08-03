@@ -18,7 +18,8 @@ function ItemLogo(props) {
 
 function Item(props) {
     var size = props.is_main === 1 ? 12 : 4;
-    return <div className={"col-" + size + " align-self-center"}>
+    var size_xs = props.is_main === 1 ? 12 : 6;
+    return <Col xs={size_xs} lg={size} className="align-self-center">
              <ItemLogo id={props.item.id} img_id={props.item.img_id}
                        is_main={props.is_main} />
              { props.is_main === 1 ? <br /> : <div/> }
@@ -35,7 +36,7 @@ function Item(props) {
                    </a>
                  </>
                : <div/>}
-           </div>;
+           </Col>;
 }
 
 function ItemListRow(props) {

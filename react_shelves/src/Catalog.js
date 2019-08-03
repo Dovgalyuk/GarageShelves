@@ -72,12 +72,12 @@ export class Logo extends Component {
 class CatalogItem extends Component {
     render() {
         // TODO: main item
-        return <div className="col-4">
-                 <div className="row pt-4">
-                   <div className="col-3 align-self-center">
+        return <Col xs={12} lg={4} className="pt-4">
+                 <Row className="pt-4">
+                   <Col xs={3} lg={3} className="align-self-center">
                      <Logo id={this.props.item.id} img_id={this.props.item.logo_id ? this.props.item.logo_id : -1} />
-                   </div>
-                   <div className="col-9">
+                   </Col>
+                <Col xs={9} lg={9}>
                      <a className="action" href={"/catalog/view/" + this.props.item.id}>
                        <h5>{this.props.item.type_title && !this.props.notype
                                 ? this.props.item.type_title + " : " : ""}
@@ -102,8 +102,8 @@ class CatalogItem extends Component {
                         : ""
                     }
                  </p>
-                 </div></div>
-               </div>;
+                 </Col></Row>
+               </Col>;
     }
 }
 
