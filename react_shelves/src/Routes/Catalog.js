@@ -45,6 +45,11 @@ export default class Catalog extends Component {
                     notype:"true"} } title="Software"
                     auth={this.props.auth} addButton/>
             </Tab>
+            <Tab eventKey="storage" title="Data storage">
+              <CatalogListSection filter={ {type_name:"Data storage family", noparent:"true",
+                    notype:"true", is_group:"true"} } title="Data storage families"
+                    auth={this.props.auth} addButton/>
+            </Tab>
           </Tabs>
         </>
       );
