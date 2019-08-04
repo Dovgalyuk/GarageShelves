@@ -22,6 +22,12 @@ export class Login extends Component {
     });
   }
 
+  handleKeyUp = (event) => {
+    if (event.key === 'Enter') {
+      this.handleSubmit(event);
+    }
+  }
+
   handleSubmit = (event) => {
     event.preventDefault();
 
@@ -74,6 +80,7 @@ export class Login extends Component {
               <input className="form-control" type="password"
                      value={this.state.password}
                      onChange={this.handleChange}
+                     onKeyUp={this.handleKeyUp}
                      name="password" id="password" required />
             </div>
           </div>
