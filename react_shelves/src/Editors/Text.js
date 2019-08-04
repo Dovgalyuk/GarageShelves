@@ -27,6 +27,14 @@ export default class EditText extends Component {
     })
   }
 
+  _onKeyUp = e => {
+    if (e.key === 'Enter') {
+      this._onSave();
+    } else if (e.key === 'Escape') {
+      this._onCancel();
+    }
+  }
+
   _onCancel = () => {
     this.setState(
       {
@@ -80,6 +88,7 @@ export default class EditText extends Component {
           value={this.state.value}
           type={this.props.type}
           onChange={this._onInputChange}
+          onKeyUp={this._onKeyUp}
           autoFocus={this.state.editing}
         />
       )
