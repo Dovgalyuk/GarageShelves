@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
-import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import { CatalogListSection } from "./ListSection";
 
@@ -25,18 +24,12 @@ export default class CatalogSearch extends Component {
         }
         return (
             <>
-              {/* <Row>
-                <div className="page-header">
-                  <h3>Find catalog items by parameters</h3>
-                </div>
-              </Row> */}
               <Form>
                 <Form.Group as={Row} className="pt-4">
                   <Form.Label column xs={2}>Title</Form.Label>
                   <Col xs={10}>
                     <Form.Control type="text" id="title"
                         onChange={this.handleChange}
-                        // isInvalid={this.state.errors.title_eng}
                         value={this.state.title}/>
                   </Col>
                 </Form.Group>
