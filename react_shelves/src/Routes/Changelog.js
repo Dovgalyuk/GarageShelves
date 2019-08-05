@@ -4,7 +4,7 @@ import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 import ReactDiffViewer from 'react-diff-viewer'
 import fetchBackend, { postBackend } from '../Backend'
-import { Logo } from '../Catalog'
+import { Logo } from '../Catalog/Helpers'
 
 class ChangeCompany extends Component {
     constructor(props) {

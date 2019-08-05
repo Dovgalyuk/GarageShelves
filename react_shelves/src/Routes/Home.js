@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import { LatestComments } from '../Comment'
-import { CatalogLatest } from '../Catalog'
+import { CatalogLatest } from '../Catalog/Helpers'
 import { ItemLatest } from '../Item'
 
 export class Home extends Component {

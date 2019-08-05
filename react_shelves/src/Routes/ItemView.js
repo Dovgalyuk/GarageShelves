@@ -7,7 +7,7 @@ import fetchBackend, { postBackend } from '../Backend'
 import EditText from '../Editors/Text'
 import ImageListSection from '../Image'
 import { ItemListSection } from '../Item'
-import { CatalogListSection } from '../Catalog'
+import { CatalogListSection } from '../Catalog/Helpers'
 import { ItemComments } from '../Comment'
 import FormSoftwareAdd from '../Forms/SoftwareAdd'
 

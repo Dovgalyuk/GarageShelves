@@ -3,9 +3,9 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 import ListGroup from 'react-bootstrap/ListGroup'
-import fetchBackend, { postBackend, BackendURL, uploadBackend } from './Backend'
-import FormCatalogCreate from './Forms/CatalogCreate'
-import FormFamilySelect from './Forms/FamilySelect'
+import fetchBackend, { postBackend, BackendURL, uploadBackend } from '../Backend'
+import FormCatalogCreate from '../Forms/CatalogCreate'
+import FormFamilySelect from '../Forms/FamilySelect'
 
 export class Logo extends Component {
     constructor(props) {

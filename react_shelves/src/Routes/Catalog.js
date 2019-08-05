@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import Tabs from 'react-bootstrap/Tabs'
 import Tab from 'react-bootstrap/Tab'
-import { CatalogListSection } from '../Catalog'
+import { CatalogListSection } from '../Catalog/Helpers'
+import CatalogSearch from '../Catalog/Search'
 
 export default class Catalog extends Component {
     render() {
@@ -49,6 +50,9 @@ export default class Catalog extends Component {
               <CatalogListSection filter={ {type_name:"Data storage family", noparent:"true",
                     notype:"true", is_group:"true"} } title="Data storage families"
                     auth={this.props.auth} addButton/>
+            </Tab>
+            <Tab eventKey="search" title="Search">
+              <CatalogSearch auth={this.props.auth} />
             </Tab>
           </Tabs>
         </>

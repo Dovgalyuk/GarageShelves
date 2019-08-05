@@ -25,7 +25,6 @@ class FormCatalogCreate extends Component {
     }
 
     handleShow = event => {
-        this.setState({form:this.defaultForm()}, this.validate);
         if (this.state.loadingTypes) {
             var filter = {};
             if (this.props.type_name) {
@@ -35,9 +34,13 @@ class FormCatalogCreate extends Component {
                 .then(response => response.json())
                 .then(data => {
                     this.setState({loadingTypes:false, types:data,
-                        form:{...this.state.form, type_id:data[0].id}});
+                        form:{...this.defaultForm(), type_id:data[0].id}},
+                        this.validate);
                 })
                 .catch(e => this.props.onClose());
+        } else {
+            this.setState({form:{...this.defaultForm(), type_id:this.state.types[0].id}},
+                          this.validate)
         }
         if (this.state.loadingCompanies) {
             fetchBackend('company/_filtered_list', {})

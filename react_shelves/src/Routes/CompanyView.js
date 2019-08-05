@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import fetchBackend, { postBackend } from '../Backend';
-import { CatalogListSection } from '../Catalog';
+import { CatalogListSection } from '../Catalog/Helpers';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
