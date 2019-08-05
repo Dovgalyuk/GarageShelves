@@ -169,11 +169,11 @@ export default class CatalogView extends Component {
               <Container>
                 <div className="page-header">
                   <Row>
-                    <Col xs={1} className="align-self-top">
+                    <Col xs={2} lg={1} className="align-self-top">
                       <Logo id={catalog.id}
                             main auth={this.props.auth}/>
                     </Col>
-                    <Col xs={10} className="align-self-top">
+                    <Col xs={9} lg={10} className="align-self-top">
                       <h1>
                         <EditText prefix={catalog.type_title + " : "}
                              value={ catalog.title_eng ? catalog.title_eng : catalog.title }
