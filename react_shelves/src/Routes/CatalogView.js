@@ -8,7 +8,8 @@ import FormCatalogCreate from '../Forms/CatalogCreate'
 import FormOwn from '../Forms/Own'
 import FormKitCreate from '../Forms/KitCreate'
 import FormModificationCreate from '../Forms/ModificationCreate'
-import { Logo, CatalogListSection, CatalogFamilies, CatalogMain } from '../Catalog/Helpers'
+import { Logo, CatalogFamilies, CatalogMain } from '../Catalog/Helpers'
+import { CatalogListSection } from "../Catalog/ListSection";
 import EditText from '../Editors/Text'
 import EditDropDown from '../Editors/DropDown'
 import ImageListSection from '../Image'
@@ -111,7 +112,7 @@ export default class CatalogView extends Component {
         fetchBackend('company/_filtered_list', {})
             .then(response => response.json())
             .then(data => {
-                callback(data.map(c => { return {value:c.id, name:c.title}; }));
+                callback(data.map(c => { return {value:c.id, title:c.title}; }));
             })
             .catch(e => {});
     }
@@ -283,23 +284,24 @@ export default class CatalogView extends Component {
                 { catalog.is_physical === 1 || is_software
                   ? <CatalogListSection
                       ref={(ref) => {this.kitsRef = ref;}}
-                      filter={ {type_name:"Kit", notype:true, includes:catalog.id} }
+                      filter={ {type_name:"Kit", notype:true, is_group:false,
+                                includes:catalog.id} }
                       title="Kits with this item" />
                   : <div/>
                 }
                 <CatalogListSection
                     ref={(ref) => {this.childrenRef = ref;}}
-                    filter={ {parent:catalog.id} }
+                    filter={ {parent:catalog.id, is_group:false} }
                     title="Includes the following catalog items" />
 
                 <CatalogListSection
                     ref={(ref) => {this.softwareRef = ref;}}
-                    filter={ {storage:catalog.id} }
+                    filter={ {storage:catalog.id, is_group:false} }
                     title="Includes the software" />
 
                 <CatalogListSection
                     ref={(ref) => {this.modificationsRef = ref;}}
-                    filter={ {modification:1, main:catalog.id} }
+                    filter={ {modification:1, main:catalog.id, is_group:false} }
                     title="Catalog item modifications" />
 
                 { this.props.auth.isAuthenticated

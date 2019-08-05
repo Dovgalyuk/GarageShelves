@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import fetchBackend, { postBackend } from '../Backend';
-import { CatalogListSection } from '../Catalog/Helpers';
+import { CatalogListSection } from "../Catalog/ListSection";
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -41,7 +41,7 @@ export default class CompanyView extends Component {
           </Col>
         </Row>
       </div>
-      <CatalogListSection filter={{ company: this.state.company.id }} title="Manufactured items" />
+      <CatalogListSection filter={{ company: this.state.company.id, is_group:false }} title="Manufactured items" />
     </Container>);
   }
 }

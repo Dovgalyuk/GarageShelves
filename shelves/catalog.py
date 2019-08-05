@@ -198,7 +198,7 @@ def _filtered_list():
     includes_id = request.args.get('includes', -1, type=int)
     type_id = request.args.get('type_id', -1, type=int)
     type_name = request.args.get('type_name')
-    name = request.args.get('name')
+    title = request.args.get('title')
     if type_name:
         type_id = get_catalog_type_id(type_name)
     noparent = request.args.get('noparent', False, type=bool)
@@ -208,7 +208,7 @@ def _filtered_list():
     modification = request.args.get('modification', -1, type=int)
     main_id = request.args.get('main', -1, type=int)
 
-    is_group = request.args.get('is_group', False, type=bool)
+    is_group = request.args.get('is_group')
     latest = request.args.get('latest', -1, type=int)
     if latest > 100:
         return abort(400)
@@ -264,13 +264,13 @@ def _filtered_list():
     if noparent:
         where += ' AND NOT EXISTS (SELECT 1 FROM catalog_relation' \
                  '      WHERE catalog_id2 = c.id AND type = %d)' % Relation.REL_INCLUDES
-    if name:
+    if title:
         # TODO: spaces are not supported in the template?
-        where += ' AND c.title LIKE %s'
-        params = (*params, '%' + name + '%', )
-    if is_group:
+        where += ' AND (c.title LIKE %s OR c.title_eng LIKE %s)'
+        params = (*params, '%' + title + '%', '%' + title + '%')
+    if is_group == "true":
         where += ' AND ct.is_group = TRUE'
-    else:
+    elif is_group == "false":
         where += ' AND ct.is_group = FALSE'
 
     if storage_item_id != -1:
@@ -633,7 +633,7 @@ def _software_add():
 def _set_logo():
     try:
         id = int(request.args['id'])
-        catalog = get_catalog(id)
+        get_catalog(id)
 
         file = request.files['file']
         file_id = upload_image(file, 64, 64)

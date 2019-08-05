@@ -4,8 +4,8 @@ import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 import ListGroup from 'react-bootstrap/ListGroup'
 import fetchBackend, { postBackend, BackendURL, uploadBackend } from '../Backend'
-import FormCatalogCreate from '../Forms/CatalogCreate'
 import FormFamilySelect from '../Forms/FamilySelect'
+import { CatalogListSection } from './ListSection';
 
 export class Logo extends Component {
     constructor(props) {
@@ -107,88 +107,10 @@ class CatalogItem extends Component {
     }
 }
 
-function CatalogListRow(props) {
+export function CatalogListRow(props) {
     return <div className="row pt-4">
              { props.row.map((item) => <CatalogItem key={item.id} item={item} notype={props.notype}/>)}
            </div>;
-}
-
-export class CatalogListSection extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            loading: true,
-            rows: [],
-            showFormCreate:false,
-        };
-    }
-
-    handleUpdate = () => {
-        fetchBackend('catalog/_filtered_list', this.props.filter)
-            .then(response => response.json())
-            .then(data => {
-                var rows = [];
-                while (data.length) {
-                    rows.push(data.splice(0, 3));
-                }
-                this.setState({loading:false, rows:rows});
-            })
-            .catch(e => this.setState({loading:false}));
-    }
-
-    componentDidMount() {
-        this.handleUpdate();
-    }
-
-    handleCreateButton = event => {
-        this.setState({showFormCreate:true});
-    }
-
-    handleFormCreateClose = event => {
-        this.setState({showFormCreate:false});
-    }
-
-    render() {
-        if (this.state.loading) {
-            return (
-                <div className="row"><div className="col-12">
-                  <h3 className="pt-4">
-                    {this.props.title} <span className="text-info"> are loading</span>
-                  </h3>
-                </div></div>
-            );
-        }
-        return <Fragment>
-                 { (this.state.rows.length > 0 || this.props.addButton)
-                   && <Row>
-                     <Col>
-                       <h3 className="pt-4">
-                         {this.props.title} &nbsp;
-                       { (this.props.addButton
-                            && this.props.auth
-                            && this.props.auth.isAuthenticated)
-                         ? <Button type="button" className="btn btn-primary"
-                                    onClick={this.handleCreateButton}>
-                             Add new
-                           </Button>
-                         : <div/>
-                       }
-                       </h3>
-                     </Col>
-                   </Row>
-                 }
-                 {this.state.rows.map((row) =>
-                    <CatalogListRow key={row[0].id/*TODO*/} row={row} notype={this.props.filter.notype}/>)}
-                 { (this.props.addButton && this.props.auth
-                    && this.props.auth.isAuthenticated)
-                    ? <FormCatalogCreate open={this.state.showFormCreate}
-                           onClose={this.handleFormCreateClose}
-                           handleUpdateItems={this.handleUpdate}
-                           {...this.props.filter} />
-                    : <div/>
-                 }
-               </Fragment>;
-    }
 }
 
 export class CatalogFamilies extends Component {

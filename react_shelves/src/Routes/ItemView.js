@@ -7,7 +7,7 @@ import fetchBackend, { postBackend } from '../Backend'
 import EditText from '../Editors/Text'
 import ImageListSection from '../Image'
 import { ItemListSection } from '../Item'
-import { CatalogListSection } from '../Catalog/Helpers'
+import { CatalogListSection } from "../Catalog/ListSection";
 import { ItemComments } from '../Comment'
 import FormSoftwareAdd from '../Forms/SoftwareAdd'
 
@@ -137,7 +137,7 @@ export default class ItemView extends Component {
 
             <CatalogListSection
                 ref={(ref) => {this.softwareRef = ref;}}
-                filter={ {storage_item:item.id} }
+                filter={ {storage_item:item.id, is_group:false} }
                 title="Includes the software" />
 
             <ItemComments id={item.id}
