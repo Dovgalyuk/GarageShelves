@@ -2,6 +2,8 @@ import React, { Component, Fragment } from 'react';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import Popover from 'react-bootstrap/Popover'
+import PopoverTitle from 'react-bootstrap/PopoverTitle'
+import PopoverContent from 'react-bootstrap/PopoverContent'
 import fetchBackend, { postBackend } from '../Backend';
 import FormFamilySelect from '../Forms/FamilySelect';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -12,8 +14,8 @@ function Buttons(props) {
         <OverlayTrigger trigger="click" placement="right"
             overlay={
             <Popover>
-              <Popover.Title as="h3">{props.header}</Popover.Title>
-              <Popover.Content>
+              <PopoverTitle as="h3">{props.header}</PopoverTitle>
+              <PopoverContent>
                 <Button variant="link" href={"/catalog/view/" + f.id}>
                     {f.type_title} : {f.title_eng || f.title} 
                 </Button>
@@ -23,7 +25,7 @@ function Buttons(props) {
                         <i className="fas fa-trash-alt" />
                     </Button>
                     : <div />}
-              </Popover.Content>
+              </PopoverContent>
             </Popover>
             }>
             <Button size="sm" variant={props.variant}>
