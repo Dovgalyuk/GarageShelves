@@ -8,7 +8,8 @@ import FormCatalogCreate from '../Forms/CatalogCreate'
 import FormOwn from '../Forms/Own'
 import FormKitCreate from '../Forms/KitCreate'
 import FormModificationCreate from '../Forms/ModificationCreate'
-import { Logo, CatalogFamilies, CatalogMain } from '../Catalog/Helpers'
+import { Logo, CatalogMain } from '../Catalog/Helpers'
+import { CatalogFamilies } from "../Catalog/Families";
 import { CatalogListSection } from "../Catalog/ListSection";
 import EditText from '../Editors/Text'
 import EditDropDown from '../Editors/DropDown'

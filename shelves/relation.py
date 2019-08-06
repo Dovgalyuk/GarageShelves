@@ -12,3 +12,6 @@ class Relation:
     # Software located on the storage
     #   first item is the software
     REL_STORED = 4
+    # Compatible platforms or other items
+    #   first one is platform
+    REL_COMPATIBLE = 5

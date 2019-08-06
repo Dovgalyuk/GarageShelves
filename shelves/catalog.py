@@ -209,6 +209,8 @@ def _filtered_list():
     main_id = request.args.get('main', -1, type=int)
 
     is_group = request.args.get('is_group')
+    category = request.args.get('category')
+
     latest = request.args.get('latest', -1, type=int)
     if latest > 100:
         return abort(400)
@@ -257,8 +259,13 @@ def _filtered_list():
         params = (*params, Relation.REL_MODIFICATION,)
     if includes_id != -1:
         query += ' JOIN catalog_relation r3 ON r3.catalog_id1 = c.id'
-        where += ' AND r3.catalog_id2 = %d' % includes_id \
-              +  ' AND r3.type = %d' % Relation.REL_INCLUDES
+        where += ' AND r3.catalog_id2 = %s' \
+              +  ' AND r3.type = %s'
+        params = (*params, includes_id, )
+        if category == 'compatible':
+            params = (*params, Relation.REL_COMPATIBLE,)
+        else:
+            params = (*params, Relation.REL_INCLUDES,)
     if type_id != -1:
         where += ' AND ct.id = %d' % type_id
     if noparent:
@@ -573,16 +580,22 @@ def _create_kit():
 
     return jsonify(result='success')
 
-@bp.route('/_family_remove', methods=('POST',))
+@bp.route('/_relation_remove', methods=('POST',))
 @admin_required
-def _family_remove():
-    id = int(request.json['id'])
-    family = int(request.json['family'])
+def _relation_remove():
+    id1 = int(request.json['id1'])
+    id2 = int(request.json['id2'])
+    rel = request.json['rel']
+    rel_id = -1
+    if rel == 'includes':
+        rel_id = Relation.REL_INCLUDES
+    elif rel == 'compatible':
+        rel_id = Relation.REL_COMPATIBLE
     cursor = get_db_cursor()
     cursor.execute(
         'DELETE FROM catalog_relation'
         ' WHERE catalog_id1=%s AND catalog_id2=%s AND type=%s',
-        (family, id, Relation.REL_INCLUDES,)
+        (id1, id2, rel_id,)
     )
     db_commit()
     return jsonify(result='success')
@@ -602,6 +615,25 @@ def _family_add():
         'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
         ' VALUES (%s, %s, %s)',
         (id1, id2, Relation.REL_INCLUDES,)
+    )
+    db_commit()
+    return jsonify(result='success')
+
+@bp.route('/_compatible_add', methods=('POST',))
+@admin_required
+def _compatible_add():
+    id1 = int(request.json['id1'])
+    id2 = int(request.json['id2'])
+
+    # assert the ids
+    get_catalog(id1)
+    get_catalog(id2)
+
+    cursor = get_db_cursor()
+    cursor.execute(
+        'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
+        ' VALUES (%s, %s, %s)',
+        (id1, id2, Relation.REL_COMPATIBLE,)
     )
     db_commit()
     return jsonify(result='success')

@@ -1,10 +1,7 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
-import Button from 'react-bootstrap/Button'
-import ListGroup from 'react-bootstrap/ListGroup'
-import fetchBackend, { postBackend, BackendURL, uploadBackend } from '../Backend'
-import FormFamilySelect from '../Forms/FamilySelect'
+import fetchBackend, { BackendURL, uploadBackend } from '../Backend'
 import { CatalogListSection } from './ListSection';
 
 export class Logo extends Component {
@@ -111,109 +108,6 @@ export function CatalogListRow(props) {
     return <div className="row pt-4">
              { props.row.map((item) => <CatalogItem key={item.id} item={item} notype={props.notype}/>)}
            </div>;
-}
-
-export class CatalogFamilies extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            loading:true,
-            families:[],
-            showForm:false,
-        };
-    }
-
-    componentDidMount() {
-        this.handleUpdate();
-    }
-
-    handleUpdate = () => {
-        fetchBackend('catalog/_filtered_list',
-            {includes:this.props.id, is_group:true} )
-            .then(response => response.json())
-            .then(data => {
-                this.setState({loading:false, families:data});
-            })
-            .catch(e => this.setState({loading:false}));
-    }
-
-    handleDelete = (family) => {
-        postBackend('catalog/_family_remove', {},
-            {id:this.props.id, family:family})
-            .catch(e => {})
-            .finally((e) => {
-                this.handleUpdate();
-            });
-    }
-
-    handleAdd = () => {
-        this.setState({showForm:true});
-    }
-
-    handleFormClose = () => {
-        this.setState({showForm:false});
-    }
-
-    handleFormSelect = (family) => {
-        postBackend('catalog/_family_add', {},
-            {id2:this.props.id, id1:family})
-            .catch(e => {})
-            .finally((e) => {
-                this.handleUpdate();
-            });
-    }
-
-    render() {
-        if (this.state.loading) {
-            return <div/>;
-        }
-        return (
-            <Fragment>
-                <ListGroup>
-                  { this.state.families.length > 0
-                    ? <ListGroup.Item className="border-0 pt-0 pb-0" key={-1}>
-                        In families
-                      </ListGroup.Item>
-                    : <div/>
-                  }
-                  { this.state.families.map((f) =>
-                      <ListGroup.Item key={f.id}
-                            className="border-0 pt-0 pb-0">
-                        {this.props.auth.isAdmin
-                          ? <Button variant="outline-danger"
-                                  onClick={() => this.handleDelete(f.id)}>
-                              <i className="fas fa-trash-alt"/>
-                            </Button>
-                          : <div/>
-                        }
-                        &nbsp;
-                        <a href={"/catalog/view/" + f.id}>
-                          {f.title_eng || f.title}
-                        </a>
-                      </ListGroup.Item>
-                    )
-                  }
-                  { this.props.auth.isAdmin
-                    ? <ListGroup.Item className="border-0 pt-0 pb-0" key={-2}>
-                        <Button variant="outline-primary"
-                                onClick={this.handleAdd}>
-                          <i className="fas fa-plus"/>
-                        </Button>
-                        &nbsp;
-                        Add to family
-                      </ListGroup.Item>
-                    : <div/>
-                  }
-                </ListGroup>
-                { (this.props.auth.isAuthenticated && this.props.auth.isAdmin)
-                    ? <FormFamilySelect open={this.state.showForm}
-                             onClose={this.handleFormClose}
-                             onSelect={this.handleFormSelect} />
-                    : <div/>
-                }
-            </Fragment>
-        );
-    }
 }
 
 export function CatalogLatest(props) {
