@@ -12,8 +12,8 @@ function Buttons(props) {
         <OverlayTrigger trigger="click" placement="right"
             overlay={
             <Popover>
-              {/* <Popover.Title as="h3">{props.header}</Popover.Title>
-              <Popover.Content>
+               <Popover.Title as="h3">{props.header}</Popover.Title>
+               <Popover.Content>
                 <Button variant="link" href={"/catalog/view/" + f.id}>
                     {f.type_title} : {f.title_eng || f.title} 
                 </Button>
@@ -23,7 +23,7 @@ function Buttons(props) {
                         <i className="fas fa-trash-alt" />
                     </Button>
                     : <div />}
-              </Popover.Content> */}
+              </Popover.Content>
             </Popover>
             }>
             <Button size="sm" variant={props.variant}>
