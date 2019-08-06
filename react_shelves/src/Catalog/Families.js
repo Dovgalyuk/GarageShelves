@@ -1,9 +1,7 @@
 import React, { Component, Fragment } from 'react';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
-import Popover from 'react-bootstrap/Popover'
-import PopoverTitle from 'react-bootstrap/PopoverTitle'
-import PopoverContent from 'react-bootstrap/PopoverContent'
+import { Popover, PopoverTitle, PopoverContent } from 'react-bootstrap';
 import fetchBackend, { postBackend } from '../Backend';
 import FormFamilySelect from '../Forms/FamilySelect';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
