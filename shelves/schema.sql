@@ -52,9 +52,9 @@ CREATE TABLE company (
 CREATE TABLE catalog (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
   type_id INTEGER NOT NULL,
-  title TEXT NOT NULL,
+  title TEXT NULL DEFAULT NULL,
   title_eng TEXT NULL DEFAULT NULL,
-  description TEXT NOT NULL,
+  description TEXT NULL DEFAULT NULL,
   company_id INTEGER NULL DEFAULT NULL,
   year INTEGER NULL DEFAULT NULL,
 
@@ -198,6 +198,7 @@ INSERT INTO catalog_type (title) VALUES ("Book");
 INSERT INTO catalog_type (title) VALUES ("Manual");
 INSERT INTO catalog_type (title) VALUES ("Schematics");
 INSERT INTO catalog_type (title, is_physical) VALUES ("Software", 0);
+INSERT INTO catalog_type (title, is_physical, is_group) VALUES ("Software family", 0, 1);
 INSERT INTO catalog_type (title) VALUES ("Data storage");
 INSERT INTO catalog_type (title, is_physical, is_group) VALUES ("Data storage family", 0, 1);
 INSERT INTO catalog_type (title) VALUES ("Other");

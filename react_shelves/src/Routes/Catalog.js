@@ -39,9 +39,9 @@ export default class Catalog extends Component {
                     auth={this.props.auth} addButton/>
             </Tab>
             <Tab eventKey="software" title="Software">
-              {/* <CatalogListSection filter={ {type_name:"Software family", noparent:"true",
+              <CatalogListSection filter={ {type_name:"Software family", noparent:"true",
                     notype:"true", is_group:"true"} } title="Software families"
-                    auth={this.props.auth} addButton/> */}
+                    auth={this.props.auth} addButton/>
               <CatalogListSection filter={ {type_name:"Software",
                     notype:true, is_group:false} } title="Software"
                     auth={this.props.auth} addButton/>
