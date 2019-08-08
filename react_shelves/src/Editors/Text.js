@@ -149,7 +149,7 @@ export default class EditText extends Component {
                     <i className="fas fa-edit" />
                   </Button>);
       }
-      return <ReactMarkdown source={ val } />;
+      return <ReactMarkdown escapeHtml={false} source={ val } />;
     } else {
       return (<Fragment>
                 {this.props.prefix || ""}
