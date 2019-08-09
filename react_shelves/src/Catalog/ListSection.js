@@ -21,10 +21,14 @@ export class CatalogListSection extends Component {
             count: -1,
         };
     }
-    handleUpdate = () => {
+    handleUpdate = (p) => {
         if (this.props.filter.noload) {
             this.setState({loading: false});
             return;
+        }
+        var page = this.state.page;
+        if (p) {
+            page = p;
         }
         fetchBackend('catalog/_filtered_count', this.props.filter)
             .then(response => response.json())
@@ -32,7 +36,7 @@ export class CatalogListSection extends Component {
             .catch(e => {});
         fetchBackend('catalog/_filtered_list',
             {...this.props.filter,
-                limitFirst: this.state.page * PageCount,
+                limitFirst: page * PageCount,
                 limitPage: PageCount})
             .then(response => response.json())
             .then(data => {
@@ -40,12 +44,12 @@ export class CatalogListSection extends Component {
                 while (data.length) {
                     rows.push(data.splice(0, 3));
                 }
-                this.setState({ loading: false, rows: rows });
+                this.setState({ loading: false, page: page, rows: rows });
             })
             .catch(e => this.setState({ loading: false }));
     }
     componentDidMount() {
-        this.handleUpdate();
+        this.handleUpdate(0);
     }
     handleCreateButton = event => {
         this.setState({ showFormCreate: true });
@@ -54,7 +58,7 @@ export class CatalogListSection extends Component {
         this.setState({ showFormCreate: false });
     };
     handlePage = page => {
-        this.setState({ page: page }, this.handleUpdate());
+        this.handleUpdate(page);
     }
     render() {
         if (this.state.loading) {

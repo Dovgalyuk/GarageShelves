@@ -239,7 +239,7 @@ def filtered_query(args, count):
                 ' LEFT JOIN company com ON com.id = c.company_id'          \
                 ' LEFT JOIN catalog_attribute a_logo'                      \
                 ' ON (c.id = a_logo.catalog_id AND a_logo.type = %s)'
-        suffix = ' ORDER BY c.title'
+        suffix = ' ORDER BY IFNULL(c.title_eng, c.title)'
         # parameters are integer - insert them without escaping
         # TODO: remove limit from latest
         if latest > 0:
