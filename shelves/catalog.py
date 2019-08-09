@@ -191,52 +191,63 @@ def _get_main():
     catalog = get_catalog_full(res['id'])
     return jsonify(catalog)
 
-@bp.route('/_filtered_list')
-def _filtered_list():
-    company_id = request.args.get('company', -1, type=int)
-    parent_id = request.args.get('parent', -1, type=int)
-    includes_id = request.args.get('includes', -1, type=int)
-    type_id = request.args.get('type_id', -1, type=int)
-    type_name = request.args.get('type_name')
-    title = request.args.get('title')
+def filtered_query(args, count):
+    company_id = args.get('company', -1, type=int)
+    parent_id = args.get('parent', -1, type=int)
+    includes_id = args.get('includes', -1, type=int)
+    type_id = args.get('type_id', -1, type=int)
+    type_name = args.get('type_name')
+    title = args.get('title')
     if type_name:
         type_id = get_catalog_type_id(type_name)
-    noparent = request.args.get('noparent', False, type=bool)
-    is_main = request.args.get('is_main', False, type=bool)
+    noparent = args.get('noparent', False, type=bool)
+    is_main = args.get('is_main', False, type=bool)
 
     # modification flag and the possible referenced item
-    modification = request.args.get('modification', -1, type=int)
-    main_id = request.args.get('main', -1, type=int)
+    modification = args.get('modification', -1, type=int)
+    main_id = args.get('main', -1, type=int)
 
-    is_group = request.args.get('is_group')
-    category = request.args.get('category')
+    is_group = args.get('is_group')
+    category = args.get('category')
 
-    latest = request.args.get('latest', -1, type=int)
+    latest = args.get('latest', -1, type=int)
     if latest > 100:
         return abort(400)
 
-    storage_id = request.args.get('storage', -1, type=int)
-    storage_item_id = request.args.get('storage_item', -1, type=int)
+    storage_id = args.get('storage', -1, type=int)
+    storage_item_id = args.get('storage_item', -1, type=int)
 
-    cursor = get_db_cursor()
-    query = 'SELECT c.id, c.title, c.title_eng,'                       \
-            ' created, c.type_id,'                                     \
-            ' ct.title as type_title, ct.is_physical, '                \
-            ' year, com.title as company, c.company_id,'               \
-            ' a_logo.value_id as logo_id,'                             \
-            ' (SELECT COUNT(*) FROM catalog cc'                        \
-            '   JOIN catalog_relation r WHERE cc.id=r.catalog_id2'     \
-            '   AND c.id=r.catalog_id1 AND r.type=%s) AS count'        \
-            ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'\
-            ' LEFT JOIN company com ON com.id = c.company_id'          \
-            ' LEFT JOIN catalog_attribute a_logo'                      \
-            ' ON (c.id = a_logo.catalog_id AND a_logo.type = %s)'
-    suffix = ' ORDER BY c.title'
-    # parameters are integer - insert them without escaping
-    if latest > 0:
-        suffix = ' ORDER BY c.created DESC LIMIT %d' % latest
+    limitFirst = args.get('limitFirst', -1, type=int)
+    limitPage = args.get('limitPage', -1, type=int)
+
+    suffix = ''
+    if count:
+        query = 'SELECT COUNT(*) as count'                                 \
+                ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'\
+                ' LEFT JOIN company com ON com.id = c.company_id'
+        params = ()
+    else:
+        query = 'SELECT c.id, c.title, c.title_eng,'                       \
+                ' created, c.type_id,'                                     \
+                ' ct.title as type_title, ct.is_physical, '                \
+                ' year, com.title as company, c.company_id,'               \
+                ' a_logo.value_id as logo_id,'                             \
+                ' (SELECT COUNT(*) FROM catalog cc'                        \
+                '   JOIN catalog_relation r WHERE cc.id=r.catalog_id2'     \
+                '   AND c.id=r.catalog_id1 AND r.type=%s) AS count'        \
+                ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'\
+                ' LEFT JOIN company com ON com.id = c.company_id'          \
+                ' LEFT JOIN catalog_attribute a_logo'                      \
+                ' ON (c.id = a_logo.catalog_id AND a_logo.type = %s)'
+        suffix = ' ORDER BY c.title'
+        # parameters are integer - insert them without escaping
+        # TODO: remove limit from latest
+        if latest > 0:
+            suffix = ' ORDER BY c.created DESC LIMIT %d' % latest
+        elif limitFirst >= 0 and limitPage > 0:
+            suffix += ' LIMIT %d,%d' % (limitFirst, limitPage)
+        params = (Relation.REL_INCLUDES,Attribute.ATTR_LOGO,)
     where = ' WHERE 1 = 1'
-    params = (Relation.REL_INCLUDES,Attribute.ATTR_LOGO,)
     if company_id != -1:
         where += ' AND com.id = %d' % company_id
     if parent_id != -1:
@@ -291,9 +302,23 @@ def _filtered_list():
 
     #print(query + where + suffix)
     #print(params)
+    return {"query":query + where + suffix, "params":params}
 
-    cursor.execute(query + where + suffix, params)
+@bp.route('/_filtered_list')
+def _filtered_list():
+    q = filtered_query(request.args, False)
+    cursor = get_db_cursor()
+    cursor.execute(q['query'], q['params'])
     result = cursor.fetchall()
+
+    return jsonify(result)
+
+@bp.route('/_filtered_count')
+def _filtered_count():
+    q = filtered_query(request.args, True)
+    cursor = get_db_cursor()
+    cursor.execute(q['query'], q['params'])
+    result = cursor.fetchone()
 
     return jsonify(result)
 
