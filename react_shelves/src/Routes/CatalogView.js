@@ -183,7 +183,7 @@ export default class CatalogView extends Component {
                              onSave={v => this.handleEditField("title_eng", v)}/>
                       </h1>
                       <h4 className="text-secondary">
-                         <EditText value={ catalog.title } hint="Native title"
+                         <EditText value={ catalog.title ? catalog.title : "" } hint="Native title"
                                    canEdit = {this.canEdit}
                                    onSave={v => this.handleEditField("title", v)}/>
                       </h4>
@@ -264,7 +264,7 @@ export default class CatalogView extends Component {
                 <div className="row">
                   <div className="col-12">
                     <h3 className="pt-4">Description</h3>
-                    <EditText value={catalog.description}
+                    <EditText value={catalog.description ? catalog.description : ""}
                         type="markdown" hint="Catalog item description"
                         canEdit = {this.canEdit}
                         onSave={v => this.handleEditField("description", v)}
