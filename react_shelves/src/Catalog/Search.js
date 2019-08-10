@@ -26,8 +26,8 @@ export default class CatalogSearch extends Component {
             <>
               <Form>
                 <Form.Group as={Row} className="pt-4">
-                  <Form.Label column xs={2}>Title</Form.Label>
-                  <Col xs={10}>
+                  <Form.Label column xs={1}>Title</Form.Label>
+                  <Col xs={11}>
                     <Form.Control type="text" id="title"
                         onChange={this.handleChange}
                         value={this.state.title}/>
