@@ -94,7 +94,7 @@ export class CatalogListSection extends Component {
                     </Col>
                 </Row>}
             {this.state.rows.map((row) => <CatalogListRow key={row[0].id /*TODO*/} row={row} notype={this.props.filter.notype} />)}
-            {this.state.count > 0
+            {pages > 1
               ? <Row className="pt-4">
                 <Col>
                     <Pagination>
