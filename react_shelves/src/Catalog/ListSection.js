@@ -1,4 +1,5 @@
 import React, { Component, Fragment } from 'react';
+import PropTypes from 'prop-types'
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
@@ -6,9 +7,7 @@ import Badge from 'react-bootstrap/Badge';
 import Pagination from 'react-bootstrap/Pagination'
 import fetchBackend from '../Backend';
 import FormCatalogCreate from '../Forms/CatalogCreate';
-import { CatalogListRow } from './Helpers';
-
-const PageCount = 300;
+import { CatalogItem } from './Helpers';
 
 export class CatalogListSection extends Component {
     constructor(props) {
@@ -19,8 +18,14 @@ export class CatalogListSection extends Component {
             showFormCreate: false,
             page: 0,
             count: -1,
+            selectedItems: [],
         };
     }
+
+    isTiny = () => {
+        return this.props.variant === "tiny";
+    }
+
     handleUpdate = (p) => {
         if (this.props.filter.noload) {
             this.setState({loading: false});
@@ -36,15 +41,16 @@ export class CatalogListSection extends Component {
             .catch(e => {});
         fetchBackend('catalog/_filtered_list',
             {...this.props.filter,
-                limitFirst: page * PageCount,
-                limitPage: PageCount})
+                limitFirst: page * this.props.pageCount,
+                limitPage: this.props.pageCount})
             .then(response => response.json())
             .then(data => {
                 var rows = [];
                 while (data.length) {
-                    rows.push(data.splice(0, 3));
+                    rows.push(data.splice(0, this.props.rowCount));
                 }
-                this.setState({ loading: false, page: page, rows: rows });
+                this.setState({ loading: false, page: page, rows: rows,
+                              selectedItems: [] });
             })
             .catch(e => this.setState({ loading: false }));
     }
@@ -53,13 +59,19 @@ export class CatalogListSection extends Component {
     }
     handleCreateButton = event => {
         this.setState({ showFormCreate: true });
-    };
+    }
     handleFormCreateClose = event => {
         this.setState({ showFormCreate: false });
-    };
+    }
     handlePage = page => {
         this.handleUpdate(page);
     }
+
+    handleSelect = id => {
+        this.setState({selectedItems: [id,]},
+            () => this.props.onSelection(this.state.selectedItems));
+    }
+
     render() {
         if (this.state.loading) {
             return (<div className="row"><div className="col-12">
@@ -68,7 +80,7 @@ export class CatalogListSection extends Component {
                 </h3>
             </div></div>);
         }
-        const pages = Math.ceil(this.state.count / PageCount);
+        const pages = Math.ceil(this.state.count / this.props.pageCount);
         const page = this.state.page;
         var ellipsis1 = false;
         var ellipsis2 = false;
@@ -93,7 +105,16 @@ export class CatalogListSection extends Component {
                         </h3>
                     </Col>
                 </Row>}
-            {this.state.rows.map((row) => <CatalogListRow key={row[0].id /*TODO*/} row={row} notype={this.props.filter.notype} />)}
+            {this.state.rows.map((row) =>
+                <Row key={row[0].id}>
+                    {row.map((item) =>
+                        <CatalogItem key={item.id} variant={this.props.variant}
+                            item={item} notype={this.props.filter.notype}
+                            selected={this.state.selectedItems.includes(item.id)}
+                            onClick={this.props.onSelection ? this.handleSelect : null} />
+                    )}
+                </Row>
+            )}
             {pages > 1
               ? <Row className="pt-4">
                 <Col>
@@ -131,4 +152,21 @@ export class CatalogListSection extends Component {
                 : <div />}
         </Fragment>;
     }
+}
+
+CatalogListSection.defaultProps = {
+    variant: 'normal',
+    pageCount: 300,
+    rowCount: 3,
+}
+
+CatalogListSection.propTypes = {
+    variant: PropTypes.oneOf(
+        ['normal', 'tiny']
+    ).isRequired,
+    filter: PropTypes.object.isRequired,
+    pageCount: PropTypes.number.isRequired,
+    rowCount: PropTypes.number.isRequired,
+    onClick: PropTypes.func,
+    onSelection: PropTypes.func,
 }

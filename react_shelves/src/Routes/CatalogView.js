@@ -16,7 +16,7 @@ import EditDropDown from '../Editors/DropDown'
 import ImageListSection from '../Image'
 import { ItemListSection } from '../Item'
 import { CatalogComments } from '../Comment'
-import FormSoftwareAdd from '../Forms/SoftwareAdd'
+import FormCatalogSelect from '../Forms/CatalogSelect'
 
 export default class CatalogView extends Component {
     constructor(props) {
@@ -348,7 +348,8 @@ export default class CatalogView extends Component {
               }
               { this.props.auth.isAuthenticated
                     && catalog.type_title === "Data storage"
-                ? <FormSoftwareAdd open={this.state.showFormAddSoftware}
+                ? <FormCatalogSelect open={this.state.showFormAddSoftware}
+                          title="Add software"
                           onClose={this.handleFormAddSoftwareClose}
                           onSelect={this.handleSoftwareSelect} />
                 : <div/>

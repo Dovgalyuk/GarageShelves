@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Tabs from 'react-bootstrap/Tabs'
 import Tab from 'react-bootstrap/Tab'
 import { CatalogListSection } from "../Catalog/ListSection";
-import CatalogSearch from '../Catalog/Search'
+import CatalogSearchTab from '../Catalog/Search'
 
 export default class Catalog extends Component {
     render() {
@@ -40,7 +40,7 @@ export default class Catalog extends Component {
             </Tab>
             <Tab eventKey="software" title="Software">
               <CatalogListSection filter={ {type_name:"Software family", noparent:"true",
-                    notype:"true", is_group:"true"} } title="Software families"
+                    notype:true, is_group:"true"} } title="Software families"
                     auth={this.props.auth} addButton/>
               <CatalogListSection filter={ {type_name:"Software",
                     notype:true, is_group:false} } title="Software"
@@ -52,7 +52,7 @@ export default class Catalog extends Component {
                     auth={this.props.auth} addButton/>
             </Tab>
             <Tab eventKey="search" title="Search">
-              <CatalogSearch auth={this.props.auth} />
+              <CatalogSearchTab auth={this.props.auth} />
             </Tab>
           </Tabs>
         </>
