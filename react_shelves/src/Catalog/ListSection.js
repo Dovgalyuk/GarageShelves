@@ -76,7 +76,7 @@ export class CatalogListSection extends Component {
         if (this.state.loading) {
             return (<div className="row"><div className="col-12">
                 <h3 className="pt-4">
-                    {this.props.title} <span className="text-info"> are loading</span>
+                    {this.props.title} <span className="text-info"> loading</span>
                 </h3>
             </div></div>);
         }
@@ -85,7 +85,7 @@ export class CatalogListSection extends Component {
         var ellipsis1 = false;
         var ellipsis2 = false;
         return <Fragment>
-            {(this.state.count > 0 || this.props.addButton)
+            {this.props.title && (this.state.count > 0 || this.props.addButton)
                 && <Row>
                     <Col>
                         <h3 className="pt-4">

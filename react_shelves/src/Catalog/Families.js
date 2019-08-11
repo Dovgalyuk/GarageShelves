@@ -3,7 +3,7 @@ import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import Popover from 'react-bootstrap/Popover';
 import fetchBackend, { postBackend } from '../Backend';
-import FormFamilySelect from '../Forms/FamilySelect';
+import FormCatalogSelect from '../Forms/CatalogSelect'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 
 function Buttons(props) {
@@ -42,6 +42,7 @@ export class CatalogFamilies extends Component {
             families: [],
             platforms: [],
             showForm: false,
+            filter: {},
             path: "",
         };
     }
@@ -65,7 +66,7 @@ export class CatalogFamilies extends Component {
                 this.setState({ platforms: data });
             })
             .catch(e => {});
-    };
+    }
     handleDelete = (family, relation) => {
         postBackend('catalog/_relation_remove', {},
             { id2: this.props.id, id1: family, rel: relation }
@@ -74,16 +75,18 @@ export class CatalogFamilies extends Component {
             .finally((e) => {
                 this.handleUpdate();
             });
-    };
+    }
     handleAddFamily = () => {
-        this.setState({ showForm: true, path: "family" });
-    };
+        this.setState({ showForm: true,
+            path: "family", filter: {type_name:this.props.type_title, notype:true} });
+    }
     handleAddPlatform = () => {
-        this.setState({ showForm: true, path: "compatible" });
-    };
+        this.setState({ showForm: true, path: "compatible",
+            filter: {type_name: "Computer family", notype: true} });
+    }
     handleFormClose = () => {
         this.setState({ showForm: false });
-    };
+    }
     handleFormSelect = (family) => {
         var path = 'catalog/_' + this.state.path + '_add';
         postBackend(path, {}, { id2: this.props.id, id1: family })
@@ -91,7 +94,7 @@ export class CatalogFamilies extends Component {
             .finally((e) => {
                 this.handleUpdate();
             });
-    };
+    }
     render() {
         return (<Fragment>
             <ButtonToolbar>
@@ -122,7 +125,12 @@ export class CatalogFamilies extends Component {
                     : <div />}
             </ButtonToolbar>
             {(this.props.auth.isAuthenticated && this.props.auth.isAdmin)
-                ? <FormFamilySelect open={this.state.showForm} onClose={this.handleFormClose} onSelect={this.handleFormSelect} />
+                ? <FormCatalogSelect
+                    title="Add family"
+                    open={this.state.showForm}
+                    onClose={this.handleFormClose}
+                    onSelect={this.handleFormSelect}
+                    filter={this.state.filter} />
                 : <div />}
         </Fragment>);
     }

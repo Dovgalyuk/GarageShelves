@@ -209,7 +209,10 @@ export default class CatalogView extends Component {
                           />
                       </div>
 
-                      <CatalogFamilies id={catalog.id} auth={this.props.auth}/>
+                      <CatalogFamilies
+                          type_title={catalog.type_title + " family"}
+                          id={catalog.id}
+                          auth={this.props.auth}/>
                     </Col>
                     <Col xs={1} className="align-self-top">
                     { this.props.auth.isAuthenticated
@@ -351,7 +354,8 @@ export default class CatalogView extends Component {
                 ? <FormCatalogSelect open={this.state.showFormAddSoftware}
                           title="Add software"
                           onClose={this.handleFormAddSoftwareClose}
-                          onSelect={this.handleSoftwareSelect} />
+                          onSelect={this.handleSoftwareSelect}
+                          filter={{type_name: "Software", notype: true}} />
                 : <div/>
               }
             </>

@@ -51,7 +51,8 @@ class FormCatalogSelect extends Component {
               </Modal.Header>
               <Modal.Body>
                 <CatalogSearch listProps={{variant:"tiny", pageCount:10, rowCount:1}}
-                               onSelection={this.handleSelection} />
+                               onSelection={this.handleSelection}
+                               filter={this.props.filter} />
               </Modal.Body>
               <Modal.Footer>
                 <Button variant="secondary" onClick={this.handleHide}>
@@ -69,11 +70,13 @@ class FormCatalogSelect extends Component {
 
 FormCatalogSelect.defaultProps = {
   open: false,
+  filter: {},
 }
 
 FormCatalogSelect.propTypes = {
   open: PropTypes.bool,
   title: PropTypes.string.isRequired,
+  filter: PropTypes.object.isRequired,
   onClose: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
 }

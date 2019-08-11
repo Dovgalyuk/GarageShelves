@@ -149,7 +149,8 @@ export default class ItemView extends Component {
               ? <FormCatalogSelect open={this.state.showFormAddSoftware}
                         title="Add software"
                         onClose={this.handleFormAddSoftwareClose}
-                        onSelect={this.handleSoftwareSelect} />
+                        onSelect={this.handleSoftwareSelect}
+                        filter={{type_name: "Software", notype: true}} />
               : <div/>
             }
           </Container>
