@@ -9,16 +9,18 @@ export class CatalogSearch extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            title:"",
-            filter: {noload: true}
+            title: "",
+            filter: this.props.filter,
         };
     }
 
     getFilter = () => {
-        var filter = {title:this.state.title};
-        if (this.state.title.length < 3) {
-            filter.noload = true;
-        }
+        var filter = {}
+        Object.assign(filter, this.props.filter);
+        filter.title = this.state.title;
+        // if (filter.title.length < 3) {
+        //     filter.noload = true;
+        // }
         return filter;
     }
 
@@ -55,11 +57,13 @@ export class CatalogSearch extends Component {
 }
 
 CatalogSearch.defaultProps = {
-    listProps: {}
+    listProps: {},
+    filter: {},
 }
   
 CatalogSearch.propTypes = {
     listProps: PropTypes.object,
+    filter: PropTypes.object.isRequired,
     onSelection: PropTypes.func,
 }  
 
