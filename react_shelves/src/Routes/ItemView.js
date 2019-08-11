@@ -9,7 +9,7 @@ import ImageListSection from '../Image'
 import { ItemListSection } from '../Item'
 import { CatalogListSection } from "../Catalog/ListSection";
 import { ItemComments } from '../Comment'
-import FormSoftwareAdd from '../Forms/SoftwareAdd'
+import FormCatalogSelect from '../Forms/CatalogSelect'
 
 export default class ItemView extends Component {
     constructor(props) {
@@ -146,7 +146,8 @@ export default class ItemView extends Component {
             { this.props.auth.isAuthenticated
                 && item.type_title === "Data storage"
                 && item.owner_id === this.props.auth.user_id
-              ? <FormSoftwareAdd open={this.state.showFormAddSoftware}
+              ? <FormCatalogSelect open={this.state.showFormAddSoftware}
+                        title="Add software"
                         onClose={this.handleFormAddSoftwareClose}
                         onSelect={this.handleSoftwareSelect} />
               : <div/>
