@@ -101,6 +101,15 @@ CREATE TABLE image (
   FOREIGN KEY (owner_id) REFERENCES user (id)
 );
 
+CREATE TABLE attachment (
+  id INTEGER PRIMARY KEY AUTO_INCREMENT,
+  description TEXT NOT NULL,
+  filename TEXT NOT NULL,
+  owner_id INTEGER NULL DEFAULT NULL,
+
+  FOREIGN KEY (owner_id) REFERENCES user (id)
+);
+
 CREATE TABLE item_attribute (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
   type INTEGER NOT NULL,

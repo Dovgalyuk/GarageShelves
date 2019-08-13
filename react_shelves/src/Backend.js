@@ -24,9 +24,11 @@ export function postBackend(page, params, form) {
 
 export function uploadBackend(page, params, file) {
     var form_data = new FormData();
+    Object.entries(params).forEach(([key, value]) => form_data.append(key, value));
     form_data.append('file', file);
-    return fetch(BackendURL(page, params),
+    return fetch(BackendURL(page, {}),
                 {method: 'POST', body: form_data, credentials: "include",
+                 "Content-Type": "multipart/form-data",
                  headers: { "Access-Control-Allow-Credentials" : true }});
 }
 
