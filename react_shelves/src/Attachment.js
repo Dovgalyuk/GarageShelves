@@ -27,7 +27,9 @@ class FormUpload extends Component {
     }
 
     handleHide = event => {
-        this.props.onClose();
+        this.fileRef.current.value = null;
+        this.setState({description:"", selectedFile:""},
+            this.props.onClose);
     }
 
     handleInput = (event, id) => {
