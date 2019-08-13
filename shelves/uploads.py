@@ -1,7 +1,7 @@
 import os
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for,
-    current_app, send_from_directory
+    current_app, send_from_directory, send_file
 )
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
@@ -44,6 +44,23 @@ def upload_image(file,width=-1,height=-1):
         '%d.%s' % (file_id, ext)))
     return file_id
 
+def upload_file(file, desc):
+    if not g.user:
+        abort(403)
+
+    filename = secure_filename(file.filename)
+
+    cursor = get_db_cursor()
+    cursor.execute(
+        'INSERT INTO attachment (filename, description, owner_id) VALUES (%s, %s, %s)',
+        (filename, desc, g.user['id'],)
+    )
+    file_id = cursor.lastrowid
+    file.save(os.path.join(
+        os.path.join(current_app.instance_path, 'uploads'),
+        '%d' % (file_id,)))
+    return file_id
+
 # @bp.route('/<int:id>')
 # def view(id):
 #     cursor = get_db_cursor();
@@ -72,22 +89,23 @@ def view():
     return send_from_directory(os.path.join(current_app.instance_path,
         'uploads'), '%d.%s' % (id, image['ext']))
 
-# @bp.route('/upload_photo')
-# def upload_photo():
-#     item = get_item(id)
-#     if item['owner_id'] != g.user['id']:
-#         abort(403)
+@bp.route('/download')
+def download():
+    id = request.args.get('id', -1, type=int)
 
-#     if request.method == 'POST':
-#         description = request.form['description']
-#         internal_id = request.form['internal_id']
-#         db = get_db_cursor()
-#         db.execute(
-#             'UPDATE item SET description = %s, internal_id = %s'
-#             ' WHERE id = %s',
-#             (description, internal_id, id)
-#         )
-#         db.commit()
-#         return redirect(url_for("item.view", id=id))
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT * FROM attachment WHERE id = %s',
+        (id,)
+        )
+    file = cursor.fetchone()
+    if file is None:
+        abort(403)
 
-#     return render_template('item/update.html', item=item)
+    result = send_file(os.path.join(current_app.instance_path,'uploads/%d' % (id,)),
+                mimetype="application/octet-stream",
+                as_attachment=True,
+                attachment_filename=file['filename'],
+                conditional=False)
+    return result
+

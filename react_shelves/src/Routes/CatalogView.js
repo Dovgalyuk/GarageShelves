@@ -14,6 +14,7 @@ import { CatalogListSection } from "../Catalog/ListSection";
 import EditText from '../Editors/Text'
 import EditDropDown from '../Editors/DropDown'
 import ImageListSection from '../Image'
+import AttachmentListSection from '../Attachment'
 import { ItemListSection } from '../Item'
 import { CatalogComments } from '../Comment'
 import FormCatalogSelect from '../Forms/CatalogSelect'
@@ -277,6 +278,9 @@ export default class CatalogView extends Component {
 
                 <ImageListSection id={ catalog.id } entity="catalog"
                     title="Catalog item images" auth={this.props.auth} />
+
+                <AttachmentListSection id={ catalog.id } entity="catalog"
+                    title="Attachments" auth={this.props.auth} />
 
                 { catalog.is_group === 1
                   ? <CatalogListSection

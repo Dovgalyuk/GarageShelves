@@ -1,5 +1,6 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify
+    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify,
+
 )
 from werkzeug.exceptions import abort
 import re
@@ -8,7 +9,7 @@ from shelves.auth import (login_required, admin_required)
 from shelves.db import get_db_cursor, db_commit, db_rollback
 from shelves.collection import get_user_collection
 from shelves.company import get_companies, get_company
-from shelves.uploads import upload_image
+from shelves.uploads import upload_image, upload_file
 from shelves.relation import Relation
 from shelves.attribute import Attribute
 
@@ -327,11 +328,24 @@ def _images():
     id = request.args.get('id', -1, type=int)
     return jsonify(get_catalog_images(id))
 
+@bp.route('/_attachments')
+def _attachments():
+    id = request.args.get('id', -1, type=int)
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT att.id, att.filename, att.description'
+        ' FROM catalog c JOIN catalog_attribute a ON c.id = a.catalog_id'
+        ' JOIN attachment att ON a.value_id = att.id'
+        ' WHERE a.type = %s AND c.id = %s',
+        (Attribute.ATTR_ATTACH, id,)
+    )
+    return jsonify(cursor.fetchall())
+
 @bp.route('/_upload_image', methods=('POST',))
 @login_required
 @admin_required
 def _upload_image():
-    id = request.args.get('id', -1, type=int)
+    id = request.form.get('id', -1, type=int)
     get_catalog(id)
 
     if 'file' not in request.files:
@@ -348,6 +362,32 @@ def _upload_image():
         )
         db_commit()
         cursor.execute('SELECT id, filename FROM image WHERE id = %s',
+            (file_id,))
+        return jsonify(cursor.fetchone())
+
+    return abort(400)
+
+@bp.route('/_upload_file', methods=('POST',))
+@login_required
+@admin_required
+def _upload_file():
+    id = request.form.get('id', -1, type=int)
+    get_catalog(id)
+
+    if 'file' not in request.files:
+        return abort(400)
+
+    file = request.files['file']
+    if file:
+        file_id = upload_file(file, request.form.get('desc'))
+        cursor = get_db_cursor()
+        cursor.execute(
+            'INSERT INTO catalog_attribute (type, catalog_id, value_id)'
+            ' VALUES (%s, %s, %s)',
+            (Attribute.ATTR_ATTACH, id, file_id,)
+        )
+        db_commit()
+        cursor.execute('SELECT id, filename FROM attachment WHERE id = %s',
             (file_id,))
         return jsonify(cursor.fetchone())
 
@@ -689,7 +729,7 @@ def _software_add():
 @admin_required
 def _set_logo():
     try:
-        id = int(request.args['id'])
+        id = int(request.form['id'])
         get_catalog(id)
 
         file = request.files['file']
