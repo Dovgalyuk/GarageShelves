@@ -43,6 +43,7 @@ export class CatalogFamilies extends Component {
             platforms: [],
             showForm: false,
             filter: {},
+            formTitle: "",
             path: "",
         };
     }
@@ -77,12 +78,18 @@ export class CatalogFamilies extends Component {
             });
     }
     handleAddFamily = () => {
-        this.setState({ showForm: true,
-            path: "family", filter: {type_name:this.props.type_title, notype:true} });
+        this.setState({ showForm: true, formTitle: "Add family",
+            path: "family",
+            filter: {
+                type_name: this.props.type_title + 
+                    (this.props.type_title.search("family") < 0
+                        ? "," + this.props.type_title + " family"
+                        : ""),
+                notype:true} });
     }
     handleAddPlatform = () => {
-        this.setState({ showForm: true, path: "compatible",
-            filter: {type_name: "Computer family", notype: true} });
+        this.setState({ showForm: true, path: "compatible", formTitle: "Add platform",
+            filter: {type_name: "Computer family,Computer", notype: true} });
     }
     handleFormClose = () => {
         this.setState({ showForm: false });
@@ -126,7 +133,7 @@ export class CatalogFamilies extends Component {
             </ButtonToolbar>
             {(this.props.auth.isAuthenticated && this.props.auth.isAdmin)
                 ? <FormCatalogSelect
-                    title="Add family"
+                    title={this.state.formTitle}
                     open={this.state.showForm}
                     onClose={this.handleFormClose}
                     onSelect={this.handleFormSelect}

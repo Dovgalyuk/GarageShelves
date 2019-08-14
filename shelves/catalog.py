@@ -62,7 +62,7 @@ def get_catalog_full(id):
 def get_catalog(id):
     catalog = get_catalog_none(id)
     if catalog is None:
-        abort(404, "Catalog id {0} doesn't exist.".format(id))
+        abort(403, "Catalog id {0} doesn't exist.".format(id))
 
     return catalog
 
@@ -103,7 +103,7 @@ def get_catalog_type_id(name):
         )
     ct = cursor.fetchone()
     if ct is None:
-        abort(404, "Catalog type %s doesn't exist." % name)
+        abort(403, "Catalog type %s doesn't exist." % name)
 
     return ct['id']
 
@@ -196,11 +196,12 @@ def filtered_query(args, count):
     company_id = args.get('company', -1, type=int)
     parent_id = args.get('parent', -1, type=int)
     includes_id = args.get('includes', -1, type=int)
-    type_id = args.get('type_id', -1, type=int)
-    type_name = args.get('type_name')
     title = args.get('title')
+    type_ids = []
+    type_name = args.get('type_name')
     if type_name:
-        type_id = get_catalog_type_id(type_name)
+        for name in type_name.split(','):
+            type_ids.append(get_catalog_type_id(name))
     noparent = args.get('noparent', False, type=bool)
     is_main = args.get('is_main', False, type=bool)
 
@@ -278,8 +279,15 @@ def filtered_query(args, count):
             params = (*params, Relation.REL_COMPATIBLE,)
         else:
             params = (*params, Relation.REL_INCLUDES,)
-    if type_id != -1:
-        where += ' AND ct.id = %d' % type_id
+    if type_ids:
+        where += ' AND ('
+        first = True
+        for type_id in type_ids:
+            if not first:
+                where += ' OR '
+            where += 'ct.id = %d' % type_id
+            first = False
+        where += ')'
     if noparent:
         where += ' AND NOT EXISTS (SELECT 1 FROM catalog_relation' \
                  '      WHERE catalog_id2 = c.id AND type = %d)' % Relation.REL_INCLUDES
