@@ -38,14 +38,14 @@ export class CatalogSearch extends Component {
         return (
           <>
             <Form>
-            <Form.Group as={Row} className="pt-4">
+              <Form.Group as={Row} className="pt-4">
                 <Form.Label column xs={1}>Title</Form.Label>
                 <Col xs={11}>
                 <Form.Control type="text" id="title"
                     onChange={this.handleChange}
                     value={this.state.title}/>
                 </Col>
-            </Form.Group>
+              </Form.Group>
             </Form>
             <CatalogListSection filter={this.state.filter}
                   ref={(ref) => {this.listRef = ref;}}

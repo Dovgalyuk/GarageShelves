@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Modal from 'react-bootstrap/Modal'
@@ -55,10 +56,14 @@ class FormCatalogCreate extends Component {
     handleConfirm = event => {
         if (!this.state.errors.submit) {
             postBackend('catalog/_create', {}, this.state.form)
+                .then(response => response.json())
+                .then(data => {
+                    this.props.history.push("/catalog/view/" + data.id);
+                })
                 .catch(e => {})
                 .finally((e) => {
-                    this.handleHide(e);
-                    this.props.handleUpdateItems();
+                    //this.handleHide(e);
+                    //this.props.handleUpdateItems();
                 });
         }
     }
@@ -187,4 +192,4 @@ class FormCatalogCreate extends Component {
     }
 }
 
-export default FormCatalogCreate
+export default withRouter(FormCatalogCreate)
