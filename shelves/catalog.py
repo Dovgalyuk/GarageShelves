@@ -557,7 +557,7 @@ def _create():
         db_rollback()
         abort(403)
 
-    return jsonify(result='success')
+    return jsonify(result='success', id=catalog_id)
 
 @bp.route('/_create_modification', methods=('POST',))
 @login_required
