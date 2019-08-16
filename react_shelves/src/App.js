@@ -103,17 +103,17 @@ class App extends Component {
                               props={childProps} />
                 <AppliedRoute path="/collection" exact component={Collections}
                               props={childProps} />
-                <AppliedRoute path="/collection/view/:id" component={CollectionView}
+                <AppliedRoute path="/collection/view/:id" exact component={CollectionView}
                               props={childProps} />
                 <AppliedRoute path="/company" exact component={Companies}
                               props={childProps} />
-                <AppliedRoute path="/company/view/:id" component={CompanyView}
+                <AppliedRoute path="/company/view/:id" exact component={CompanyView}
                               props={childProps} />
                 <AppliedRoute path="/catalog" exact component={Catalog}
                               props={childProps} />
-                <AppliedRoute path="/catalog/view/:id" component={CatalogView}
+                <AppliedRoute path="/catalog/view/:id" exact component={CatalogView}
                               props={childProps} />
-                <AppliedRoute path="/item/view/:id" component={ItemView}
+                <AppliedRoute path="/item/view/:id" exact component={ItemView}
                               props={childProps} />
                 <AppliedRoute path="/login" exact component={Login}
                               props={childProps} />

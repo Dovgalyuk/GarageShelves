@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Modal from 'react-bootstrap/Modal'
@@ -7,7 +6,7 @@ import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import fetchBackend, { postBackend } from '../Backend'
 
-class FormCatalogCreate extends Component {
+export default class FormCatalogCreate extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -58,17 +57,16 @@ class FormCatalogCreate extends Component {
             postBackend('catalog/_create', {}, this.state.form)
                 .then(response => response.json())
                 .then(data => {
-                    this.props.history.push("/catalog/view/" + data.id);
+                  this.handleHide();
+                  this.props.handleUpdateItems(data.id);
                 })
                 .catch(e => {})
                 .finally((e) => {
-                    //this.handleHide(e);
-                    //this.props.handleUpdateItems();
                 });
         }
     }
 
-    handleHide = event => {
+    handleHide = () => {
         this.props.onClose();
     }
 
@@ -191,5 +189,3 @@ class FormCatalogCreate extends Component {
       );
     }
 }
-
-export default withRouter(FormCatalogCreate)
