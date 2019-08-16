@@ -332,17 +332,19 @@ export default class CatalogView extends Component {
               { this.props.auth.isAuthenticated
                 && (catalog.is_group === 1 || catalog.is_kit === 1)
                 ? <FormCatalogCreate open={this.state.showFormCreateSubitem}
-                         onClose={this.handleFormCreateSubitemClose}
-                         handleUpdateItems={this.handleUpdateCatalogItems}
-                         parent={catalog.id} />
+                        handleUpdateItems={
+                          (id) => this.props.history.push("/catalog/view/" + id)
+                        }
+                        onClose={this.handleFormCreateSubitemClose}
+                        parent={catalog.id} />
                 : <div/>
               }
               { (this.props.auth.isAuthenticated)
                 ? <FormKitCreate open={this.state.showFormCreateKit}
-                         onClose={this.handleFormCreateKitClose}
-                         handleUpdateItems={this.handleUpdateKitItems}
-                         main_id={catalog.id}
-                         main_title={catalog.title_eng || catalog.title} />
+                        onClose={this.handleFormCreateKitClose}
+                        handleUpdateItems={this.handleUpdateKitItems}
+                        main_id={catalog.id}
+                        main_title={catalog.title_eng || catalog.title} />
                 : <div/>
               }
               { (this.props.auth.isAuthenticated)
