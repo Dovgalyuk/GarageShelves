@@ -18,7 +18,7 @@ def allowed_image(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in IMAGE_EXTENSIONS
 
-def upload_image(file,width=-1,height=-1):
+def upload_image(file,desc='',width=-1,height=-1):
     if not allowed_image(file.filename):
         abort(403)
 
@@ -35,8 +35,8 @@ def upload_image(file,width=-1,height=-1):
 
     cursor = get_db_cursor()
     cursor.execute(
-        'INSERT INTO image (ext, filename, owner_id) VALUES (%s, %s, %s)',
-        (ext, filename, g.user['id'],)
+        'INSERT INTO image (ext, filename, description, owner_id) VALUES (%s, %s, %s, %s)',
+        (ext, filename, desc, g.user['id'],)
     )
     file_id = cursor.lastrowid
     img.save(os.path.join(
