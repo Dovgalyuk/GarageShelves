@@ -246,7 +246,8 @@ export default class CatalogView extends Component {
                     }
                     &nbsp;
                     { this.props.auth.isAuthenticated
-                          && catalog.type_title === "Data storage"
+                          && (catalog.type_title === "Data storage"
+                              || catalog.type_title === "Software")
                       ? <Button variant="primary"
                                 onClick={this.handleAddSoftwareButton}>
                           Add software
@@ -356,8 +357,9 @@ export default class CatalogView extends Component {
                 : <div/>
               }
               { this.props.auth.isAuthenticated
-                    && catalog.type_title === "Data storage"
-                ? <FormCatalogSelect open={this.state.showFormAddSoftware}
+                    && (catalog.type_title === "Data storage"
+                        || catalog.type_title === "Software")
+                    ? <FormCatalogSelect open={this.state.showFormAddSoftware}
                           title="Add software"
                           onClose={this.handleFormAddSoftwareClose}
                           onSelect={this.handleSoftwareSelect}
