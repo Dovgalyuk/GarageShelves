@@ -2,37 +2,7 @@ import React, { Component } from 'react';
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import fetchBackend, { BackendURL, uploadBackend } from './Backend'
-
-class Upload extends Component {
-    constructor(props) {
-        super(props);
-
-        this.inputRef = React.createRef();
-    }
-
-    handleUpload = event => {
-        uploadBackend(this.props.entity + '/_upload_image', {id:this.props.id},
-            this.inputRef.current.files[0])
-            .then(response => response.json())
-            .then(response => this.props.updateList())
-            .catch(e => {});
-    }
-
-    render() {
-        return (
-            <div className="input-group">
-              <label className="input-group-btn">
-                  <span className="btn btn-primary" onChange={this.handleUpload}>
-                      Upload image
-                      <input type="file" style={{display: "none"}}
-                             ref={this.inputRef} />
-                      {/* TODO: multiple property of input*/}
-                  </span>
-              </label>
-            </div>
-        );
-    }
-}
+import { FormUpload } from './Forms/Upload';
 
 class Image extends Component {
     handleShow = () => {
@@ -44,12 +14,13 @@ class Image extends Component {
                 <button type="button" className="btn btn-link"
                         onClick={() => this.props.showForm(this.props.id)}>
                   <div className="thumbnail">
-                    <img alt="" width="230" height="230"
+                    <img alt={this.props.description} width="230" height="230"
                          className="figure-img img-fluid rounded"
                          src={BackendURL('uploads/view', {id:this.props.id})}
                          />
                   </div>
                 </button>
+                <center>{this.props.description}</center>
                </div>;
     }
 }
@@ -58,6 +29,7 @@ function ImageListRow(props) {
     return <div className="row pt-2">
              { props.row.map((img) =>
                 <Image key={img.id} id={img.id}
+                    description={img.description}
                     showForm={props.showForm}/>)}
            </div>;
 }
@@ -69,6 +41,7 @@ class ImageListSection extends Component {
             loading: true,
             showForm: false,
             showImg: -1,
+            uploadOpen: false,
             rows: []
         };
     }
@@ -130,8 +103,18 @@ class ImageListSection extends Component {
                     }
                     {(this.props.auth.isAdmin
                           || (this.props.owner && this.props.auth.user_id === this.props.owner))
-                      && <Upload entity={this.props.entity} id={this.props.id}
-                           updateList={this.handleUpdate} />
+                      ? <>
+                            <Button onClick={() => this.setState({uploadOpen:true})}>
+                                Upload file
+                            </Button>
+                            <FormUpload open={this.state.uploadOpen}
+                                type="image"
+                                entity={this.props.entity} id={this.props.id}
+                                onClose={() => this.setState({uploadOpen:false})}
+                                onUpload={this.handleUpdate}
+                            />
+                        </>
+                      : <div/>
                     }
                     {this.state.rows.map((row) =>
                        <ImageListRow key={row[0].id} row={row}
@@ -142,10 +125,11 @@ class ImageListSection extends Component {
                       <Modal.Header closeButton>
                         {(this.props.auth.isAdmin
                           || (this.props.owner && this.props.auth.user_id === this.props.owner))
-                          && <Button className="btn btn-outline-danger"
+                          ? <Button className="btn btn-outline-danger"
                                  onClick={this.handleDeleteImage}>
                                <span aria-hidden="true">Delete image</span>
                              </Button>
+                          : <div/>
                         }
                       </Modal.Header>
 

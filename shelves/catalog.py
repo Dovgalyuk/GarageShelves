@@ -74,7 +74,7 @@ def get_catalog_types():
 def get_catalog_images(id):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT img.id, img.filename'
+        'SELECT img.id, img.filename, img.description'
         ' FROM catalog c JOIN catalog_attribute a ON c.id = a.catalog_id'
         ' JOIN image img ON a.value_id = img.id'
         ' WHERE a.type = %s AND c.id = %s',
@@ -361,7 +361,7 @@ def _upload_image():
 
     file = request.files['file']
     if file:
-        file_id = upload_image(file)
+        file_id = upload_image(file, request.form.get('desc'))
         cursor = get_db_cursor()
         cursor.execute(
             'INSERT INTO catalog_attribute (type, catalog_id, value_id)'
