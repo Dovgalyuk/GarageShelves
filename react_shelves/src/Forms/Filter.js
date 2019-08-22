@@ -5,20 +5,28 @@ import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form'
 import Modal from 'react-bootstrap/Modal'
+import FormCatalogSelect from '../Forms/CatalogSelect'
+import CatalogButton from '../Catalog/Button'
 
 export default class FormCatalogFilter extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            title:"",
+            title: "",
+            categories: [],
+            showForm: false,
+            formTitle: "",
+            formFilter: {},
         };
     }
 
     handleShow = event => {
     }
 
-    handleConfirm = event => {
-        this.props.onConfirm({title:this.state.title});
+    handleConfirm = () => {
+        var filter = {title:this.state.title,
+            categories: this.state.categories.join(",")};
+        this.props.onConfirm(filter);
         this.props.onClose();
     }
 
@@ -28,6 +36,17 @@ export default class FormCatalogFilter extends Component {
 
     handleInput = event => {
         this.setState({[event.target.id]: event.target.value});
+    }
+
+    handleAddPlatform = () => {
+        this.setState({ showForm: true, formTitle: "Add platform",
+            formFilter: {type_name: "Computer family,Computer", notype: true} });
+    }
+    handleFormClose = () => {
+        this.setState({ showForm: false });
+    }
+    handleFormSelect = (family) => {
+        this.setState({categories: this.state.categories.concat([family,])});
     }
 
     render() {
@@ -50,6 +69,20 @@ export default class FormCatalogFilter extends Component {
                         value={this.state.title}/>
                   </Col>
                 </Form.Group>
+                <Form.Group as={Row}>
+                  <Form.Label column xs={2}>On platforms:</Form.Label>
+                  <Col xs={10}>
+                    { this.state.categories.map(cat => <span key={cat}>
+                          <CatalogButton id={cat} /> &nbsp;
+                        </span>
+                      )
+                    }
+                    <Button size="sm" variant="outline-info"
+                        onClick={this.handleAddPlatform}>
+                      Add platform
+                    </Button>
+                  </Col>
+                </Form.Group>
               </Form>
             </Modal.Body>
             <Modal.Footer>
@@ -61,6 +94,12 @@ export default class FormCatalogFilter extends Component {
                 Filter
               </Button>
             </Modal.Footer>
+            <FormCatalogSelect
+                    title={this.state.formTitle}
+                    open={this.state.showForm}
+                    filter={this.state.formFilter}
+                    onClose={this.handleFormClose}
+                    onSelect={this.handleFormSelect} />
           </Modal>
       );
     }

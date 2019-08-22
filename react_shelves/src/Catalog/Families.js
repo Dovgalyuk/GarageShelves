@@ -6,7 +6,7 @@ import fetchBackend, { postBackend } from '../Backend';
 import FormCatalogSelect from '../Forms/CatalogSelect'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 
-function Buttons(props) {
+function CategoryButtons(props) {
     return (<>
       {props.categories.map((f) => <div key={f.id}>
         <OverlayTrigger trigger="click" placement="right"
@@ -105,13 +105,13 @@ export class CatalogFamilies extends Component {
     render() {
         return (<Fragment>
             <ButtonToolbar>
-                <Buttons categories={this.state.families}
+                <CategoryButtons categories={this.state.families}
                          handleDelete={this.handleDelete}
                          auth={this.props.auth}
                          header="Belongs to"
                          relation="includes"
                          variant="primary" />
-                <Buttons categories={this.state.platforms}
+                <CategoryButtons categories={this.state.platforms}
                          handleDelete={this.handleDelete}
                          auth={this.props.auth}
                          header="Compatible with"

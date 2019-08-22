@@ -195,6 +195,16 @@ def _get_main():
 def filtered_query(args, count):
     company_id = args.get('company', -1, type=int)
     parent_id = args.get('parent', -1, type=int)
+    # many different parent categories
+    category_ids = []
+    categories = args.get('categories')
+    if categories:
+        for c in categories.split(','):
+            try:
+                category_ids.append(int(c))
+            except:
+                c # do nothing
+
     includes_id = args.get('includes', -1, type=int)
     title = args.get('title')
     type_ids = []
@@ -256,6 +266,18 @@ def filtered_query(args, count):
         where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
                  '      WHERE catalog_id1 = %s AND catalog_id2 = c.id AND type = %s)'
         params = (*params, parent_id, Relation.REL_INCLUDES,)
+    if category_ids:
+        where += ' AND ('
+        first = True
+        for c in category_ids:
+            if not first:
+                where += ' OR '
+            where += ' EXISTS (SELECT 1 FROM catalog_relation' \
+                     '      WHERE catalog_id1 = %s AND catalog_id2 = c.id' \
+                     '      AND type = %s)'
+            params = (*params, c, Relation.REL_COMPATIBLE,)
+            first = False
+        where += ')'
     if is_main:
         where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
                  '      WHERE catalog_id2 = c.id AND type = %s)'
