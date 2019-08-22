@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
-import fetchBackend, { BackendURL, uploadBackend } from './Backend'
+import fetchBackend, { BackendURL } from './Backend'
 import { FormUpload } from './Forms/Upload';
 
 class Image extends Component {

@@ -7,6 +7,7 @@ import Badge from 'react-bootstrap/Badge';
 import Pagination from 'react-bootstrap/Pagination'
 import fetchBackend from '../Backend';
 import FormCatalogCreate from '../Forms/CatalogCreate';
+import FormCatalogFilter from '../Forms/Filter';
 import { CatalogItem } from './Helpers';
 
 export class CatalogListSection extends Component {
@@ -16,6 +17,8 @@ export class CatalogListSection extends Component {
             loading: true,
             rows: [],
             showFormCreate: false,
+            showFormFilter: false,
+            filter: {},
             page: 0,
             count: -1,
             selectedItems: [],
@@ -35,12 +38,13 @@ export class CatalogListSection extends Component {
         if (p) {
             page = p;
         }
-        fetchBackend('catalog/_filtered_count', this.props.filter)
+        fetchBackend('catalog/_filtered_count',
+            {...this.props.filter, ...this.state.filter} )
             .then(response => response.json())
             .then(data => this.setState({count: data.count}))
             .catch(e => {});
         fetchBackend('catalog/_filtered_list',
-            {...this.props.filter,
+            {...this.props.filter, ...this.state.filter,
                 limitFirst: page * this.props.pageCount,
                 limitPage: this.props.pageCount})
             .then(response => response.json())
@@ -67,6 +71,11 @@ export class CatalogListSection extends Component {
         this.handleUpdate(page);
     }
 
+    handleFilterUpdate = filter => {
+        this.setState({filter:filter},
+            this.handleUpdate);
+    }
+
     handleSelect = id => {
         this.setState({selectedItems: [id,]},
             () => this.props.onSelection(this.state.selectedItems));
@@ -85,7 +94,10 @@ export class CatalogListSection extends Component {
         var ellipsis1 = false;
         var ellipsis2 = false;
         return <Fragment>
-            {this.props.title && (this.state.count > 0 || this.props.addButton)
+            {this.props.title
+                && (this.state.count > 0
+                    || this.props.addButton
+                    || Object.keys(this.state.filter).length > 0)
                 && <Row>
                     <Col>
                         <h3 className="pt-4">
@@ -94,14 +106,19 @@ export class CatalogListSection extends Component {
                               ? <Badge variant="secondary">
                                   {this.state.count}
                                   {" item"}{this.state.count > 1 ? "s" : ""}</Badge>
-                              : <div/>} &nbsp;
+                              : ""} &nbsp;
                             {(this.props.addButton
                                 && this.props.auth
                                 && this.props.auth.isAuthenticated)
                                 ? <Button type="button" className="btn btn-primary" onClick={this.handleCreateButton}>
                                     Add new
                                   </Button>
-                                : <div />}
+                                : ""} &nbsp;
+                            <Button variant={Object.keys(this.state.filter).length > 0 ? "primary" : "light"}
+                                onClick={() => this.setState({showFormFilter:true})}
+                            >
+                              <i className="fa fa-filter" aria-hidden="true"></i>
+                            </Button>
                         </h3>
                     </Col>
                 </Row>}
@@ -150,6 +167,9 @@ export class CatalogListSection extends Component {
                 && this.props.auth.isAuthenticated)
                 ? <FormCatalogCreate open={this.state.showFormCreate} onClose={this.handleFormCreateClose} handleUpdateItems={this.handleUpdate} {...this.props.filter} />
                 : <div />}
+            <FormCatalogFilter open={this.state.showFormFilter}
+                onClose={() => this.setState({showFormFilter:false})}
+                onConfirm={this.handleFilterUpdate} />
         </Fragment>;
     }
 }
