@@ -15,21 +15,35 @@ export class FormUpload extends Component {
     };
     this.fileRef = React.createRef();
   }
+
   handleUpload = event => {
+    if (this.state.selectedFile === "")
+      return;
+
     uploadBackend(this.props.entity + '/_upload_' + this.props.type,
       { id: this.props.id, desc: this.state.description }, this.fileRef.current.files[0])
       .then(response => response.json())
       .then(() => this.props.onUpload())
       .catch(() => { })
       .finally(() => this.handleHide());
-  };
+  }
+
   handleHide = event => {
     this.fileRef.current.value = null;
     this.setState({ description: "", selectedFile: "" }, this.props.onClose);
-  };
+  }
+
   handleInput = (event, id) => {
     this.setState({ [event.target.id]: event.target.value });
-  };
+  }
+
+  handleKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.handleUpload(event);
+    }
+  }
+
   handleSelectFile = () => {
     this.setState({ selectedFile: this.fileRef.current.files[0].name });
   };
@@ -57,7 +71,10 @@ export class FormUpload extends Component {
           <Form.Group as={Row}>
             <Form.Label column xs={2}>Description:</Form.Label>
             <Col xs={10}>
-              <Form.Control type="text" id="description" onChange={this.handleInput} value={this.state.description} />
+              <Form.Control type="text" id="description"
+                  onChange={this.handleInput}
+                  onKeyPress={this.handleKeyPress}
+                  value={this.state.description} />
             </Col>
           </Form.Group>
         </Form>
@@ -65,10 +82,10 @@ export class FormUpload extends Component {
       <Modal.Footer>
         <Button variant="secondary" onClick={this.handleHide}>
           Close
-                </Button>
+        </Button>
         <Button variant="primary" onClick={this.handleUpload} disabled={this.state.selectedFile === ""}>
           Upload
-                </Button>
+        </Button>
       </Modal.Footer>
     </Modal>);
   }
