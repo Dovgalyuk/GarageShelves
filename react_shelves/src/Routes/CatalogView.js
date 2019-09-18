@@ -3,6 +3,7 @@ import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
+import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import fetchBackend, { postBackend } from '../Backend'
 import FormCatalogCreate from '../Forms/CatalogCreate'
 import FormOwn from '../Forms/Own'
@@ -216,6 +217,7 @@ export default class CatalogView extends Component {
                           auth={this.props.auth}/>
                     </Col>
                     <Col xs={1} className="align-self-top">
+                    <ButtonToolbar>
                     { this.props.auth.isAuthenticated
                       && (catalog.is_group === 1 || catalog.is_kit === 1)
                       ? <Button variant="primary"
@@ -262,6 +264,7 @@ export default class CatalogView extends Component {
                         </Button>
                       : <span/>
                     }
+                    </ButtonToolbar>
                     </Col>
                   </Row>
                 </div>
