@@ -6,10 +6,12 @@ import Button from 'react-bootstrap/Button'
 import fetchBackend, { postBackend } from '../Backend'
 import EditText from '../Editors/Text'
 import ImageListSection from '../Image'
-import { ItemListSection } from '../Item'
+import { ItemListSection } from "../Item/ListSection"
 import { CatalogListSection } from "../Catalog/ListSection";
 import { ItemComments } from '../Comment'
 import FormCatalogSelect from '../Forms/CatalogSelect'
+// import FormKitOwnModify from '../Forms/KitOwnModify'
+import FormItemSelect from '../Forms/ItemSelect'
 
 export default class ItemView extends Component {
     constructor(props) {
@@ -18,16 +20,22 @@ export default class ItemView extends Component {
             loading:true,
             item:{},
             showFormAddSoftware:false,
+            // showFormModifyKit:false,
+            showFormItemSelect:false,
         };
     }
 
     componentDidMount() {
+        this.handleUpdate();
+    }
+
+    handleUpdate = () => {
         fetchBackend('item/_get', {id:this.props.match.params.id})
             .then(response => response.json())
             .then(data => {
                 this.setState({loading:false, item:data});
             })
-            .catch(e => this.setState({loading:false}));
+        .catch(e => this.setState({loading:false}));
     }
 
     handleEditField = (field, value) => {
@@ -54,6 +62,12 @@ export default class ItemView extends Component {
       }
     }
 
+    handleUpdateItems = () => {
+      if (this.itemsRef) {
+          this.itemsRef.handleUpdate();
+      }
+    }
+
     handleSoftwareSelect = (software) => {
       postBackend('item/_software_add', {},
           {id:this.state.item.id, software:software})
@@ -61,6 +75,34 @@ export default class ItemView extends Component {
           .finally((e) => {
               this.handleUpdateSoftware();
           });
+    }
+
+    // handleModifyKitButton = event => {
+    //   this.setState({showFormModifyKit:true});
+    // }
+
+    // handleFormModifyKitClose = event => {
+    //   if (this.itemsRef) {
+    //     this.itemsRef.handleUpdate();
+    //   }
+    //   this.setState({showFormModifyKit:false});
+    // }
+
+    handleAddItemButton = () => {
+        this.setState({showFormItemSelect:true});
+    }
+
+    handleFormItemSelectClose = () => {
+        this.setState({showFormItemSelect:false});
+    }
+    
+    handleFormItemSelectSelect = (item) => {
+        postBackend('item/_subitem_add', {},
+            {id:this.state.item.id, subitem:item})
+            .catch(e => {})
+            .finally((e) => {
+                this.handleUpdateItems();
+            });
     }
 
     render() {
@@ -108,6 +150,24 @@ export default class ItemView extends Component {
                         </Button>
                       : <span/>
                     }
+                    {/* { this.props.auth.isAuthenticated
+                      && item.type_title === "Kit"
+                      && item.owner_id === this.props.auth.user_id
+                      ? <Button variant="primary"
+                                onClick={this.handleModifyKitButton}>
+                          Add kit items
+                        </Button>
+                      : <span/>
+                    } */}
+                   { this.props.auth.isAuthenticated
+                      && item.type_title === "Kit"
+                      && item.owner_id === this.props.auth.user_id
+                      ? <Button variant="primary"
+                                onClick={this.handleAddItemButton}>
+                          Add existing item
+                        </Button>
+                      : <span/>
+                    }
                 </Col>
               </Row>
             </div>
@@ -132,6 +192,7 @@ export default class ItemView extends Component {
                 title="Included by the item" />
 
             <ItemListSection
+                ref={(ref) => {this.itemsRef = ref;}}
                 filter={ {parent:item.id} }
                 title="Includes the items" />
 
@@ -151,6 +212,24 @@ export default class ItemView extends Component {
                         onClose={this.handleFormAddSoftwareClose}
                         onSelect={this.handleSoftwareSelect}
                         filter={{type_name: "Software", notype: true}} />
+              : <div/>
+            }
+            {/* { this.props.auth.isAuthenticated
+                && item.type_title === "Kit"
+                && item.owner_id === this.props.auth.user_id
+              ? <FormKitOwnModify open={this.state.showFormModifyKit}
+                        title="Add more owned items"
+                        onClose={this.handleFormModifyKitClose} />
+              : <div/>
+            } */}
+            { this.props.auth.isAuthenticated
+                && item.type_title === "Kit"
+                && item.owner_id === this.props.auth.user_id
+              ? <FormItemSelect open={this.state.showFormItemSelect}
+                        title="Add other owned item"
+                        filter={{user:this.props.auth.user_id, noparent:true}}
+                        onClose={this.handleFormItemSelectClose}
+                        onSelect={this.handleFormItemSelectSelect} />
               : <div/>
             }
           </Container>

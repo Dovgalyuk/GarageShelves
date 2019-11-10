@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import ReactMarkdown from 'react-markdown';
 import fetchBackend from '../Backend'
-import { ItemListSection } from '../Item'
+import { ItemListSection } from '../Item/ListSection'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
