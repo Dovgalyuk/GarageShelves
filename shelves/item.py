@@ -15,7 +15,7 @@ bp = Blueprint('item', __name__, url_prefix='/item')
 def get_item_images(id):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT img.id, img.filename'
+        'SELECT img.id, img.filename, img.description'
         ' FROM item i JOIN item_attribute a ON i.id = a.item_id'
         ' JOIN image img ON a.value_id = img.id'
         ' WHERE a.type = %s AND i.id = %s',
@@ -51,7 +51,9 @@ def get_item(id):
 def _filtered_list():
     user_id = request.args.get('user', -1, type=int)
     parent_id = request.args.get('parent', -1, type=int)
+    noparent = request.args.get('noparent', False, type=bool)
     catalog_id = request.args.get('catalog', -1, type=int)
+    catalog_title = request.args.get('catalog_title')
     includes_id = request.args.get('includes', -1, type=int)
     collection_id = request.args.get('collection', -1, type=int)
     includes_catalog_id = request.args.get('includes_catalog', -1, type=int)
@@ -102,6 +104,10 @@ def _filtered_list():
                      ' EXISTS (SELECT 1 FROM catalog_relation' \
                      ' WHERE catalog_id1 = %s AND catalog_id2 = catalog_id AND type = %s)'
             params = (*params, parent['catalog_id'], Relation.REL_MAIN_ITEM)
+    if noparent:
+        where += ' AND NOT EXISTS (SELECT 1 FROM item_relation' \
+                 '      WHERE item_id2 = i.id AND type = %s)'
+        params = (*params, Relation.REL_INCLUDES)
     if includes_id != -1:
         query += ' JOIN item_relation r2 ON r2.item_id1 = i.id'
         where += ' AND r2.item_id2 = %s AND r2.type = %s'
@@ -117,6 +123,10 @@ def _filtered_list():
     if type_id != -1:
         where += ' AND c.type_id = %s'
         params = (*params, type_id)
+    if catalog_title:
+        # TODO: spaces are not supported in the template?
+        where += ' AND (c.title LIKE %s OR c.title_eng LIKE %s)'
+        params = (*params, '%' + catalog_title + '%', '%' + catalog_title + '%')
 
     if latest > 0:
         where += " ORDER BY i.added DESC LIMIT %d" % latest
@@ -140,8 +150,9 @@ def _get():
 @bp.route('/_upload_image', methods=('POST',))
 @login_required
 def _upload_image():
-    id = request.args.get('id', -1, type=int)
+    id = request.form.get('id', -1, type=int)
     item = get_item(id)
+
     if item['owner_id'] != g.user['id']:
         return abort(403)
 
@@ -150,7 +161,7 @@ def _upload_image():
 
     file = request.files['file']
     if file:
-        file_id = upload_image(file)
+        file_id = upload_image(file, request.form.get('desc'))
         cursor = get_db_cursor()
         cursor.execute(
             'INSERT INTO item_attribute (type, item_id, value_id)'
@@ -230,6 +241,41 @@ def _software_add():
             'INSERT INTO catalog_item_relation (catalog_id, item_id, type)'
             ' VALUES (%s, %s, %s)',
             (soft_id, id, Relation.REL_STORED)
+            )
+        db_commit()
+    except:
+        db_rollback()
+        abort(403)
+
+    return jsonify(result='success')    
+
+@bp.route('/_subitem_add', methods=('POST',))
+@login_required
+def _subitem_add():
+    id = request.json['id']
+    item = get_item(id)
+    if not g.user['admin'] or (item['owner_id'] != g.user['id']):
+        abort(403)
+    try:
+        subitem_id = request.json['subitem']
+        # assert that subitem exists
+        subitem = get_item(subitem_id)
+        if not g.user['admin'] or (subitem['owner_id'] != g.user['id']):
+            abort(403)
+        cursor = get_db_cursor()
+        # check whether this item is already included somewhere
+        cursor.execute(
+            'SELECT * FROM item_relation'
+            ' WHERE item_id2 = %s AND type = %s',
+            (subitem_id, Relation.REL_INCLUDES)
+        )
+        if cursor.fetchone() is not None:
+            abort(403)
+
+        cursor.execute(
+            'INSERT INTO item_relation (item_id1, item_id2, type)'
+            ' VALUES (%s, %s, %s)',
+            (id, subitem_id, Relation.REL_INCLUDES)
             )
         db_commit()
     except:

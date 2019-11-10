@@ -1,17 +1,19 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import fetchBackend, { postBackend } from '../Backend'
+import PropTypes from 'prop-types'
+import { postBackend } from '../Backend'
+import KitItemsSelect from '../Catalog/Kit'
 
 class FormOwn extends Component {
     constructor(props) {
         super(props);
         this.state = {
             loading:true,
-            items:[],
+            count:0,
             form:this.defaultForm()
         };
     }
@@ -23,21 +25,13 @@ class FormOwn extends Component {
     }
 
     handleShow = event => {
-        var form = this.defaultForm();
-        fetchBackend('catalog/_filtered_list', {parent:this.props.id})
-            .then(response => response.json())
-            .then(data => {
-                for (var i = 0 ; i < data.length ; ++i) {
-                    form[data[i].id] = {use:false, internal: ""};
-                }
-                this.setState({loading:false, items:data});
-            })
-            .catch(e => this.setState({loading:false, items:[]}))
-            .finally(this.setState({form:form}));
+        this.itemsRef.handleShow();
     }
 
     handleConfirm = event => {
-        postBackend('catalog/_own', {id:this.props.id}, this.state.form)
+        var form = this.itemsRef.getSelectedList();
+        form[this.props.id] = {use:true, internal:this.state.form[this.props.id].internal };
+        postBackend('catalog/_own', {id:this.props.id}, form)
             .catch(e => {})
             .finally((e) => {
                 this.handleHide(e);
@@ -72,7 +66,6 @@ class FormOwn extends Component {
                   <h4>Confirm ownership of the catalog item</h4>
                 </Modal.Header>
                 <Modal.Body>
-                  { this.state.loading && <div>Loading...</div> }
                   <Form>
                     <Form.Group as={Row}>
                       <Form.Label column xs={2}>Internal ID:</Form.Label>
@@ -82,34 +75,17 @@ class FormOwn extends Component {
                           onChange={e => this.handleInput(e, this.props.id)}/>
                       </Col>
                     </Form.Group>
-                    { this.state.items.length > 0 &&
+                    { this.state.count > 0 &&
                       <Form.Group>
                         <h4>Also add the next items from the kit</h4>
                       </Form.Group>
                     }
-                    { this.state.items.map((c) =>
-                      <Fragment key={c.id}>
-                        { c.is_physical
-                          ? <Form.Group as={Row}>
-                            <Col xs={3}>
-                              <Form.Control type="text"
-                                id={"I" + c.id}
-                                value={this.state.form[c.id].internal}
-                                onChange={e => this.handleInput(e, c.id)}/>
-                            </Col>
-                            <Col xs={9}>
-                              <Form.Check custom type="checkbox"
-                                id={"C" + c.id}
-                                checked={this.state.form[c.id].use}
-                                label={c.type_title + " : "
-                                  + (c.title_eng ? c.title_eng : c.title)}
-                                onChange={e => this.handleCheckBox(e, c.id)} />
-                            </Col>
-                          </Form.Group>
-                          : <div/>
-                        }
-                      </Fragment>)
-                    }
+                    <KitItemsSelect catalog_id={this.props.id} 
+                      ref={(ref) => {this.itemsRef = ref;}}
+                      handleLoaded={(items) => {
+                        console.log(items);
+                        this.setState({loading:false, count:items})}}
+                      />
                   </Form>
                 </Modal.Body>
                 <Modal.Footer>
@@ -124,6 +100,17 @@ class FormOwn extends Component {
               </Modal>
         );
     }
+}
+
+FormOwn.defaultProps = {
+  open: false,
+}
+
+FormOwn.propTypes = {
+  open: PropTypes.bool,
+  id: PropTypes.number.isRequired,
+  handleUpdateItems: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
 }
 
 export default FormOwn

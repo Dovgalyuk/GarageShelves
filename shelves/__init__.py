@@ -17,6 +17,8 @@ def create_app(test_config=None):
         # load the test config if passed in
         app.config.from_mapping(test_config)
 
+    #app.config.update(SESSION_COOKIE_SAMESITE='Lax')
+
     # init all after config
     Misaka(app)
     FlaskUtilJs(app)

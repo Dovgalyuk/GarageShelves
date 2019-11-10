@@ -16,7 +16,7 @@ import EditText from '../Editors/Text'
 import EditDropDown from '../Editors/DropDown'
 import ImageListSection from '../Image'
 import AttachmentListSection from '../Attachment'
-import { ItemListSection } from '../Item'
+import { ItemListSection } from '../Item/ListSection'
 import { CatalogComments } from '../Comment'
 import FormCatalogSelect from '../Forms/CatalogSelect'
 
