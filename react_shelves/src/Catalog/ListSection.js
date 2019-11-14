@@ -5,6 +5,8 @@ import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import Badge from 'react-bootstrap/Badge';
 import Pagination from 'react-bootstrap/Pagination'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFilter } from '@fortawesome/free-solid-svg-icons'
 import fetchBackend from '../Backend';
 import FormCatalogCreate from '../Forms/CatalogCreate';
 import FormCatalogFilter from '../Forms/Filter';
@@ -117,7 +119,7 @@ export class CatalogListSection extends Component {
                             <Button variant={Object.keys(this.state.filter).length > 0 ? "primary" : "light"}
                                 onClick={() => this.setState({showFormFilter:true})}
                             >
-                              <i className="fa fa-filter" aria-hidden="true"></i>
+                                <FontAwesomeIcon icon={faFilter} />
                             </Button>
                         </h3>
                     </Col>

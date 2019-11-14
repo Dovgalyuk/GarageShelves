@@ -2,6 +2,8 @@ import React, { Component, Fragment } from 'react';
 import Button from 'react-bootstrap/Button';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import Popover from 'react-bootstrap/Popover';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons'
 import fetchBackend, { postBackend } from '../Backend';
 import FormCatalogSelect from '../Forms/CatalogSelect'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -20,7 +22,7 @@ function CategoryButtons(props) {
                 {props.auth.isAdmin
                     ? <Button size="sm" variant="danger"
                           onClick={() => props.handleDelete(f.id, props.relation)}>
-                        <i className="fas fa-trash-alt" />
+                        <FontAwesomeIcon icon={faTrashAlt} />
                     </Button>
                     : <div />}
               </Popover.Content>

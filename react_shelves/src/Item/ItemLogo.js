@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types'
 import { BackendURL } from '../Backend';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faLaptop } from '@fortawesome/free-solid-svg-icons'
 
 export function ItemLogo(props) {
   var size = props.is_main ? 240 : 60;
@@ -8,7 +10,8 @@ export function ItemLogo(props) {
   return <span className="thumbnail itemLogo">
     {props.img_id ?
       <img src={BackendURL('uploads/view', { id: props.img_id })} width={size} height={size} alt="" className="figure-img img-fluid rounded" />
-      : <i className={"text-muted fas fa-laptop fa-" + mul + "x"}>{props.img_id}</i>}
+      : <FontAwesomeIcon icon={faLaptop} className="text-muted" size={mul + "x"}/>
+    }
   </span>;
 }
 

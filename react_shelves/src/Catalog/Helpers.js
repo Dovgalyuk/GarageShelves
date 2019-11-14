@@ -3,6 +3,8 @@ import PropTypes from 'prop-types'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faLaptop } from '@fortawesome/free-solid-svg-icons'
 import fetchBackend, { BackendURL, uploadBackend } from '../Backend'
 import { CatalogListSection } from './ListSection';
 
@@ -55,7 +57,7 @@ export class Logo extends Component {
                 ? <img src={ BackendURL('uploads/view', { id:this.state.img_id } ) }
                         alt="logo"
                    />
-                : <span className="text-muted"><i className="fas fa-laptop fa-4x"></i></span>
+                : <FontAwesomeIcon icon={faLaptop} size="4x" className="text-muted" />
             }
             {(this.props.main && this.props.auth.isAdmin)
                 ? <input type="file" style={{display: "none"}}

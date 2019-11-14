@@ -4,6 +4,8 @@ import Button from 'react-bootstrap/Button'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
 import Form from 'react-bootstrap/Form'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCheck, faTimes, faEdit } from '@fortawesome/free-solid-svg-icons'
 
 export default class EditDropDown extends Component {
   constructor(props) {
@@ -104,7 +106,7 @@ export default class EditDropDown extends Component {
               variant="link"
               onClick={this._onSave}
             >
-              <i className="fas fa-check text-success" />
+              <FontAwesomeIcon icon={faCheck} className="text-success"/>
             </Button>
           </Fragment>
         }
@@ -113,7 +115,7 @@ export default class EditDropDown extends Component {
           variant="link"
           onClick={this._onCancel}
         >
-          <i className="fas fa-times text-danger" />
+          <FontAwesomeIcon icon={faTimes} className="text-danger"/>
         </Button>
       </div>
     )
@@ -144,7 +146,7 @@ export default class EditDropDown extends Component {
               variant="link"
               onClick={this._activateEditMode}
             >
-              <i className="fas fa-edit" />
+              <FontAwesomeIcon icon={faEdit} />
             </Button>
           : <div/>
         }

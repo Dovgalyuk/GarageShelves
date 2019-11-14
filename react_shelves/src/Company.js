@@ -2,6 +2,8 @@ import React, { Fragment } from 'react'
 import { BackendURL } from './Backend'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faIndustry } from '@fortawesome/free-solid-svg-icons'
 
 export function CompanyLogo(props) {
     return (
@@ -9,7 +11,7 @@ export function CompanyLogo(props) {
         { props.img_id
             ? <img src={ BackendURL('uploads/view', { id:props.img_id } ) }
                         alt="" />
-            : <span className="text-muted"><i className="fas fa-industry fa-4x"></i></span>
+            : <FontAwesomeIcon icon={faIndustry} className="text-muted" size="4x"/>
         }
       </Col>
     );

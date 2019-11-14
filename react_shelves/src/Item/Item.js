@@ -23,6 +23,7 @@ export class Item extends Component{
                 href={"/item/view/" + this.props.item.id}
                 onClick={this.onClick}
                 active={this.props.selected} >
+            {/* TODO: don't use fa class        */}
             <strong className={this.props.is_main ? "fa-2x" : ""}>
             {this.props.item.type_title + " : "
                 + (this.props.item.title_eng ? this.props.item.title_eng : this.props.item.title)}
