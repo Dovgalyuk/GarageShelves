@@ -1,10 +1,11 @@
-import React, { Component } from 'react';
-import Col from 'react-bootstrap/Col';
-import Row from 'react-bootstrap/Row';
-import Form from 'react-bootstrap/Form';
-import Modal from 'react-bootstrap/Modal';
-import Button from 'react-bootstrap/Button';
-import { uploadBackend } from '../Backend';
+import React, { Component } from 'react'
+import Col from 'react-bootstrap/Col'
+import Row from 'react-bootstrap/Row'
+import Form from 'react-bootstrap/Form'
+import Modal from 'react-bootstrap/Modal'
+import Button from 'react-bootstrap/Button'
+import SubmitButton from '../Widgets/SubmitButton'
+import { uploadBackend } from '../Backend'
 
 export class FormUpload extends Component {
   constructor(props) {
@@ -83,9 +84,9 @@ export class FormUpload extends Component {
         <Button variant="secondary" onClick={this.handleHide}>
           Close
         </Button>
-        <Button variant="primary" onClick={this.handleUpload} disabled={this.state.selectedFile === ""}>
-          Upload
-        </Button>
+        <SubmitButton caption="Upload"
+            onClick={this.handleUpload}
+            disabled={this.state.selectedFile === ""} />
       </Modal.Footer>
     </Modal>);
   }

@@ -5,6 +5,7 @@ import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import fetchBackend, { postBackend } from '../Backend'
+import SubmitButton from '../Widgets/SubmitButton'
 
 export default class FormCatalogCreate extends Component {
     constructor(props) {
@@ -178,12 +179,10 @@ export default class FormCatalogCreate extends Component {
               <Button variant="secondary" onClick={this.handleHide}>
                 Close
               </Button>
-              <Button variant="primary" onClick={this.handleConfirm}
+              <SubmitButton caption="Create" onClick={this.handleConfirm}
                 disabled={this.state.loadingTypes
                           || this.state.loadingCompanies
-                          || this.state.errors.submit}>
-                Create
-              </Button>
+                          || this.state.errors.submit}/>
             </Modal.Footer>
           </Modal>
       );
