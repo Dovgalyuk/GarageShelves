@@ -75,7 +75,7 @@ export class CatalogListSection extends Component {
 
     handleFilterUpdate = filter => {
         this.setState({filter:filter},
-            this.handleUpdate);
+            () => this.handleUpdate(0));
     }
 
     handleSelect = id => {
@@ -167,7 +167,10 @@ export class CatalogListSection extends Component {
             }
             {(this.props.addButton && this.props.auth
                 && this.props.auth.isAuthenticated)
-                ? <FormCatalogCreate open={this.state.showFormCreate} onClose={this.handleFormCreateClose} handleUpdateItems={this.handleUpdate} {...this.props.filter} />
+                ? <FormCatalogCreate open={this.state.showFormCreate}
+                                     onClose={this.handleFormCreateClose}
+                                     handleUpdateItems={() => this.handleUpdate(this.state.page)}
+                                     {...this.props.filter} />
                 : <div />}
             <FormCatalogFilter open={this.state.showFormFilter}
                 onClose={() => this.setState({showFormFilter:false})}
