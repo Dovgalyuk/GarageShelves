@@ -68,6 +68,8 @@ export default class CatalogView extends Component {
         this.setState({showFormCreateKit:false});
     }
 
+    /* Create subitem */
+
     handleCreateSubitemButton = event => {
         this.setState({showFormCreateSubitem:true});
     }
@@ -75,6 +77,27 @@ export default class CatalogView extends Component {
     handleFormCreateSubitemClose = event => {
         this.setState({showFormCreateSubitem:false});
     }
+
+    /* Add existing subitem */
+
+    handleAddSubitemButton = () => {
+        this.setState({showFormAddSubitem:true});
+    }
+
+    handleFormAddSubitemClose = () => {
+        this.setState({showFormAddSubitem:false});
+    }
+
+    handleSubitemSelect = (subitem) => {
+        postBackend('catalog/_subitem_add', {},
+            {id:this.state.catalog.id, subitem:subitem})
+            .catch(e => {})
+            .finally((e) => {
+                this.handleUpdateCatalogItems();
+            });
+    }
+
+    /* Create modification */
 
     handleCreateModificationButton = event => {
         this.setState({showFormCreateModification:true});
@@ -176,7 +199,7 @@ export default class CatalogView extends Component {
                       <Logo id={catalog.id}
                             main auth={this.props.auth}/>
                     </Col>
-                    <Col xs={9} lg={10} className="align-self-top">
+                    <Col xs={8} lg={9} className="align-self-top">
                       <h1>
                         <EditText prefix={catalog.type_title + " : "}
                              value={ catalog.title_eng ? catalog.title_eng : catalog.title }
@@ -216,7 +239,7 @@ export default class CatalogView extends Component {
                           id={catalog.id}
                           auth={this.props.auth}/>
                     </Col>
-                    <Col xs={1} className="align-self-top">
+                    <Col xs={2} className="align-self-top">
                     <ButtonToolbar>
                     { this.props.auth.isAuthenticated
                       && (catalog.is_group === 1 || catalog.is_kit === 1)
@@ -253,6 +276,15 @@ export default class CatalogView extends Component {
                       ? <Button variant="primary"
                                 onClick={this.handleAddSoftwareButton}>
                           Add software
+                        </Button>
+                      : <span/>
+                    }
+                    &nbsp;
+                    { this.props.auth.isAuthenticated
+                      && (catalog.is_group === 1 || catalog.is_kit === 1)
+                      ? <Button variant="primary"
+                                onClick={this.handleAddSubitemButton}>
+                          Add existing subitem
                         </Button>
                       : <span/>
                     }
@@ -367,6 +399,15 @@ export default class CatalogView extends Component {
                           onClose={this.handleFormAddSoftwareClose}
                           onSelect={this.handleSoftwareSelect}
                           filter={{type_name: "Software", notype: true}} />
+                : <div/>
+              }
+              { this.props.auth.isAuthenticated
+                    && (catalog.is_group === 1 || catalog.is_kit === 1)
+                    ? <FormCatalogSelect open={this.state.showFormAddSubitem}
+                          title="Add existing subitem"
+                          onClose={this.handleFormAddSubitemClose}
+                          onSelect={this.handleSubitemSelect}
+                          filter={{}} />
                 : <div/>
               }
             </>

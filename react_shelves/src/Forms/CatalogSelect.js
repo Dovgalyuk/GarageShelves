@@ -1,8 +1,9 @@
-import React, { Component } from 'react';
+import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import { CatalogSearch } from '../Catalog/Search' 
+import SubmitButton from '../Widgets/SubmitButton'
 
 class FormCatalogSelect extends Component {
     constructor(props) {
@@ -10,18 +11,6 @@ class FormCatalogSelect extends Component {
         this.state = {
             software:-1
         };
-    }
-
-    handleShow = () => {
-        // if (this.state.loading) {
-        //     fetchBackend('catalog/_filtered_list', {type_name:'Software'})
-        //         .then(response => response.json())
-        //         .then(data => {
-        //             this.setState({loading:false, list:data,
-        //                            software:data[0].id});
-        //         })
-        //         .catch(e => this.props.onClose());
-        // }
     }
 
     handleHide = () => {
@@ -58,10 +47,8 @@ class FormCatalogSelect extends Component {
                 <Button variant="secondary" onClick={this.handleHide}>
                   Close
                 </Button>
-                <Button variant="primary" onClick={this.handleSelect}
-                        disabled={this.state.software < 0}>
-                  OK
-                </Button>
+                <SubmitButton caption="OK" onClick={this.handleSelect}
+                        disabled={this.state.software < 0} />
               </Modal.Footer>
             </Modal>
         );

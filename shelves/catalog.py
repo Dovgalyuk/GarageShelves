@@ -263,8 +263,8 @@ def filtered_query(args, count):
     if company_id != -1:
         where += ' AND com.id = %d' % company_id
     if parent_id != -1:
-        where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
-                 '      WHERE catalog_id1 = %s AND catalog_id2 = c.id AND type = %s)'
+        query += ' JOIN catalog_relation crp ON c.id = crp.catalog_id2'
+        where += ' AND crp.catalog_id1 = %s AND crp.type = %s'
         params = (*params, parent_id, Relation.REL_INCLUDES,)
     if category_ids:
         where += ' AND ('
@@ -293,10 +293,10 @@ def filtered_query(args, count):
         where += ' catalog_id2 = c.id AND type = %s)'
         params = (*params, Relation.REL_MODIFICATION,)
     if includes_id != -1:
-        query += ' JOIN catalog_relation r3 ON r3.catalog_id1 = c.id'
-        where += ' AND r3.catalog_id2 = %s' \
-              +  ' AND r3.type = %s'
-        params = (*params, includes_id, )
+        where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
+                 '      WHERE catalog_id1 = c.id AND catalog_id2 = %s' \
+                 '      AND type = %s)'
+        params = (*params, includes_id,)
         if category == 'compatible':
             params = (*params, Relation.REL_COMPATIBLE,)
         else:
@@ -750,6 +750,27 @@ def _software_add():
         'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
         ' VALUES (%s, %s, %s)',
         (software, id, Relation.REL_STORED,)
+    )
+    db_commit()
+    return jsonify(result='success')
+
+@bp.route('/_subitem_add', methods=('POST',))
+@admin_required
+def _subitem_add():
+    id = int(request.json['id'])
+    subitem = int(request.json['subitem'])
+
+    # assert the ids
+    main = get_catalog(id)
+    get_catalog(subitem)
+    if not main['is_kit'] and not main['is_group']:
+        abort(403)
+
+    cursor = get_db_cursor()
+    cursor.execute(
+        'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
+        ' VALUES (%s, %s, %s)',
+        (id, subitem, Relation.REL_INCLUDES,)
     )
     db_commit()
     return jsonify(result='success')

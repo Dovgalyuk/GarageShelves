@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import { ItemSearch } from '../Item/Search' 
+import SubmitButton from '../Widgets/SubmitButton'
 
 class FormItemSelect extends Component {
     constructor(props) {
@@ -46,10 +47,8 @@ class FormItemSelect extends Component {
                 <Button variant="secondary" onClick={this.handleHide}>
                   Close
                 </Button>
-                <Button variant="primary" onClick={this.handleSelect}
-                        disabled={this.state.item < 0}>
-                  OK
-                </Button>
+                <SubmitButton caption="OK" onClick={this.handleSelect}
+                        disabled={this.state.item < 0} />
               </Modal.Footer>
             </Modal>
         );

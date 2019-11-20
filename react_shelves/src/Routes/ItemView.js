@@ -140,7 +140,7 @@ export default class ItemView extends Component {
                             prefix="Internal id "/>
                 </Col>
                 <Col>In collection since {item.added}</Col>
-                <Col xs={1} className="align-self-top">
+                <Col xs={2} className="align-self-top">
                     { this.props.auth.isAuthenticated
                       && item.type_title === "Data storage"
                       && item.owner_id === this.props.auth.user_id
