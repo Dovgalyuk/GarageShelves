@@ -43,6 +43,28 @@ def get_item(id):
 
     return item
 
+# function for checking existing dependencies
+# returns False if subitem is already parent of main item
+def check_parent_loops(main_id, subitem_id):
+    checked = set()
+    queue = {main_id}
+    cursor = get_db_cursor()
+    while queue:
+        next = queue.pop()
+        if next == subitem_id:
+            return False
+        if next not in checked:
+            checked.add(next)
+            cursor.execute(
+                'SELECT item_id1 FROM item_relation'
+                ' WHERE type = %s AND item_id2 = %s',
+                (Relation.REL_INCLUDES, next,)
+            )
+            for v in cursor.fetchall():
+                queue.add(v['item_id1'])
+    #
+    return True
+
 ###############################################################################
 # JSON Routes
 ###############################################################################
@@ -270,6 +292,9 @@ def _subitem_add():
             (subitem_id, Relation.REL_INCLUDES)
         )
         if cursor.fetchone() is not None:
+            abort(403)
+        # check possible recursion
+        if id == subitem_id or not check_parent_loops(id, subitem_id):
             abort(403)
 
         cursor.execute(

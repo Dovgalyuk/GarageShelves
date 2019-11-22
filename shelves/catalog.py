@@ -145,6 +145,31 @@ def add_ownership(cursor, id, internal_id, collection_id):
         )
     return item_id
 
+# function for checking existing dependencies
+# returns False if subitem is already parent of main item
+def check_parent_loops(main_id, subitem_id):
+    checked = set()
+    queue = {main_id}
+    cursor = get_db_cursor()
+    while queue:
+        next = queue.pop()
+        if next == subitem_id:
+            return False
+        if next not in checked:
+            checked.add(next)
+            # TODO: other relations?
+            cursor.execute(
+                'SELECT catalog_id1 FROM catalog_relation'
+                ' WHERE (type = %s OR type = %s OR type = %s)'
+                '   AND catalog_id2 = %s',
+                (Relation.REL_INCLUDES, Relation.REL_MAIN_ITEM,
+                 Relation.REL_MODIFICATION, next,)
+            )
+            for v in cursor.fetchall():
+                queue.add(v['catalog_id1'])
+    #
+    return True
+
 ###############################################################################
 # API Routes
 ###############################################################################
@@ -764,6 +789,11 @@ def _subitem_add():
     main = get_catalog(id)
     get_catalog(subitem)
     if not main['is_kit'] and not main['is_group']:
+        abort(403)
+
+    # assert that this does not create a loop
+    if not check_parent_loops(id, subitem) or id == subitem:
+        # TODO: return readable error
         abort(403)
 
     cursor = get_db_cursor()
