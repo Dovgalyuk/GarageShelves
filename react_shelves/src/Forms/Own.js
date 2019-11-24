@@ -83,7 +83,6 @@ class FormOwn extends Component {
                     <KitItemsSelect catalog_id={this.props.id} 
                       ref={(ref) => {this.itemsRef = ref;}}
                       handleLoaded={(items) => {
-                        console.log(items);
                         this.setState({loading:false, count:items})}}
                       />
                   </Form>

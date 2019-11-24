@@ -123,7 +123,9 @@ def create_catalog(cursor, type_id, title, title_eng, description, year, company
         )
     return catalog_id
 
+# insert ownership record for the specified item
 def add_ownership(cursor, id, internal_id, collection_id):
+    print("started %d" % (id, ))
     cursor.execute(
         'INSERT INTO item (catalog_id, internal_id, description, collection_id)'
         ' VALUES (%s, %s, %s, %s)',
@@ -132,9 +134,8 @@ def add_ownership(cursor, id, internal_id, collection_id):
     item_id = cursor.lastrowid
     # check if there was software on the data storage catalog item
     cursor.execute(
-        'SELECT s.id FROM catalog s'
-        ' LEFT JOIN catalog_relation r ON r.catalog_id1 = s.id'
-        ' WHERE r.type = %s AND r.catalog_id2 = %s',
+        'SELECT catalog_id1 AS id FROM catalog_relation'
+        ' WHERE type = %s AND catalog_id2 = %s',
         (Relation.REL_STORED, id,)
     )
     for soft in cursor.fetchall():
@@ -143,6 +144,38 @@ def add_ownership(cursor, id, internal_id, collection_id):
             '    VALUES (%s, %s, %s)',
             (soft['id'], item_id, Relation.REL_STORED,)
         )
+
+    print("finished %d created %d" % (id, item_id,))
+
+    return item_id
+
+# insert ownership record for the specified item
+# if item is kit, also own all its subitems
+def add_ownership_all(cursor, id, internal_id, collection_id):
+    item_id = add_ownership(cursor, id, internal_id, collection_id)
+    # check subitems
+    catalog = get_catalog(id)
+    if catalog['is_kit']:
+        cursor.execute(
+            'SELECT catalog_id2 AS id FROM catalog_relation'
+            ' WHERE type = %s AND catalog_id1 = %s',
+            (Relation.REL_INCLUDES, id,)
+        )
+        subitems = cursor.fetchall()
+        for sub in subitems:
+            print("subitem %d" % (sub['id'], ))
+            subitem = get_catalog(sub['id'])
+            if subitem['is_physical']:
+                subitem_id = add_ownership_all(cursor, sub['id'], '', collection_id)
+                # add relation
+                cursor.execute(
+                    'INSERT INTO item_relation (item_id1, item_id2, type)'
+                    ' VALUES (%s, %s, %s)',
+                    (item_id, subitem_id, Relation.REL_INCLUDES)
+                )
+
+    print("finished %d created %d" % (id, item_id,))
+
     return item_id
 
 # function for checking existing dependencies
@@ -498,7 +531,7 @@ def _own():
                 iid = ''
                 if 'internal' in attr:
                     iid = attr['internal']
-                subitem_id = add_ownership(cursor, subid, iid, collection['id'])
+                subitem_id = add_ownership_all(cursor, subid, iid, collection['id'])
                 cursor.execute(
                     'INSERT INTO item_relation (item_id1, item_id2, type)'
                     ' VALUES (%s, %s, %s)',
