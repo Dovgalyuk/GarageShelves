@@ -51,6 +51,14 @@ export default class Catalog extends Component {
                     notype:true, is_group:true} } title="Data storage families"
                     auth={this.props.auth} addButton/>
             </Tab>
+            <Tab eventKey="peripheral" title="Peripheral devices">
+              <CatalogListSection filter={ {type_name:"Peripheral device family", noparent:true,
+                    notype:true, is_group:true} } title="Peripheral device families"
+                    auth={this.props.auth} addButton/>
+              <CatalogListSection filter={ {type_name:"Peripheral device",
+                    notype:true, is_group:false} } title="Peripheral devices"
+                    auth={this.props.auth} addButton/>
+            </Tab>
             <Tab eventKey="search" title="Search">
               <CatalogSearchTab auth={this.props.auth} />
             </Tab>

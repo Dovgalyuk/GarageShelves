@@ -125,7 +125,6 @@ def create_catalog(cursor, type_id, title, title_eng, description, year, company
 
 # insert ownership record for the specified item
 def add_ownership(cursor, id, internal_id, collection_id):
-    print("started %d" % (id, ))
     cursor.execute(
         'INSERT INTO item (catalog_id, internal_id, description, collection_id)'
         ' VALUES (%s, %s, %s, %s)',
@@ -145,8 +144,6 @@ def add_ownership(cursor, id, internal_id, collection_id):
             (soft['id'], item_id, Relation.REL_STORED,)
         )
 
-    print("finished %d created %d" % (id, item_id,))
-
     return item_id
 
 # insert ownership record for the specified item
@@ -163,7 +160,6 @@ def add_ownership_all(cursor, id, internal_id, collection_id):
         )
         subitems = cursor.fetchall()
         for sub in subitems:
-            print("subitem %d" % (sub['id'], ))
             subitem = get_catalog(sub['id'])
             if subitem['is_physical']:
                 subitem_id = add_ownership_all(cursor, sub['id'], '', collection_id)
@@ -173,8 +169,6 @@ def add_ownership_all(cursor, id, internal_id, collection_id):
                     ' VALUES (%s, %s, %s)',
                     (item_id, subitem_id, Relation.REL_INCLUDES)
                 )
-
-    print("finished %d created %d" % (id, item_id,))
 
     return item_id
 
@@ -503,6 +497,8 @@ def _delete_image():
 
     return jsonify(result='success')
 
+# input: id + json
+# json: {[id] = {internal, use} ...}
 @bp.route('/_own', methods=('POST',))
 @login_required
 def _own():

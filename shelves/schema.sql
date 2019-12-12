@@ -203,6 +203,7 @@ INSERT INTO catalog_type (title) VALUES ("Calculator");
 INSERT INTO catalog_type (title, is_kit) VALUES ("Kit", 1);
 INSERT INTO catalog_type (title) VALUES ("Mainboard");
 INSERT INTO catalog_type (title) VALUES ("Peripheral device");
+INSERT INTO catalog_type (title, is_physical, is_group) VALUES ("Peripheral device family", 0, 1);
 INSERT INTO catalog_type (title) VALUES ("Cable/Adapter");
 INSERT INTO catalog_type (title) VALUES ("Book");
 INSERT INTO catalog_type (title) VALUES ("Manual");
