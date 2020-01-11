@@ -71,7 +71,7 @@ class KitItemsSelect extends Component {
                             <Form.Check custom type="checkbox"
                                 id={"C" + c.id}
                                 checked={this.state.form[c.id].use}
-                                label={c.type_title + " : "
+                                label={c.root_title + " : "
                                     + (c.title_eng ? c.title_eng : c.title)}
                                 onChange={e => this.handleCheckBox(e, c.id)} />
                         </Col>

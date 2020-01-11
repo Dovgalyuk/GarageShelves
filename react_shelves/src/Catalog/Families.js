@@ -17,7 +17,7 @@ function CategoryButtons(props) {
                <Popover.Title as="h3">{props.header}</Popover.Title>
                <Popover.Content>
                 <Button variant="link" href={"/catalog/view/" + f.id}>
-                    {f.type_title} : {f.title_eng || f.title} 
+                    {f.root_title} : {f.title_eng || f.title} 
                 </Button>
                 {props.auth.isAdmin
                     ? <Button size="sm" variant="danger"
@@ -54,7 +54,7 @@ export class CatalogFamilies extends Component {
     }
     handleUpdate = () => {
         fetchBackend('catalog/_filtered_list',
-            { includes: this.props.id, is_group: true, category: "includes" }
+            { includes: this.props.id, type: "abstract", child_rel: "includes" }
         )
             .then(response => response.json())
             .then(data => {
@@ -62,7 +62,7 @@ export class CatalogFamilies extends Component {
             })
             .catch(e => {});
         fetchBackend('catalog/_filtered_list',
-            { includes: this.props.id, category: "compatible" }
+            { includes: this.props.id, child_rel: "compatible" }
         )
             .then(response => response.json())
             .then(data => {
@@ -83,15 +83,12 @@ export class CatalogFamilies extends Component {
         this.setState({ showForm: true, formTitle: "Add family",
             path: "family",
             filter: {
-                type_name: this.props.type_title + 
-                    (this.props.type_title.search("family") < 0
-                        ? "," + this.props.type_title + " family"
-                        : ""),
-                notype:true} });
+                parent: this.props.root, parent_rel: "root",
+                type: "abstract", notype:true} });
     }
     handleAddPlatform = () => {
         this.setState({ showForm: true, path: "compatible", formTitle: "Add platform",
-            filter: {type_name: "Computer family,Computer", notype: true} });
+            filter: {parent_name: "Computer", parent_rel: "root", notype: true} });
     }
     handleFormClose = () => {
         this.setState({ showForm: false });

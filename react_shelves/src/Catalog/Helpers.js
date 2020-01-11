@@ -80,8 +80,8 @@ class CatalogNormalItem extends Component {
                     </Col>
                     <Col xs={9} lg={9}>
                         <a className="action" href={"/catalog/view/" + this.props.item.id}>
-                        <h5>{this.props.item.type_title && !this.props.notype
-                                    ? this.props.item.type_title + " : " : ""}
+                        <h5>{this.props.item.root_title && !this.props.notype
+                                    ? this.props.item.root_title + " : " : ""}
                             {this.props.item.title_eng ? this.props.item.title_eng : this.props.item.title}</h5>
                         </a>
                     <h6 className="text-secondary">{this.props.item.title_eng ? this.props.item.title : ""}</h6>
@@ -125,8 +125,8 @@ class CatalogTinyItem extends Component {
                 href={"/catalog/view/" + this.props.item.id}
                 onClick={this.onClick}
                 active={this.props.selected} >
-                <h5>{this.props.item.type_title && !this.props.notype
-                     ? this.props.item.type_title + " : " : ""}
+                <h5>{this.props.item.root_title && !this.props.notype
+                     ? this.props.item.root_title + " : " : ""}
                        {this.props.item.title_eng ? this.props.item.title_eng : this.props.item.title}
                 </h5>
               </Button>
@@ -203,7 +203,7 @@ export class CatalogMain extends Component {
             <h4 className="text-secondary">
                 {"Modification of "}
                 <a href={"/catalog/view/" + this.state.catalog.id}>
-                  {this.state.catalog.type_title}{" : "}
+                  {this.state.catalog.root_title}{" : "}
                   {this.state.catalog.title_eng
                     ? this.state.catalog.title_eng
                     : this.state.catalog.title }

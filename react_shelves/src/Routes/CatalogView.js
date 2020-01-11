@@ -5,7 +5,6 @@ import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import fetchBackend, { postBackend } from '../Backend'
-import FormCatalogCreate from '../Forms/CatalogCreate'
 import FormOwn from '../Forms/Own'
 import FormKitCreate from '../Forms/KitCreate'
 import FormModificationCreate from '../Forms/ModificationCreate'
@@ -27,7 +26,6 @@ export default class CatalogView extends Component {
             loading:true,
             catalog:{},
             showFormOwn:false,
-            showFormCreateSubitem:false,
             showFormCreateKit:false,
             showFormCreateModification:false,
             showFormAddSoftware:false,
@@ -66,16 +64,6 @@ export default class CatalogView extends Component {
 
     handleFormCreateKitClose = event => {
         this.setState({showFormCreateKit:false});
-    }
-
-    /* Create subitem */
-
-    handleCreateSubitemButton = event => {
-        this.setState({showFormCreateSubitem:true});
-    }
-
-    handleFormCreateSubitemClose = event => {
-        this.setState({showFormCreateSubitem:false});
     }
 
     /* Add existing subitem */
@@ -180,7 +168,7 @@ export default class CatalogView extends Component {
             );
         }
         const catalog = this.state.catalog;
-        const is_software = catalog.type_title === 'Software';
+        const is_software = catalog.root_title === 'Software';
         if (!catalog.id) {
             return (
             <div className="row">
@@ -201,7 +189,7 @@ export default class CatalogView extends Component {
                     </Col>
                     <Col xs={8} lg={9} className="align-self-top">
                       <h1>
-                        <EditText prefix={catalog.type_title + " : "}
+                        <EditText prefix={catalog.root_title + " : "}
                              value={ catalog.title_eng ? catalog.title_eng : catalog.title }
                              hint="English title"
                              canEdit = {this.canEdit}
@@ -235,21 +223,12 @@ export default class CatalogView extends Component {
                       </div>
 
                       <CatalogFamilies
-                          type_title={catalog.type_title + " family"}
                           id={catalog.id}
+                          root={catalog.root}
                           auth={this.props.auth}/>
                     </Col>
                     <Col xs={2} className="align-self-top">
                     <ButtonToolbar>
-                    { this.props.auth.isAuthenticated
-                      && (catalog.is_group === 1 || catalog.is_kit === 1)
-                      ? <Button variant="primary"
-                                onClick={this.handleCreateSubitemButton}>
-                          Create subitem
-                        </Button>
-                      : <span/>
-                    }
-                    &nbsp;
                     { (this.props.auth.isAuthenticated
                         && (catalog.is_physical
                             /* There can be kits referencing to software */
@@ -271,8 +250,8 @@ export default class CatalogView extends Component {
                     }
                     &nbsp;
                     { this.props.auth.isAuthenticated
-                          && (catalog.type_title === "Data storage"
-                              || catalog.type_title === "Software")
+                          && (catalog.root_title === "Data storage"
+                              || catalog.root_title === "Software")
                       ? <Button variant="primary"
                                 onClick={this.handleAddSoftwareButton}>
                           Add software
@@ -321,31 +300,34 @@ export default class CatalogView extends Component {
                 { catalog.is_group === 1
                   ? <CatalogListSection
                       ref={(ref) => {this.familiesRef = ref;}}
-                      filter={ {parent:catalog.id, notype:true, is_group:true} }
+                      filter={ {parent:catalog.id, notype:true, type: "abstract"} }
                       title="Includes the families" />
                   : <div/>
                 }
                 { catalog.is_physical === 1 || is_software
                   ? <CatalogListSection
                       ref={(ref) => {this.kitsRef = ref;}}
-                      filter={ {type_name:"Kit", notype:true, is_group:false,
+                      filter={ {notype:true, type: "kit",
                                 includes:catalog.id} }
                       title="Kits with this item" />
                   : <div/>
                 }
                 <CatalogListSection
                     ref={(ref) => {this.childrenRef = ref;}}
-                    filter={ {parent:catalog.id, is_group:false} }
-                    title="Includes the following catalog items" />
+                    filter={ {parent:catalog.id, parent_rel:"includes",
+                        not_type: "abstract"} }
+                    title="Includes the following catalog items"
+                    auth={this.props.auth} addButton />
 
                 <CatalogListSection
                     ref={(ref) => {this.softwareRef = ref;}}
-                    filter={ {storage:catalog.id, is_group:false} }
+                    filter={ {parent:catalog.id, parent_rel:"stores", type:"bits"} }
                     title="Includes the software" />
 
                 <CatalogListSection
                     ref={(ref) => {this.modificationsRef = ref;}}
-                    filter={ {modification:1, main:catalog.id, is_group:false} }
+                    filter={ {parent_rel:"modification", parent:catalog.id,
+                              not_type:"abstract"} }
                     title="Catalog item modifications" />
 
                 { this.props.auth.isAuthenticated
@@ -365,16 +347,6 @@ export default class CatalogView extends Component {
                          id={catalog.id} />
                 : <div/>
               }
-              { this.props.auth.isAuthenticated
-                && (catalog.is_group === 1 || catalog.is_kit === 1)
-                ? <FormCatalogCreate open={this.state.showFormCreateSubitem}
-                        handleUpdateItems={
-                          (id) => this.props.history.push("/catalog/view/" + id)
-                        }
-                        onClose={this.handleFormCreateSubitemClose}
-                        parent={catalog.id} />
-                : <div/>
-              }
               { (this.props.auth.isAuthenticated)
                 ? <FormKitCreate open={this.state.showFormCreateKit}
                         onClose={this.handleFormCreateKitClose}
@@ -392,13 +364,14 @@ export default class CatalogView extends Component {
                 : <div/>
               }
               { this.props.auth.isAuthenticated
-                    && (catalog.type_title === "Data storage"
-                        || catalog.type_title === "Software")
+                    && (catalog.root_title === "Data storage"
+                        || catalog.root_title === "Software")
                     ? <FormCatalogSelect open={this.state.showFormAddSoftware}
                           title="Add software"
                           onClose={this.handleFormAddSoftwareClose}
                           onSelect={this.handleSoftwareSelect}
-                          filter={{type_name: "Software", notype: true}} />
+                          filter={{parent_name: "Software", parent_rel: "root",
+                                   notype: true}} />
                 : <div/>
               }
               { this.props.auth.isAuthenticated

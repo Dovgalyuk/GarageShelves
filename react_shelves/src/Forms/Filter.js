@@ -40,7 +40,9 @@ export default class FormCatalogFilter extends Component {
 
     handleAddPlatform = () => {
         this.setState({ showForm: true, formTitle: "Add platform",
-            formFilter: {type_name: "Computer family,Computer", notype: true} });
+            formFilter: {
+              parent_rel: "root", parent_name: "Computer",
+              notype: true} });
     }
     handleFormClose = () => {
         this.setState({ showForm: false });

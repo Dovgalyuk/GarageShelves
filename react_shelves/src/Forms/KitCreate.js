@@ -4,14 +4,12 @@ import Col from 'react-bootstrap/Col'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import fetchBackend, { postBackend } from '../Backend'
+import { postBackend } from '../Backend'
 
 class FormKitCreate extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            loadingTypes:true,
-            types:[],
             errors:[],
             form:this.defaultForm(),
         };
@@ -22,21 +20,7 @@ class FormKitCreate extends Component {
     }
 
     handleShow = event => {
-        this.setState({form:this.defaultForm()},
-          () => {
-            if (this.state.loadingTypes) {
-                fetchBackend('catalog/_types', {})
-                    .then(response => response.json())
-                    .then(data => {
-                        var types = data.filter(t =>
-                          (t.is_physical && t.title !== "Kit"));
-                        this.setState({loadingTypes:false, types:types});
-                    })
-                    .catch(e => this.props.onClose());
-            }
-            this.validate();
-          }
-        );
+        this.setState({form:this.defaultForm()}, this.validate);
     }
 
     handleCreate = event => {
@@ -60,19 +44,19 @@ class FormKitCreate extends Component {
             this.validate);
     }
 
-    handleAddItem = () => {
-        var items = this.state.form.items;
-        items.push({type:this.state.types[0].id, title:""});
-        this.setState({form:{...this.state.form, items:items}},
-            this.validate);
-    }
+    // handleAddItem = () => {
+    //     var items = this.state.form.items;
+    //     items.push({title:""});
+    //     this.setState({form:{...this.state.form, items:items}},
+    //         this.validate);
+    // }
 
-    handleItemChange = (event, i, f) => {
-        var items = this.state.form.items;
-        items[i][f] = event.target.value;
-        this.setState({form:{...this.state.form, items:items}},
-            this.validate);
-    }
+    // handleItemChange = (event, i, f) => {
+    //     var items = this.state.form.items;
+    //     items[i][f] = event.target.value;
+    //     this.setState({form:{...this.state.form, items:items}},
+    //         this.validate);
+    // }
 
     validate = () => {
         const form = this.state.form;
@@ -80,11 +64,11 @@ class FormKitCreate extends Component {
         if (form.title_eng.length === 0) {
             errors["title_eng"] = true;
         }
-        form.items.forEach((item, i) => {
-          if (item.title.length === 0) {
-              errors["E" + i] = true;
-          }
-        });
+        // form.items.forEach((item, i) => {
+        //   if (item.title.length === 0) {
+        //       errors["E" + i] = true;
+        //   }
+        // });
         errors["submit"] = Object.keys(errors).length > 0;
         this.setState({errors:errors});
     }
@@ -126,31 +110,19 @@ class FormKitCreate extends Component {
                           value={this.props.main_title} />
                     </Col>
                   </Form.Group>
-                  <Form.Group as={Row}>
+                  {/* <Form.Group as={Row}>
                     <Form.Label column>Kit subitems</Form.Label>
                   </Form.Group>
                   { this.state.form.items.map((item, i) =>
                     <Form.Group as={Row} key={i}>
-                      <Col xs={3}>
-                        <Form.Control as="select"
-                          id={"K" + i}
-                          defaultValue={item.type}
-                          onChange={event => this.handleItemChange(event, i, "type")}>
-                          { this.state.types.map((option, i) =>
-                            <option key={i} value={option.id}>
-                              {option.title}
-                            </option>)
-                          }
-                        </Form.Control>
-                      </Col>
-                      <Col xs={9}>
+                      <Col>
                         <Form.Control type="text" id={"T" + i}
                             onChange={event => this.handleItemChange(event, i, "title")}
                             isInvalid={this.state.errors["E" + i]}
                             value={item.title} />
                       </Col>
                     </Form.Group>)
-                  }
+                  } 
                   <Form.Group as={Row}>
                     <Col>
                       <Button variant="secondary"
@@ -159,7 +131,7 @@ class FormKitCreate extends Component {
                         Add new kit item
                       </Button>
                     </Col>
-                  </Form.Group>
+                  </Form.Group> */}
                 </Form>
               </Modal.Body>
               <Modal.Footer>
@@ -167,7 +139,7 @@ class FormKitCreate extends Component {
                   Close
                 </Button>
                 <Button variant="primary" onClick={this.handleCreate}
-                  disabled={this.state.loadingTypes || this.state.errors.submit}>
+                  disabled={this.state.errors.submit}>
                   Create kit
                 </Button>
               </Modal.Footer>

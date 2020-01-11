@@ -65,4 +65,7 @@ def create_app(test_config=None):
     from . import comment
     app.register_blueprint(comment.bp)
 
+    from . import page
+    app.register_blueprint(page.bp)
+
     return app

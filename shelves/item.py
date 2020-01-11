@@ -8,7 +8,8 @@ from shelves.db import get_db_cursor, db_commit, db_rollback
 from shelves.uploads import upload_image
 from shelves.relation import Relation
 from shelves.attribute import Attribute
-from shelves.catalog import get_catalog, get_catalog_type_id
+from shelves.catalog import get_catalog
+from shelves.type import Type
 
 bp = Blueprint('item', __name__, url_prefix='/item')
 
@@ -27,13 +28,16 @@ def get_item(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT i.id, i.description, c.id AS catalog_id,'
-        ' c.title, c.title_eng, ct.title AS type_title, added,'
-        '       col.owner_id, i.internal_id, i.collection_id '
-        ' FROM item i JOIN catalog c ON i.catalog_id = c.id'
-        ' JOIN catalog_type ct ON c.type_id = ct.id'
+        ' c.title, c.title_eng, added,'
+        '       col.owner_id, i.internal_id, i.collection_id, '
+        ' rr.catalog_id1 AS root, cr.title_eng AS root_title'
+        ' FROM item i'
+        ' JOIN catalog c ON i.catalog_id = c.id'
         ' JOIN collection col ON i.collection_id = col.id'
-        ' WHERE i.id = %s',
-        (id,)
+        ' LEFT JOIN catalog_relation rr ON rr.catalog_id2 = c.id'
+        ' LEFT JOIN catalog cr ON rr.catalog_id1 = cr.id'
+        ' WHERE i.id = %s AND rr.type = %s',
+        (id, Relation.REL_ROOT,)
     )
 
     item = cursor.fetchone()
@@ -78,16 +82,14 @@ def _filtered_list():
     catalog_title = request.args.get('catalog_title')
     includes_id = request.args.get('includes', -1, type=int)
     collection_id = request.args.get('collection', -1, type=int)
-    includes_catalog_id = request.args.get('includes_catalog', -1, type=int)
     is_main = request.args.get('is_main', -1, type=int)
     latest = request.args.get('latest', -1, type=int)
     if latest and latest > 100:
         latest = 10
 
-    type_id = -1
-    type_name = request.args.get('type_name')
-    if type_name:
-        type_id = get_catalog_type_id(type_name)
+    catalog_type = Type.get_id(request.args.get('type'))
+    catalog_parent_id = request.args.get('catalog_parent', -1, type=int)
+    catalog_parent_rel = Relation.get_id(request.args.get('catalog_parent_rel'))
 
     cursor = get_db_cursor()
 
@@ -97,18 +99,20 @@ def _filtered_list():
         add_fields = ' u.username,'
         add_tables = ' JOIN user u ON u.id = col.owner_id'
     query = 'SELECT i.id, i.description, c.id AS catalog_id,' \
-            ' c.title, c.title_eng, ct.title AS type_title, added,'        \
+            ' c.title, c.title_eng, added,'        \
             '       col.owner_id, i.internal_id, i.collection_id,' \
             + add_fields + \
             '       (SELECT value_id FROM item_attribute '    \
-            '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id' \
+            '            WHERE item_id = i.id AND type=%s LIMIT 1) AS img_id,' \
+            ' rr.catalog_id1 AS root, cr.title_eng AS root_title' \
             ' FROM item i JOIN catalog c ON i.catalog_id = c.id' \
-            ' JOIN catalog_type ct ON c.type_id = ct.id'         \
             ' JOIN collection col ON i.collection_id = col.id' \
+            ' LEFT JOIN catalog_relation rr ON rr.catalog_id2 = c.id' \
+            ' LEFT JOIN catalog cr ON rr.catalog_id1 = cr.id' \
             + add_tables
 
-    where = ' WHERE 1 = 1'
-    params = (Attribute.ATTR_IMAGE,)
+    where = ' WHERE 1 = 1 AND rr.type = %s'
+    params = (Attribute.ATTR_IMAGE, Relation.REL_ROOT,)
 
     if user_id != -1:
         where += ' AND col.owner_id = %s'
@@ -126,6 +130,13 @@ def _filtered_list():
                      ' EXISTS (SELECT 1 FROM catalog_relation' \
                      ' WHERE catalog_id1 = %s AND catalog_id2 = catalog_id AND type = %s)'
             params = (*params, parent['catalog_id'], Relation.REL_MAIN_ITEM)
+    if catalog_parent_id != -1:
+        query += ' JOIN catalog_relation crp ON c.id = crp.catalog_id2'
+        where += ' AND crp.catalog_id1 = %s AND crp.type = %s'
+        params = (*params, catalog_parent_id, catalog_parent_rel,)
+    if catalog_type != -1:
+        where += ' AND c.type = %s'
+        params = (*params, catalog_type)
     if noparent:
         where += ' AND NOT EXISTS (SELECT 1 FROM item_relation' \
                  '      WHERE item_id2 = i.id AND type = %s)'
@@ -137,14 +148,6 @@ def _filtered_list():
     if collection_id != -1:
         where += ' AND col.id = %s'
         params = (*params, collection_id)
-    if includes_catalog_id != -1:
-        where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
-                 ' WHERE type = %s AND catalog_id1 = c.id'     \
-                 ' AND catalog_id2 = %s)'
-        params = (*params, Relation.REL_INCLUDES, includes_catalog_id)
-    if type_id != -1:
-        where += ' AND c.type_id = %s'
-        params = (*params, type_id)
     if catalog_title:
         # TODO: spaces are not supported in the template?
         where += ' AND (c.title LIKE %s OR c.title_eng LIKE %s)'
@@ -152,9 +155,11 @@ def _filtered_list():
 
     if latest > 0:
         where += " ORDER BY i.added DESC LIMIT %d" % latest
-    
+
+    # print(query + where)
+    # print(params)
+
     cursor.execute(query + where, params)
-    #print(query + where)
     result = cursor.fetchall()
 
     return jsonify(result)
@@ -249,20 +254,20 @@ def _update():
 def _software_add():
     id = request.json['id']
     item = get_item(id)
-    if item['type_title'] != 'Data storage':
+    if item['root_title'] != 'Data storage':
         abort(403)
     if not g.user['admin'] or (item['owner_id'] != g.user['id']):
         abort(403)
     try:
         soft_id = request.json['software']
         soft = get_catalog(soft_id)
-        if soft['type_title'] != 'Software':
+        if soft['type'] != Type.TYPE_BITS:
             abort(403)
         cursor = get_db_cursor()
         cursor.execute(
             'INSERT INTO catalog_item_relation (catalog_id, item_id, type)'
             ' VALUES (%s, %s, %s)',
-            (soft_id, id, Relation.REL_STORED)
+            (soft_id, id, Relation.REL_STORES)
             )
         db_commit()
     except:

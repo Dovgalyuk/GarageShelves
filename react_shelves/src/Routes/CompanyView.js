@@ -41,7 +41,8 @@ export default class CompanyView extends Component {
           </Col>
         </Row>
       </div>
-      <CatalogListSection filter={{ company: this.state.company.id, is_group:false }} title="Manufactured items" />
+      <CatalogListSection filter={{ company: this.state.company.id,
+          not_type:"abstract" }} title="Manufactured items" />
     </Container>);
   }
 }

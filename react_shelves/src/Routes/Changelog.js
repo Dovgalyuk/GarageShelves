@@ -165,8 +165,8 @@ class ChangeItem extends Component {
                     ? <h5>
                         {this.props.item.field === "create" ? "Created " : "Changed "}
                         <a className="action" href={"/catalog/view/" + this.props.item.id}>
-                          {this.state.catalog.type_title
-                               ? this.state.catalog.type_title + " : " : ""}
+                          {this.state.catalog.root_title
+                               ? this.state.catalog.root_title + " : " : ""}
                           {this.state.catalog.title_eng ? this.state.catalog.title_eng : this.state.catalog.title}
                         </a>
                       </h5>

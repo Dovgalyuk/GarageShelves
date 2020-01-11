@@ -127,7 +127,7 @@ export default class ItemView extends Component {
               <Row>
                 <Col xs={12}>
                   <h3 className="pt-4 pb-2">
-                    Item of <a href={"/catalog/view/" + item.catalog_id}>{ item.type_title }&nbsp;:&nbsp;
+                    Item of <a href={"/catalog/view/" + item.catalog_id}>{ item.root_title }&nbsp;:&nbsp;
                                { item.title_eng ? item.title_eng : item.title }</a>
                   </h3>
                 </Col>
@@ -142,7 +142,7 @@ export default class ItemView extends Component {
                 <Col>In collection since {item.added}</Col>
                 <Col xs={2} className="align-self-top">
                     { this.props.auth.isAuthenticated
-                      && item.type_title === "Data storage"
+                      && item.root_title === "Data storage"
                       && item.owner_id === this.props.auth.user_id
                       ? <Button variant="primary"
                                 onClick={this.handleAddSoftwareButton}>
@@ -160,7 +160,7 @@ export default class ItemView extends Component {
                       : <span/>
                     } */}
                    { this.props.auth.isAuthenticated
-                      && item.type_title === "Kit"
+                      && item.root_title === "Kit"
                       && item.owner_id === this.props.auth.user_id
                       ? <Button variant="primary"
                                 onClick={this.handleAddItemButton}>
@@ -198,20 +198,21 @@ export default class ItemView extends Component {
 
             <CatalogListSection
                 ref={(ref) => {this.softwareRef = ref;}}
-                filter={ {storage_item:item.id, is_group:false} }
+                filter={ {storage_item:item.id, type: "bits"} }
                 title="Includes the software" />
 
             <ItemComments id={item.id}
                           auth={this.props.auth} />
 
             { this.props.auth.isAuthenticated
-                && item.type_title === "Data storage"
+                && item.root_title === "Data storage"
                 && item.owner_id === this.props.auth.user_id
               ? <FormCatalogSelect open={this.state.showFormAddSoftware}
                         title="Add software"
                         onClose={this.handleFormAddSoftwareClose}
                         onSelect={this.handleSoftwareSelect}
-                        filter={{type_name: "Software", notype: true}} />
+                        filter={{parent_name: "Software", parent_rel: "root",
+                                 notype: true}} />
               : <div/>
             }
             {/* { this.props.auth.isAuthenticated
@@ -223,7 +224,7 @@ export default class ItemView extends Component {
               : <div/>
             } */}
             { this.props.auth.isAuthenticated
-                && item.type_title === "Kit"
+                && item.root_title === "Kit"
                 && item.owner_id === this.props.auth.user_id
               ? <FormItemSelect open={this.state.showFormItemSelect}
                         title="Add other owned item"

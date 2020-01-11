@@ -11,8 +11,6 @@ export default class FormCatalogCreate extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            loadingTypes:true,
-            types:[],
             loadingCompanies:true,
             companies:[],
             errors:[],
@@ -21,28 +19,11 @@ export default class FormCatalogCreate extends Component {
     }
 
     defaultForm = () => {
-        return {type_id:0, title:"", title_eng:"", company_id:-1,
+        return {type:"physical", title:"", title_eng:"", company_id:-1,
                 year:"", description:"", parent:this.props.parent};
     }
 
     handleShow = event => {
-        if (this.state.loadingTypes) {
-            var filter = {};
-            if (this.props.type_name) {
-                filter.type_name = this.props.type_name;
-            }
-            fetchBackend('catalog/_types', filter)
-                .then(response => response.json())
-                .then(data => {
-                    this.setState({loadingTypes:false, types:data,
-                        form:{...this.defaultForm(), type_id:data[0].id}},
-                        this.validate);
-                })
-                .catch(e => this.props.onClose());
-        } else {
-            this.setState({form:{...this.defaultForm(), type_id:this.state.types[0].id}},
-                          this.validate)
-        }
         if (this.state.loadingCompanies) {
             fetchBackend('company/_filtered_list', {})
                 .then(response => response.json())
@@ -101,20 +82,19 @@ export default class FormCatalogCreate extends Component {
               <h4>Create new catalog item</h4>
             </Modal.Header>
             <Modal.Body>
-              { (this.state.loadingTypes || this.state.loadingCompanies)
+              { (this.state.loadingCompanies)
                 && <div>Loading...</div> }
               <Form>
                 <Form.Group as={Row}>
                   <Form.Label column xs={2}>Type:</Form.Label>
                   <Col xs={10}>
-                    <Form.Control as="select" id="type_id"
+                    <Form.Control as="select" id="type"
                         onChange={this.handleInput}
-                        defaultValue={this.state.form.type_id}>
-                      { this.state.types.map((option) =>
-                        <option key={option.id} value={option.id}>
-                          {option.title}
-                        </option>)
-                      }
+                        defaultValue="physical">
+                      <option value="physical">Physical item</option>
+                      <option value="abstract">Group/family/class</option>
+                      {/*TODO <option value="kit">Kit</option> */}
+                      <option value="bits">Software/data/text without storage media</option>
                     </Form.Control>
                   </Col>
                 </Form.Group>
@@ -180,8 +160,7 @@ export default class FormCatalogCreate extends Component {
                 Close
               </Button>
               <SubmitButton caption="Create" onClick={this.handleConfirm}
-                disabled={this.state.loadingTypes
-                          || this.state.loadingCompanies
+                disabled={this.state.loadingCompanies
                           || this.state.errors.submit}/>
             </Modal.Footer>
           </Modal>

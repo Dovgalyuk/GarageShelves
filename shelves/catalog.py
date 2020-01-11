@@ -12,50 +12,58 @@ from shelves.company import get_companies, get_company
 from shelves.uploads import upload_image, upload_file
 from shelves.relation import Relation
 from shelves.attribute import Attribute
+from shelves.type import Type
 
 bp = Blueprint('catalog', __name__, url_prefix='/catalog')
 
 
-def get_catalog_type(id):
+def get_catalog_root(id):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT * FROM catalog_type WHERE id = %s',
-        (id,)
-    )
-    ct = cursor.fetchone()
-
-    if ct is None:
-        abort(404, "Catalog type id {0} doesn't exist.".format(id))
-
-    return ct
+        'SELECT catalog_id1 FROM catalog_relation'
+        ' WHERE catalog_id2 = %s AND type = %s',
+        (id, Relation.REL_ROOT))
+    return cursor.fetchone()['catalog_id1']
 
 def get_catalog_none(id):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT c.id, c.title, c.title_eng, description, created, c.type_id,'
-        ' ct.title as type_title, ct.is_physical, ct.is_group, ct.is_kit,'
+        'SELECT c.id, c.title, c.title_eng, c.description, c.created,'
+        ' IF(c.type = %s, 1, 0) AS is_physical,'
+        ' IF(c.type = %s, 1, 0) AS is_group,'
+        ' IF(c.type = %s, 1, 0) AS is_kit,'
         ' IFNULL(c.year, "") as year, com.title as company,'
-        ' c.company_id'
-        ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
+        ' c.company_id, c.type, rr.catalog_id1 AS root,'
+        ' cr.title_eng AS root_title'
+        ' FROM catalog c'
         ' LEFT JOIN company com ON com.id = c.company_id'
+        ' LEFT JOIN catalog_relation rr ON rr.catalog_id2 = c.id AND rr.type = %s'
+        ' LEFT JOIN catalog cr ON rr.catalog_id1 = cr.id'
         ' WHERE c.id = %s',
-        (id,)
+        (Type.TYPE_PHYSICAL, Type.TYPE_ABSTRACT, Type.TYPE_KIT,
+         Relation.REL_ROOT, id,)
     )
     return cursor.fetchone()
 
 def get_catalog_full(id):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT c.id, c.title, c.title_eng, description, created, c.type_id,'
-        ' ct.title as type_title, ct.is_physical, ct.is_group, ct.is_kit,'
+        'SELECT c.id, c.title, c.title_eng, c.description, c.created,'
+        ' IF(c.type = %s, 1, 0) AS is_physical,'
+        ' IF(c.type = %s, 1, 0) AS is_group,'
+        ' IF(c.type = %s, 1, 0) AS is_kit,'
         ' IFNULL(c.year, "") as year, com.title as company,'
-        ' c.company_id, a_logo.value_id as logo_id'
-        ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'
+        ' c.company_id, a_logo.value_id as logo_id, c.type,'
+        ' rr.catalog_id1 AS root, cr.title_eng AS root_title'
+        ' FROM catalog c'
         ' LEFT JOIN company com ON com.id = c.company_id'
         ' LEFT JOIN catalog_attribute a_logo'
-        ' ON (c.id = a_logo.catalog_id AND a_logo.type = %s)'
+        '     ON (c.id = a_logo.catalog_id AND a_logo.type = %s)'
+        ' LEFT JOIN catalog_relation rr ON rr.catalog_id2 = c.id AND rr.type = %s'
+        ' LEFT JOIN catalog cr ON rr.catalog_id1 = cr.id'
         ' WHERE c.id = %s',
-        (Attribute.ATTR_LOGO,id,)
+        (Type.TYPE_PHYSICAL, Type.TYPE_ABSTRACT, Type.TYPE_KIT,
+         Attribute.ATTR_LOGO, Relation.REL_ROOT, id,)
     )
     return cursor.fetchone()
 
@@ -65,11 +73,6 @@ def get_catalog(id):
         abort(403, "Catalog id {0} doesn't exist.".format(id))
 
     return catalog
-
-def get_catalog_types():
-    cursor = get_db_cursor()
-    cursor.execute('SELECT * FROM catalog_type')
-    return cursor.fetchall()
 
 def get_catalog_images(id):
     cursor = get_db_cursor()
@@ -94,26 +97,20 @@ def get_catalog_logo(id):
     )
     return cursor.fetchone()
 
-def get_catalog_type_id(name):
-    cursor = get_db_cursor()
+def create_catalog(cursor, type_id, title, title_eng, description, year, company_id, root_id):
     cursor.execute(
-        'SELECT id FROM catalog_type'
-        ' WHERE title = %s',
-        (name,)
-        )
-    ct = cursor.fetchone()
-    if ct is None:
-        abort(403, "Catalog type %s doesn't exist." % name)
-
-    return ct['id']
-
-def create_catalog(cursor, type_id, title, title_eng, description, year, company_id):
-    cursor.execute(
-        'INSERT INTO catalog (type_id, title, title_eng, description, year, company_id)'
+        'INSERT INTO catalog (type, title, title_eng, description, year, company_id)'
         ' VALUES (%s, %s, %s, %s, %s, %s)',
         (type_id, title, title_eng, description, year, company_id)
     )
     catalog_id = cursor.lastrowid
+    if root_id != -1:
+        cursor.execute(
+            'INSERT INTO catalog_relation'
+            ' (catalog_id1, catalog_id2, type)'
+            ' VALUES (%s, %s, %s)',
+            (root_id, catalog_id, Relation.REL_ROOT)
+        )
     if not g.user['admin']:
         cursor.execute(
             'INSERT INTO catalog_history'
@@ -133,15 +130,15 @@ def add_ownership(cursor, id, internal_id, collection_id):
     item_id = cursor.lastrowid
     # check if there was software on the data storage catalog item
     cursor.execute(
-        'SELECT catalog_id1 AS id FROM catalog_relation'
-        ' WHERE type = %s AND catalog_id2 = %s',
-        (Relation.REL_STORED, id,)
+        'SELECT catalog_id2 AS id FROM catalog_relation'
+        ' WHERE type = %s AND catalog_id1 = %s',
+        (Relation.REL_STORES, id,)
     )
     for soft in cursor.fetchall():
         cursor.execute(
             'INSERT INTO catalog_item_relation (catalog_id, item_id, type)'
             '    VALUES (%s, %s, %s)',
-            (soft['id'], item_id, Relation.REL_STORED,)
+            (soft['id'], item_id, Relation.REL_STORES,)
         )
 
     return item_id
@@ -201,18 +198,6 @@ def check_parent_loops(main_id, subitem_id):
 # API Routes
 ###############################################################################
 
-@bp.route('/_types')
-def _types():
-    cursor = get_db_cursor()
-    query = 'SELECT * FROM catalog_type WHERE 1=1'
-    params = ()
-    type_name = request.args.get('type_name')
-    if type_name:
-        query += ' AND title=%s'
-        params = (*params, type_name,)
-    cursor.execute(query, params)
-    return jsonify(cursor.fetchall())
-
 @bp.route('/<int:id>/_get_logo')
 def _get_logo(id):
     return jsonify(get_catalog_logo(id))
@@ -255,54 +240,50 @@ def filtered_query(args, count):
             try:
                 category_ids.append(int(c))
             except:
-                c # do nothing
+                pass # do nothing
 
     includes_id = args.get('includes', -1, type=int)
     title = args.get('title')
-    type_ids = []
-    type_name = args.get('type_name')
-    if type_name:
-        for name in type_name.split(','):
-            type_ids.append(get_catalog_type_id(name))
     noparent = args.get('noparent', False, type=bool)
     is_main = args.get('is_main', False, type=bool)
-
-    # modification flag and the possible referenced item
-    modification = args.get('modification', -1, type=int)
-    main_id = args.get('main', -1, type=int)
-
-    is_group = args.get('is_group')
-    category = args.get('category')
 
     latest = args.get('latest', -1, type=int)
     if latest > 100:
         return abort(400)
 
-    storage_id = args.get('storage', -1, type=int)
+    catalog_type = Type.get_id(args.get('type'))
+    catalog_not_type = Type.get_id(args.get('not_type'))
+    parent_rel = Relation.get_id(args.get('parent_rel'))
+    parent_name = args.get('parent_name')
+    child_rel = Relation.get_id(args.get('child_rel'))
+
     storage_item_id = args.get('storage_item', -1, type=int)
 
     limitFirst = args.get('limitFirst', -1, type=int)
     limitPage = args.get('limitPage', -1, type=int)
 
     suffix = ''
+    where = ' WHERE 1 = 1'
     if count:
         query = 'SELECT COUNT(*) as count'                                 \
-                ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'\
+                ' FROM catalog c '\
                 ' LEFT JOIN company com ON com.id = c.company_id'
         params = ()
     else:
-        query = 'SELECT c.id, c.title, c.title_eng,'                       \
-                ' created, c.type_id,'                                     \
-                ' ct.title as type_title, ct.is_physical, '                \
-                ' year, com.title as company, c.company_id,'               \
+        query = 'SELECT c.id, c.title, c.title_eng, c.created,'            \
+                ' IF(c.type = %s, 1, 0) AS is_physical,'                   \
+                ' c.year, com.title as company, c.company_id,'             \
                 ' a_logo.value_id as logo_id,'                             \
                 ' (SELECT COUNT(*) FROM catalog cc'                        \
                 '   JOIN catalog_relation r WHERE cc.id=r.catalog_id2'     \
-                '   AND c.id=r.catalog_id1 AND r.type=%s) AS count'        \
-                ' FROM catalog c JOIN catalog_type ct ON c.type_id = ct.id'\
+                '   AND c.id=r.catalog_id1 AND r.type=%s) AS count,'       \
+                ' rr.catalog_id1 AS root, cr.title_eng AS root_title'      \
+                ' FROM catalog c'\
                 ' LEFT JOIN company com ON com.id = c.company_id'          \
                 ' LEFT JOIN catalog_attribute a_logo'                      \
-                ' ON (c.id = a_logo.catalog_id AND a_logo.type = %s)'
+                '      ON (c.id = a_logo.catalog_id AND a_logo.type = %s)' \
+                ' LEFT JOIN catalog_relation rr ON rr.catalog_id2 = c.id AND rr.type= %s'  \
+                ' LEFT JOIN catalog cr ON rr.catalog_id1 = cr.id'
         suffix = ' ORDER BY IFNULL(c.title_eng, c.title)'
         # parameters are integer - insert them without escaping
         # TODO: remove limit from latest
@@ -310,14 +291,20 @@ def filtered_query(args, count):
             suffix = ' ORDER BY c.created DESC LIMIT %d' % latest
         elif limitFirst >= 0 and limitPage > 0:
             suffix += ' LIMIT %d,%d' % (limitFirst, limitPage)
-        params = (Relation.REL_INCLUDES,Attribute.ATTR_LOGO,)
-    where = ' WHERE 1 = 1'
+        params = (Type.TYPE_PHYSICAL, Relation.REL_INCLUDES, Attribute.ATTR_LOGO,
+                  Relation.REL_ROOT,)
+
     if company_id != -1:
         where += ' AND com.id = %d' % company_id
     if parent_id != -1:
         query += ' JOIN catalog_relation crp ON c.id = crp.catalog_id2'
         where += ' AND crp.catalog_id1 = %s AND crp.type = %s'
-        params = (*params, parent_id, Relation.REL_INCLUDES,)
+        params = (*params, parent_id, parent_rel,)
+    elif parent_name:
+        query += ' JOIN catalog_relation crp ON c.id = crp.catalog_id2' \
+                 ' JOIN catalog cp ON crp.catalog_id1 = cp.id'
+        where += ' AND cp.title_eng = %s AND crp.type = %s'
+        params = (*params, parent_name, parent_rel,)
     if category_ids:
         where += ' AND ('
         first = True
@@ -334,57 +321,33 @@ def filtered_query(args, count):
         where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
                  '      WHERE catalog_id2 = c.id AND type = %s)'
         params = (*params, Relation.REL_MAIN_ITEM,)
-    if modification != -1:
-        where += ' AND'
-        if modification == 0:
-            where += ' NOT'
-        where += ' EXISTS (SELECT 1 FROM catalog_relation WHERE'
-        if main_id != -1:
-            where += ' catalog_id1 = %s AND'
-            params = (*params, main_id,)
-        where += ' catalog_id2 = c.id AND type = %s)'
-        params = (*params, Relation.REL_MODIFICATION,)
     if includes_id != -1:
         where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
                  '      WHERE catalog_id1 = c.id AND catalog_id2 = %s' \
                  '      AND type = %s)'
-        params = (*params, includes_id,)
-        if category == 'compatible':
-            params = (*params, Relation.REL_COMPATIBLE,)
-        else:
-            params = (*params, Relation.REL_INCLUDES,)
-    if type_ids:
-        where += ' AND ('
-        first = True
-        for type_id in type_ids:
-            if not first:
-                where += ' OR '
-            where += 'ct.id = %d' % type_id
-            first = False
-        where += ')'
+        params = (*params, includes_id, child_rel,)
+    if catalog_type != -1:
+        where += ' AND c.type = %s'
+        params = (*params, catalog_type)
+    if catalog_not_type != -1:
+        where += ' AND c.type <> %s'
+        params = (*params, catalog_not_type)
     if noparent:
         where += ' AND NOT EXISTS (SELECT 1 FROM catalog_relation' \
-                 '      WHERE catalog_id2 = c.id AND type = %d)' % Relation.REL_INCLUDES
+                 '      WHERE catalog_id2 = c.id AND type = %s)'
+        params = (*params, Relation.REL_INCLUDES)
     if title:
         # TODO: spaces are not supported in the template?
         where += ' AND (c.title LIKE %s OR c.title_eng LIKE %s)'
         params = (*params, '%' + title + '%', '%' + title + '%')
-    if is_group == "true":
-        where += ' AND ct.is_group = TRUE'
-    elif is_group == "false":
-        where += ' AND ct.is_group = FALSE'
 
     if storage_item_id != -1:
         where += ' AND EXISTS (SELECT 1 FROM catalog_item_relation' \
                  '      WHERE catalog_id = c.id AND item_id = %s AND type = %s)'
-        params = (*params, storage_item_id, Relation.REL_STORED,)
-    if storage_id != -1:
-        where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
-                 '     WHERE catalog_id1 = c.id AND catalog_id2 = %s AND type = %s)'
-        params = (*params, storage_id, Relation.REL_STORED,)
+        params = (*params, storage_item_id, Relation.REL_STORES,)
 
-    #print(query + where + suffix)
-    #print(params)
+    print(query + where + suffix)
+    print(params)
     return {"query":query + where + suffix, "params":params}
 
 @bp.route('/_filtered_list')
@@ -550,7 +513,7 @@ def _update():
         field = request.json['field']
         value = request.json['value']
         if field not in ['title', 'title_eng', 'description',
-            'type_id', 'year', 'company_id']:
+            'year', 'company_id']:
             abort(403)
         if field == 'year':
             year = int(value)
@@ -559,8 +522,6 @@ def _update():
         if field == 'company_id':
             if (get_company(value) is None):
                 value = None
-        if field == 'type_id' and (get_catalog_type(value) is None):
-            abort(403)
         cursor = get_db_cursor()
         # field is validated, use concatenation here
         cursor.execute(
@@ -585,7 +546,9 @@ def _update():
 @login_required
 def _create():
     error = None
-    type_id = request.json['type_id']
+    type_id = Type.get_id(request.json['type'])
+    if type_id == -1:
+        error = 'Invalid type'
     title = request.json['title']
     title_eng = request.json['title_eng']
     description = request.json['description']
@@ -601,8 +564,13 @@ def _create():
         except:
             error = 'Invalid year'
 
-    # assert that catalog type exists
-    get_catalog_type(type_id)
+    try:
+        parent_id = int(request.json['parent'])
+        get_catalog(parent_id)
+        root_id = get_catalog_root(parent_id)
+    except:
+        error = 'Invalid parent id'
+
     # assert that company exists
     if (company_id is not None) and (get_company(company_id) is None):
         error = 'Invalid company'
@@ -611,23 +579,19 @@ def _create():
         error = 'title_eng is required'
 
     if error is not None:
-        abort(403)
+        abort(403, error)
 
     try:
         cursor = get_db_cursor()
         catalog_id = create_catalog(cursor,
-            type_id, title, title_eng, description, year, company_id)
+            type_id, title, title_eng, description, year, company_id, root_id)
 
-        if 'parent' in request.json:
-            parent = int(request.json['parent'])
-            # validate the parent
-            get_catalog(parent)
-            cursor.execute(
-                'INSERT INTO catalog_relation'
-                ' (catalog_id1, catalog_id2, type)'
-                ' VALUES (%s, %s, %s)',
-                (parent, catalog_id, Relation.REL_INCLUDES)
-            )
+        cursor.execute(
+            'INSERT INTO catalog_relation'
+            ' (catalog_id1, catalog_id2, type)'
+            ' VALUES (%s, %s, %s)',
+            (parent_id, catalog_id, Relation.REL_INCLUDES)
+        )
         db_commit()
     except:
         db_rollback()
@@ -662,8 +626,8 @@ def _create_modification():
     try:
         cursor = get_db_cursor()
         catalog_id = create_catalog(cursor,
-            catalog['type_id'], title, title_eng, description,
-            year, catalog['company_id'])
+            catalog['type'], title, title_eng, description,
+            year, catalog['company_id'], get_catalog_root(id))
 
         cursor.execute(
             'INSERT INTO catalog_relation'
@@ -684,10 +648,11 @@ def _create_modification():
 def _create_kit():
     id = int(request.args['id'])
     catalog = get_catalog(id)
-    if not catalog['is_physical'] and catalog['type_title'] != 'Software':
+    # TODO
+    if not catalog['is_physical'] and catalog['root_title'] != 'Software':
         abort(403)
 
-    kit_type = get_catalog_type_id('Kit')
+    kit_type = Type.TYPE_KIT
 
     title = request.json['title']
     title_eng = request.json['title_eng']
@@ -696,8 +661,13 @@ def _create_kit():
 
     try:
         cursor = get_db_cursor()
+
+        cursor.execute('SELECT id FROM catalog WHERE title_eng = "Kit"')
+        root = cursor.fetchone()
+
         kit_id = create_catalog(cursor,
-            kit_type, title, title_eng, '', None, catalog['company_id'])
+            kit_type, title, title_eng, '', None, catalog['company_id'],
+            root['id'])
 
         # Add main item into the kit
         cursor.execute(
@@ -708,20 +678,16 @@ def _create_kit():
              kit_id, id, Relation.REL_MAIN_ITEM,)
         )
 
-        for item in request.json['items']:
-            title_item = item['title']
-            type_id = int(item['type'])
-            ct = get_catalog_type(type_id)
-            if not ct['is_physical']:
-                abort(403)
-            item_id = create_catalog(cursor,
-                type_id, title_item, '', '', None, catalog['company_id'])
-            cursor.execute(
-                'INSERT INTO catalog_relation'
-                ' (catalog_id1, catalog_id2, type)'
-                ' VALUES (%s, %s, %s)',
-                (kit_id, item_id, Relation.REL_INCLUDES,)
-            )
+        # for item in request.json['items']:
+        #     title_item = item['title']
+        #     item_id = create_catalog(cursor,
+        #         Type.TYPE_PHYSICAL, title_item, '', '', None, catalog['company_id'])
+        #     cursor.execute(
+        #         'INSERT INTO catalog_relation'
+        #         ' (catalog_id1, catalog_id2, type)'
+        #         ' VALUES (%s, %s, %s)',
+        #         (kit_id, item_id, Relation.REL_INCLUDES,)
+        #     )
         db_commit()
     except:
         db_rollback()
@@ -765,6 +731,9 @@ def _family_add():
         ' VALUES (%s, %s, %s)',
         (id1, id2, Relation.REL_INCLUDES,)
     )
+
+    # TODO: correct roots?
+
     db_commit()
     return jsonify(result='success')
 
@@ -796,14 +765,14 @@ def _software_add():
     # assert the ids
     get_catalog(id)
     soft = get_catalog(software)
-    if soft['type_title'] != 'Software':
+    if soft['type'] != Type.TYPE_BITS:
         abort(403)
 
     cursor = get_db_cursor()
     cursor.execute(
         'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
         ' VALUES (%s, %s, %s)',
-        (software, id, Relation.REL_STORED,)
+        (id, software, Relation.REL_STORES,)
     )
     db_commit()
     return jsonify(result='success')
