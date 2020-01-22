@@ -31,7 +31,7 @@ class CatalogSections extends Component {
       <>
         { this.state.sections.map(s => <CatalogListSection key={s.id}
               filter={ {parent:s.parent, parent_rel: s.relation,
-              type: s.type, notype: true} } title={s.title}
+              type: s.type, notype: true, noroot: true} } title={s.title}
               auth={this.props.auth} addButton/>)
         }
       </>

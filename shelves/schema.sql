@@ -194,8 +194,9 @@ INSERT INTO page_catalog (num, title) VALUES (1, "Computers");
 INSERT INTO page_catalog (num, title) VALUES (2, "Consoles");
 INSERT INTO page_catalog (num, title) VALUES (3, "Calculators");
 INSERT INTO page_catalog (num, title) VALUES (4, "Software");
-INSERT INTO page_catalog (num, title) VALUES (5, "Peripherals");
+INSERT INTO page_catalog (num, title) VALUES (5, "Peripherals and parts");
 INSERT INTO page_catalog (num, title) VALUES (6, "Data storage");
+INSERT INTO page_catalog (num, title) VALUES (7, "Printed material");
 
 CREATE TABLE page_catalog_section (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -380,49 +381,75 @@ INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
      WHERE cat.type_id=@old_comp;
 
 -- Cable/Adapter
-INSERT INTO catalog (type, title_eng) VALUES (2, "Cable/Adapter");
+INSERT INTO catalog (type, title_eng) VALUES (1, "Cable/Adapter");
 SET @comp = LAST_INSERT_ID();
 SET @old_comp = (SELECT id FROM catalog_type WHERE title="Cable/Adapter");
 INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
    SELECT @comp, cat.id, 6 FROM catalog cat
      WHERE cat.type_id=@old_comp;
 
+-- printed stuff
+
+INSERT INTO catalog (type, title_eng) VALUES (1, "Printed material");
+SET @printed = LAST_INSERT_ID();
+INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
+  VALUES ("Print material categories", 1, 7, @printed, 1, 1);
+INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
+  VALUES ("Print materials", 2, 7, @printed, 2, 6);
+
 -- Book
-INSERT INTO catalog (type, title_eng) VALUES (2, "Book");
+INSERT INTO catalog (type, title_eng) VALUES (1, "Book");
 SET @comp = LAST_INSERT_ID();
 SET @old_comp = (SELECT id FROM catalog_type WHERE title="Book");
 INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
    SELECT @comp, cat.id, 6 FROM catalog cat
      WHERE cat.type_id=@old_comp;
+INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
+   VALUES (@printed, @comp, 6);
+INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
+   VALUES (@printed, @comp, 1);
 
 -- Manual
-INSERT INTO catalog (type, title_eng) VALUES (2, "Manual");
+INSERT INTO catalog (type, title_eng) VALUES (1, "Manual");
 SET @comp = LAST_INSERT_ID();
 SET @old_comp = (SELECT id FROM catalog_type WHERE title="Manual");
 INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
    SELECT @comp, cat.id, 6 FROM catalog cat
      WHERE cat.type_id=@old_comp;
+INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
+   VALUES (@printed, @comp, 6);
+INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
+   VALUES (@printed, @comp, 1);
 
 -- Schematics
-INSERT INTO catalog (type, title_eng) VALUES (2, "Schematics");
+INSERT INTO catalog (type, title_eng) VALUES (1, "Schematic");
 SET @comp = LAST_INSERT_ID();
 SET @old_comp = (SELECT id FROM catalog_type WHERE title="Schematics");
 INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
    SELECT @comp, cat.id, 6 FROM catalog cat
      WHERE cat.type_id=@old_comp;
+INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
+   VALUES (@printed, @comp, 6);
+INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
+   VALUES (@printed, @comp, 1);
 
 -- Mainboard
-INSERT INTO catalog (type, title_eng) VALUES (2, "Mainboard");
+INSERT INTO catalog (type, title_eng) VALUES (1, "Mainboard");
 SET @comp = LAST_INSERT_ID();
 SET @old_comp = (SELECT id FROM catalog_type WHERE title="Mainboard");
 INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
    SELECT @comp, cat.id, 6 FROM catalog cat
      WHERE cat.type_id=@old_comp;
 
+INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
+  VALUES ("Mainboards", 3, 5, @comp, 2, 6);
+
 -- Other
-INSERT INTO catalog (type, title_eng) VALUES (2, "Other");
+INSERT INTO catalog (type, title_eng) VALUES (1, "Other");
 SET @comp = LAST_INSERT_ID();
 SET @old_comp = (SELECT id FROM catalog_type WHERE title="Other");
 INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
    SELECT @comp, cat.id, 6 FROM catalog cat
      WHERE cat.type_id=@old_comp;
+
+-- TODO: category relation (equivalent to catalog_type)

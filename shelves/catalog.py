@@ -23,7 +23,11 @@ def get_catalog_root(id):
         'SELECT catalog_id1 FROM catalog_relation'
         ' WHERE catalog_id2 = %s AND type = %s',
         (id, Relation.REL_ROOT))
-    return cursor.fetchone()['catalog_id1']
+    try:
+        res = cursor.fetchone()['catalog_id1']
+    except:
+        res = -1
+    return res
 
 def get_catalog_none(id):
     cursor = get_db_cursor()
@@ -32,6 +36,7 @@ def get_catalog_none(id):
         ' IF(c.type = %s, 1, 0) AS is_physical,'
         ' IF(c.type = %s, 1, 0) AS is_group,'
         ' IF(c.type = %s, 1, 0) AS is_kit,'
+        ' IF(c.type = %s, 1, 0) AS is_bits,'
         ' IFNULL(c.year, "") as year, com.title as company,'
         ' c.company_id, c.type, rr.catalog_id1 AS root,'
         ' cr.title_eng AS root_title'
@@ -41,7 +46,7 @@ def get_catalog_none(id):
         ' LEFT JOIN catalog cr ON rr.catalog_id1 = cr.id'
         ' WHERE c.id = %s',
         (Type.TYPE_PHYSICAL, Type.TYPE_ABSTRACT, Type.TYPE_KIT,
-         Relation.REL_ROOT, id,)
+         Type.TYPE_BITS, Relation.REL_ROOT, id,)
     )
     return cursor.fetchone()
 
@@ -52,6 +57,7 @@ def get_catalog_full(id):
         ' IF(c.type = %s, 1, 0) AS is_physical,'
         ' IF(c.type = %s, 1, 0) AS is_group,'
         ' IF(c.type = %s, 1, 0) AS is_kit,'
+        ' IF(c.type = %s, 1, 0) AS is_bits,'
         ' IFNULL(c.year, "") as year, com.title as company,'
         ' c.company_id, a_logo.value_id as logo_id, c.type,'
         ' rr.catalog_id1 AS root, cr.title_eng AS root_title'
@@ -63,7 +69,7 @@ def get_catalog_full(id):
         ' LEFT JOIN catalog cr ON rr.catalog_id1 = cr.id'
         ' WHERE c.id = %s',
         (Type.TYPE_PHYSICAL, Type.TYPE_ABSTRACT, Type.TYPE_KIT,
-         Attribute.ATTR_LOGO, Relation.REL_ROOT, id,)
+         Type.TYPE_BITS, Attribute.ATTR_LOGO, Relation.REL_ROOT, id,)
     )
     return cursor.fetchone()
 
@@ -270,8 +276,15 @@ def filtered_query(args, count):
                 ' LEFT JOIN company com ON com.id = c.company_id'
         params = ()
     else:
-        query = 'SELECT c.id, c.title, c.title_eng, c.created,'            \
-                ' IF(c.type = %s, 1, 0) AS is_physical,'                   \
+        query = 'SELECT c.id, c.title, c.title_eng, c.created,'
+        if parent_id != -1 or parent_name:
+            query += "crp.id AS list_id, "
+        else:
+            query += "c.id AS list_id, "
+        query += ' IF(c.type = %s, 1, 0) AS is_physical,'                   \
+                ' IF(c.type = %s, 1, 0) AS is_group,'                      \
+                ' IF(c.type = %s, 1, 0) AS is_kit,'                        \
+                ' IF(c.type = %s, 1, 0) AS is_bits,'                       \
                 ' c.year, com.title as company, c.company_id,'             \
                 ' a_logo.value_id as logo_id,'                             \
                 ' (SELECT COUNT(*) FROM catalog cc'                        \
@@ -291,8 +304,10 @@ def filtered_query(args, count):
             suffix = ' ORDER BY c.created DESC LIMIT %d' % latest
         elif limitFirst >= 0 and limitPage > 0:
             suffix += ' LIMIT %d,%d' % (limitFirst, limitPage)
-        params = (Type.TYPE_PHYSICAL, Relation.REL_INCLUDES, Attribute.ATTR_LOGO,
-                  Relation.REL_ROOT,)
+        params = (Type.TYPE_PHYSICAL, Type.TYPE_ABSTRACT,
+                  Type.TYPE_KIT, Type.TYPE_BITS,
+                  Relation.REL_INCLUDES,
+                  Attribute.ATTR_LOGO, Relation.REL_ROOT,)
 
     if company_id != -1:
         where += ' AND com.id = %d' % company_id
@@ -346,8 +361,8 @@ def filtered_query(args, count):
                  '      WHERE catalog_id = c.id AND item_id = %s AND type = %s)'
         params = (*params, storage_item_id, Relation.REL_STORES,)
 
-    print(query + where + suffix)
-    print(params)
+    #print(query + where + suffix)
+    #print(params)
     return {"query":query + where + suffix, "params":params}
 
 @bp.route('/_filtered_list')
@@ -566,10 +581,30 @@ def _create():
 
     try:
         parent_id = int(request.json['parent'])
-        get_catalog(parent_id)
+        parent = get_catalog(parent_id)
         root_id = get_catalog_root(parent_id)
+        # parent is itself a root
+        if root_id == -1:
+            root_id = parent_id
+            parent_id = -1
     except:
         error = 'Invalid parent id'
+
+    # override root, if specified
+    try:
+        id = int(request.json['root'])
+        #print(id)
+        if id != -1:
+            root = get_catalog(id)
+            #print(root)
+            if root['is_group'] == 0:
+                raise Exception
+            root_id = id
+    except:
+        error = 'Invalid root id'
+
+    if parent['is_group'] != 1 and type == Type.TYPE_ABSTRACT:
+        error = 'Cannot add group not to group'
 
     # assert that company exists
     if (company_id is not None) and (get_company(company_id) is None):
@@ -579,6 +614,7 @@ def _create():
         error = 'title_eng is required'
 
     if error is not None:
+        print(error)
         abort(403, error)
 
     try:
@@ -586,12 +622,13 @@ def _create():
         catalog_id = create_catalog(cursor,
             type_id, title, title_eng, description, year, company_id, root_id)
 
-        cursor.execute(
-            'INSERT INTO catalog_relation'
-            ' (catalog_id1, catalog_id2, type)'
-            ' VALUES (%s, %s, %s)',
-            (parent_id, catalog_id, Relation.REL_INCLUDES)
-        )
+        if parent_id != -1:
+            cursor.execute(
+                'INSERT INTO catalog_relation'
+                ' (catalog_id1, catalog_id2, type)'
+                ' VALUES (%s, %s, %s)',
+                (parent_id, catalog_id, Relation.REL_INCLUDES)
+            )
         db_commit()
     except:
         db_rollback()
@@ -636,8 +673,7 @@ def _create_modification():
             (id, catalog_id, Relation.REL_MODIFICATION)
         )
         db_commit()
-    except Exception as e:
-        print(e)
+    except:
         db_rollback()
         abort(403)
 

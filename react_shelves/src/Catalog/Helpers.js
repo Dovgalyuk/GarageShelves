@@ -4,7 +4,7 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faLaptop } from '@fortawesome/free-solid-svg-icons'
+import { faLaptop, faSave, faFile, faObjectGroup, faArchive } from '@fortawesome/free-solid-svg-icons'
 import fetchBackend, { BackendURL, uploadBackend } from '../Backend'
 import { CatalogListSection } from './ListSection';
 
@@ -13,7 +13,11 @@ export class Logo extends Component {
         super(props);
 
         this.state = {
-            img_id:this.props.img_id
+            img_id:this.props.img_id,
+            is_physical:this.props.is_physical,
+            is_group:this.props.is_group,
+            is_kit:this.props.is_kit,
+            is_bits:this.props.is_bits,
         }
     }
 
@@ -40,7 +44,9 @@ export class Logo extends Component {
             fetchBackend('catalog/_get', {id:this.props.id})
                 .then(response => response.json())
                 .then(data => {
-                    this.setState({img_id:data.logo_id});
+                    this.setState({img_id:data.logo_id,
+                        is_physical:data.is_physical, is_kit:data.is_kit,
+                        is_group:data.is_group, is_bits:data.is_bits});
                 })
                 .catch(e => {});
         }
@@ -57,7 +63,13 @@ export class Logo extends Component {
                 ? <img src={ BackendURL('uploads/view', { id:this.state.img_id } ) }
                         alt="logo"
                    />
-                : <FontAwesomeIcon icon={faLaptop} size="4x" className="text-muted" />
+                : <FontAwesomeIcon icon={
+                    this.state.is_physical ? faLaptop
+                        : this.state.is_group ? faObjectGroup
+                        : this.state.is_kit ? faArchive
+                        : this.state.is_bits ? faSave
+                        : faFile }
+                    size="4x" className="text-muted" />
             }
             {(this.props.main && this.props.auth.isAdmin)
                 ? <input type="file" style={{display: "none"}}
@@ -76,7 +88,12 @@ class CatalogNormalItem extends Component {
         return <Col xs={12} lg={4} className="pt-4">
                   <Row className="pt-4">
                     <Col xs={3} lg={3} className="align-self-center">
-                      <Logo id={this.props.item.id} img_id={this.props.item.logo_id ? this.props.item.logo_id : -1} />
+                      <Logo id={this.props.item.id}
+                        img_id={this.props.item.logo_id ? this.props.item.logo_id : -1}
+                        is_physical={this.props.item.is_physical}
+                        is_group={this.props.item.is_group}
+                        is_kit={this.props.item.is_kit}
+                        is_bits={this.props.item.is_bits} />
                     </Col>
                     <Col xs={9} lg={9}>
                         <a className="action" href={"/catalog/view/" + this.props.item.id}>

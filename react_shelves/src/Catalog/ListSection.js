@@ -127,7 +127,7 @@ export class CatalogListSection extends Component {
             {this.state.rows.map((row) =>
                 <Row key={row[0].id}>
                     {row.map((item) =>
-                        <CatalogItem key={item.id} variant={this.props.variant}
+                        <CatalogItem key={item.list_id} variant={this.props.variant}
                             item={item} notype={this.props.filter.notype}
                             selected={this.state.selectedItems.includes(item.id)}
                             onClick={this.props.onSelection ? this.handleSelect : null} />

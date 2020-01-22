@@ -47,7 +47,8 @@ export default class CatalogView extends Component {
     }
 
     canEdit = () => {
-        return this.props.auth.isAuthenticated && !this.state.loading;
+        return this.props.auth.isAuthenticated && !this.state.loading
+          && this.state.catalog.root_title;
     }
 
     handleOwnButton = event => {
@@ -168,7 +169,6 @@ export default class CatalogView extends Component {
             );
         }
         const catalog = this.state.catalog;
-        const is_software = catalog.root_title === 'Software';
         if (!catalog.id) {
             return (
             <div className="row">
@@ -189,7 +189,8 @@ export default class CatalogView extends Component {
                     </Col>
                     <Col xs={8} lg={9} className="align-self-top">
                       <h1>
-                        <EditText prefix={catalog.root_title + " : "}
+                        <EditText prefix={
+                            (catalog.root_title ? catalog.root_title : "Category") + " : "}
                              value={ catalog.title_eng ? catalog.title_eng : catalog.title }
                              hint="English title"
                              canEdit = {this.canEdit}
@@ -200,39 +201,42 @@ export default class CatalogView extends Component {
                                    canEdit = {this.canEdit}
                                    onSave={v => this.handleEditField("title", v)}/>
                       </h4>
-                      <CatalogMain id={catalog.id} />
-                      <div className="text-secondary">
-                          Manufactured since&nbsp;
-                          <span className="badge badge-secondary">
-                            <EditText value={ catalog.year || "" }
-                                      hint="Start of production year" type="number"
-                                      canEdit = {this.canEdit}
-                                      onSave={v => this.handleEditField("year", v)}/>
-                          </span>
-                          &nbsp;by&nbsp;
-                          <EditDropDown value={catalog.company_id}
-                                        name={catalog.company}
-                                        hint={"Company name"}
-                                        defaultValue={-1}
-                                        defaultName="Unknown"
+                      {catalog.root_title
+                       ? <>
+                        <CatalogMain id={catalog.id} />
+                        <div className="text-secondary">
+                            Manufactured since&nbsp;
+                            <span className="badge badge-secondary">
+                              <EditText value={ catalog.year || "" }
+                                        hint="Start of production year" type="number"
                                         canEdit = {this.canEdit}
-                                        onLoadList={this.handleLoadCompanies}
-                                        onSave={v => this.handleEditField("company_id", v)}
-                                        onRender={this.handleCompanyRender}
-                          />
-                      </div>
+                                        onSave={v => this.handleEditField("year", v)}/>
+                            </span>
+                            &nbsp;by&nbsp;
+                            <EditDropDown value={catalog.company_id}
+                                          name={catalog.company}
+                                          hint={"Company name"}
+                                          defaultValue={-1}
+                                          defaultName="Unknown"
+                                          canEdit = {this.canEdit}
+                                          onLoadList={this.handleLoadCompanies}
+                                          onSave={v => this.handleEditField("company_id", v)}
+                                          onRender={this.handleCompanyRender}
+                            />
+                        </div>
 
-                      <CatalogFamilies
-                          id={catalog.id}
-                          root={catalog.root}
-                          auth={this.props.auth}/>
+                        <CatalogFamilies
+                            id={catalog.id}
+                            root={catalog.root}
+                            auth={this.props.auth}/>
+                      </> : <div/> }
                     </Col>
                     <Col xs={2} className="align-self-top">
                     <ButtonToolbar>
                     { (this.props.auth.isAuthenticated
-                        && (catalog.is_physical
+                        && (catalog.is_physical === 1
                             /* There can be kits referencing to software */
-                            || is_software))
+                            || catalog.is_bits === 1))
                       ? <Button variant="primary"
                                 onClick={this.handleCreateKitButton}>
                           Create kit
@@ -300,11 +304,13 @@ export default class CatalogView extends Component {
                 { catalog.is_group === 1
                   ? <CatalogListSection
                       ref={(ref) => {this.familiesRef = ref;}}
-                      filter={ {parent:catalog.id, notype:true, type: "abstract"} }
+                      filter={ {parent:catalog.id, notype:true,
+                                type: "abstract", noroot: true} }
+                      addButton auth={this.props.auth}
                       title="Includes the families" />
                   : <div/>
                 }
-                { catalog.is_physical === 1 || is_software
+                { catalog.is_physical === 1 || catalog.is_bits === 1
                   ? <CatalogListSection
                       ref={(ref) => {this.kitsRef = ref;}}
                       filter={ {notype:true, type: "kit",
@@ -312,22 +318,26 @@ export default class CatalogView extends Component {
                       title="Kits with this item" />
                   : <div/>
                 }
-                <CatalogListSection
+                { catalog.is_physical === 0 // physical compound items not supported yet
+                  ? <CatalogListSection
                     ref={(ref) => {this.childrenRef = ref;}}
                     filter={ {parent:catalog.id, parent_rel:"includes",
-                        not_type: "abstract"} }
+                        not_type: "abstract", noroot: catalog.is_group === 1} }
                     title="Includes the following catalog items"
                     auth={this.props.auth} addButton />
+                  : <div />
+                }
 
                 <CatalogListSection
                     ref={(ref) => {this.softwareRef = ref;}}
-                    filter={ {parent:catalog.id, parent_rel:"stores", type:"bits"} }
+                    filter={ {parent:catalog.id, parent_rel:"stores",
+                              type:"bits", noroot: true} }
                     title="Includes the software" />
 
                 <CatalogListSection
                     ref={(ref) => {this.modificationsRef = ref;}}
                     filter={ {parent_rel:"modification", parent:catalog.id,
-                              not_type:"abstract"} }
+                              not_type:"abstract", noroot: true} }
                     title="Catalog item modifications" />
 
                 { this.props.auth.isAuthenticated
@@ -365,13 +375,12 @@ export default class CatalogView extends Component {
               }
               { this.props.auth.isAuthenticated
                     && (catalog.root_title === "Data storage"
-                        || catalog.root_title === "Software")
+                        || catalog.is_bits === 1)
                     ? <FormCatalogSelect open={this.state.showFormAddSoftware}
                           title="Add software"
                           onClose={this.handleFormAddSoftwareClose}
                           onSelect={this.handleSoftwareSelect}
-                          filter={{parent_name: "Software", parent_rel: "root",
-                                   notype: true}} />
+                          filter={{notype: true, type: "bits"}} />
                 : <div/>
               }
               { this.props.auth.isAuthenticated
@@ -380,7 +389,9 @@ export default class CatalogView extends Component {
                           title="Add existing subitem"
                           onClose={this.handleFormAddSubitemClose}
                           onSelect={this.handleSubitemSelect}
-                          filter={{}} />
+                          filter={catalog.is_group === 1
+                              ? {parent:catalog.root, parent_rel:"root", type:"physical", notype:true}
+                              : {not_type:"abstract"} } />
                 : <div/>
               }
             </>
