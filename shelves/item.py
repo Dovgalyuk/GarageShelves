@@ -122,8 +122,8 @@ def _filtered_list():
         params = (*params, catalog_id)
     if parent_id != -1:
         parent = get_item(parent_id)
-        where += ' AND EXISTS (SELECT 1 FROM item_relation' \
-                 ' WHERE item_id1 = %s AND item_id2 = i.id AND type = %s)'
+        query += ' JOIN item_relation ir ON i.id = ir.item_id2'
+        where += ' AND ir.item_id1 = %s AND ir.type = %s'
         params = (*params, parent_id, Relation.REL_INCLUDES)
         if is_main != -1:
             where += ' AND ' + ("" if is_main == 1 else "NOT") + \
@@ -156,8 +156,8 @@ def _filtered_list():
     if latest > 0:
         where += " ORDER BY i.added DESC LIMIT %d" % latest
 
-    # print(query + where)
-    # print(params)
+    #print(query + where)
+    #print(params)
 
     cursor.execute(query + where, params)
     result = cursor.fetchall()

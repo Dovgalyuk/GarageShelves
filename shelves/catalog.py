@@ -257,7 +257,15 @@ def filtered_query(args, count):
     if latest > 100:
         return abort(400)
 
-    catalog_type = Type.get_id(args.get('type'))
+    types = args.get('type')
+    type_ids = []
+    if types:
+        for t in types.split(','):
+            try:
+                type_ids.append(Type.get_id(t))
+            except:
+                pass # do nothing
+
     catalog_not_type = Type.get_id(args.get('not_type'))
     parent_rel = Relation.get_id(args.get('parent_rel'))
     parent_name = args.get('parent_name')
@@ -341,9 +349,16 @@ def filtered_query(args, count):
                  '      WHERE catalog_id1 = c.id AND catalog_id2 = %s' \
                  '      AND type = %s)'
         params = (*params, includes_id, child_rel,)
-    if catalog_type != -1:
-        where += ' AND c.type = %s'
-        params = (*params, catalog_type)
+    if type_ids:
+        where += ' AND ('
+        first = True
+        for t in type_ids:
+            if not first:
+                where += ' OR '
+            where += ' c.type = %s'
+            params = (*params, t,)
+            first = False
+        where += ')'
     if catalog_not_type != -1:
         where += ' AND c.type <> %s'
         params = (*params, catalog_not_type)
@@ -483,19 +498,20 @@ def _own():
     id = int(request.args['id'])
     catalog = get_catalog(id)
 
-    if not catalog['is_physical']:
+    if not catalog['is_physical'] and not catalog['is_kit']:
         abort(403)
 
     collection = get_user_collection(g.user['id'])
     try:
-        main = request.json[str(id)]
+        main = request.json["-1"]
         iid = ''
         if 'internal' in main:
             iid = main['internal']
         cursor = get_db_cursor()
         item_id = add_ownership(cursor, id, iid, collection['id'])
 
-        for subitem, attr in request.json.items():
+        for xxx, attr in request.json.items():
+            subitem = attr['id']
             subid = int(subitem)
             if id == subid:
                 continue

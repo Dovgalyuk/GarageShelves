@@ -272,7 +272,8 @@ export default class CatalogView extends Component {
                       : <span/>
                     }
                     &nbsp;
-                    { (this.props.auth.isAuthenticated && catalog.is_physical)
+                    { (this.props.auth.isAuthenticated
+                        && (catalog.is_physical || catalog.is_kit))
                       ? <Button variant="primary"
                                 onClick={this.handleOwnButton}>
                           I own this

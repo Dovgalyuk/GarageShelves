@@ -30,7 +30,7 @@ class FormOwn extends Component {
 
     handleConfirm = event => {
         var form = this.itemsRef.getSelectedList();
-        form[this.props.id] = {use:true, internal:this.state.form[this.props.id].internal };
+        form[-1] = {id:this.props.id, use:true, internal:this.state.form[this.props.id].internal };
         postBackend('catalog/_own', {id:this.props.id}, form)
             .catch(e => {})
             .finally((e) => {

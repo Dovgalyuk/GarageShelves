@@ -22,11 +22,13 @@ class KitItemsSelect extends Component {
 
     handleShow = event => {
         var form = this.defaultForm();
-        fetchBackend('catalog/_filtered_list', {parent:this.props.catalog_id})
+        fetchBackend('catalog/_filtered_list', {parent:this.props.catalog_id, type:"physical,kit"})
             .then(response => response.json())
             .then(data => {
                 for (var i = 0 ; i < data.length ; ++i) {
-                    form[data[i].id] = {use:false, internal: ""};
+                    if (data[i].is_physical || data[i].is_kit) {
+                        form[data[i].list_id] = {id:data[i].id, use:false, internal: ""};
+                    }
                 }
                 this.setState({loading:false, items:data},
                     () => this.props.handleLoaded(this.state.items.length))
@@ -58,28 +60,23 @@ class KitItemsSelect extends Component {
         return (
             <>
                 { this.state.items.map((c) =>
-                    <Fragment key={c.id}>
-                    { c.is_physical
-                        ? <Form.Group as={Row}>
+                    <Form.Group as={Row}  key={c.list_id}>
                         <Col xs={3}>
                             <Form.Control type="text"
-                                id={"I" + c.id}
-                                value={this.state.form[c.id].internal}
-                                onChange={e => this.handleInput(e, c.id)}/>
+                                id={"I" + c.list_id}
+                                value={this.state.form[c.list_id].internal}
+                                onChange={e => this.handleInput(e, c.list_id)}/>
                         </Col>
                         <Col xs={9}>
                             <Form.Check custom type="checkbox"
-                                id={"C" + c.id}
-                                checked={this.state.form[c.id].use}
+                                id={"C" + c.list_id}
+                                checked={this.state.form[c.list_id].use}
                                 label={c.root_title + " : "
                                     + (c.title_eng ? c.title_eng : c.title)}
-                                onChange={e => this.handleCheckBox(e, c.id)} />
+                                onChange={e => this.handleCheckBox(e, c.list_id)} />
                         </Col>
-                        </Form.Group>
-                        : <div/>
-                    }
-                    </Fragment>)
-                }
+                    </Form.Group>
+                )}
             </>
         );
     }
