@@ -188,7 +188,7 @@ export function CatalogLatest(props) {
     return (
         <CatalogListSection
             title="Latest added catalog items"
-            filter={{latest:10}}
+            filter={{latest:12}}
         />
     );
 }

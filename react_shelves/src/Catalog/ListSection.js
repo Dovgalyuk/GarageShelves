@@ -134,7 +134,7 @@ export class CatalogListSection extends Component {
                     )}
                 </Row>
             )}
-            {pages > 1
+            {pages > 1 && !this.props.filter.latest
               ? <Row className="pt-4">
                 <Col>
                     <Pagination>

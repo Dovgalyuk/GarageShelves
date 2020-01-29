@@ -5,7 +5,7 @@ export function ItemLatest(props) {
     return (
         <ItemListSection
           title="Latest collected items"
-          filter={{latest:10}}
+          filter={{latest:12}}
         />
     );
 }
