@@ -602,7 +602,7 @@ def _create():
         # parent is itself a root
         if root_id == -1:
             root_id = parent_id
-            parent_id = -1
+            #parent_id = -1
     except:
         error = 'Invalid parent id'
 
