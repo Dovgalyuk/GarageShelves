@@ -268,7 +268,10 @@ def filtered_query(args, count):
 
     catalog_not_type = Type.get_id(args.get('not_type'))
     parent_rel = Relation.get_id(args.get('parent_rel'))
-    parent_name = args.get('parent_name')
+    parents = args.get('parent_name')
+    parent_names = []
+    if parents:
+        parent_names = parents.split(',')
     child_rel = Relation.get_id(args.get('child_rel'))
 
     storage_item_id = args.get('storage_item', -1, type=int)
@@ -285,7 +288,7 @@ def filtered_query(args, count):
         params = ()
     else:
         query = 'SELECT c.id, c.title, c.title_eng, c.created,'
-        if parent_id != -1 or parent_name:
+        if parent_id != -1 or parent_names:
             query += "crp.id AS list_id, "
         else:
             query += "c.id AS list_id, "
@@ -323,11 +326,19 @@ def filtered_query(args, count):
         query += ' JOIN catalog_relation crp ON c.id = crp.catalog_id2'
         where += ' AND crp.catalog_id1 = %s AND crp.type = %s'
         params = (*params, parent_id, parent_rel,)
-    elif parent_name:
+    elif parent_names:
         query += ' JOIN catalog_relation crp ON c.id = crp.catalog_id2' \
                  ' JOIN catalog cp ON crp.catalog_id1 = cp.id'
-        where += ' AND cp.title_eng = %s AND crp.type = %s'
-        params = (*params, parent_name, parent_rel,)
+        where += ' AND ('
+        first = True
+        for p in parent_names:
+            if not first:
+                where += ' OR '
+            where += ' cp.title_eng = %s'
+            params = (*params, p,)
+            first = False
+        where += ') AND crp.type = %s'
+        params = (*params, parent_rel,)
     if category_ids:
         where += ' AND ('
         first = True

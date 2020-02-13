@@ -88,7 +88,7 @@ export class CatalogFamilies extends Component {
     }
     handleAddPlatform = () => {
         this.setState({ showForm: true, path: "compatible", formTitle: "Add platform",
-            filter: {parent_name: "Computer", parent_rel: "root", notype: true} });
+            filter: {parent_name: "Computer,Console,Calculator", parent_rel: "root", notype: true} });
     }
     handleFormClose = () => {
         this.setState({ showForm: false });
