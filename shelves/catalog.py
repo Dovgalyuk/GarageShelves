@@ -252,6 +252,7 @@ def filtered_query(args, count):
     title = args.get('title')
     noparent = args.get('noparent', False, type=bool)
     is_main = args.get('is_main', False, type=bool)
+    noparent_rel = Relation.get_id(args.get('noparent_rel'))
 
     latest = args.get('latest', -1, type=int)
     if latest > 100:
@@ -376,7 +377,7 @@ def filtered_query(args, count):
     if noparent:
         where += ' AND NOT EXISTS (SELECT 1 FROM catalog_relation' \
                  '      WHERE catalog_id2 = c.id AND type = %s)'
-        params = (*params, Relation.REL_INCLUDES)
+        params = (*params, noparent_rel)
     if title:
         # TODO: spaces are not supported in the template?
         where += ' AND (c.title LIKE %s OR c.title_eng LIKE %s)'
