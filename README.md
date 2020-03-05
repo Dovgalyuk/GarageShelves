@@ -19,7 +19,12 @@ sudo mysql_secure_installation
 mysql -u root -p < shelves/schema.sql
 ```
 
-### Setup Apache web server
+### Setup web server
+
+#### Nginx
+
+
+#### Apache2
 
 ```
 sudo apt install apache2-dev
