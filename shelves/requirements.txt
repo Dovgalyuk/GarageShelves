@@ -5,3 +5,4 @@ flask-uploads
 flask-mysqldb
 pillow
 flask-cors
+flup
