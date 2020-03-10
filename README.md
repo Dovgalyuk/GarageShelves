@@ -4,7 +4,7 @@ Web-based system for managing private tech collections
 ## Installation
 
 ```
-sudo apt install python3-pip libffi-dev libmysqlclient-dev python3-setuptools gcc python3-dev
+sudo apt install python3-pip libffi-dev libmysqlclient-dev python3-setuptools gcc python3-dev uwsgi-plugin-python3
 sudo pip3 install -r shelves/requirements.txt
 mkdir instance
 cp shelves/config.cfg instance
