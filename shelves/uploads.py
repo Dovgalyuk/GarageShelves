@@ -40,7 +40,7 @@ def upload_image(file,desc='',width=-1,height=-1):
     )
     file_id = cursor.lastrowid
     img.save(os.path.join(
-        os.path.join(current_app.instance_path, 'uploads'),
+        os.path.join(os.path.abspath(current_app.instance_path), 'uploads'),
         '%d.%s' % (file_id, ext)))
     return file_id
 
@@ -57,7 +57,7 @@ def upload_file(file, desc):
     )
     file_id = cursor.lastrowid
     file.save(os.path.join(
-        os.path.join(current_app.instance_path, 'uploads'),
+        os.path.join(os.path.abspath(current_app.instance_path), 'uploads'),
         '%d' % (file_id,)))
     return file_id
 
@@ -86,7 +86,7 @@ def view():
     if image is None:
         abort(403)
 
-    return send_from_directory(os.path.join(current_app.instance_path,
+    return send_from_directory(os.path.join(os.path.abspath(current_app.instance_path),
         'uploads'), '%d.%s' % (id, image['ext']))
 
 @bp.route('/download')
@@ -102,7 +102,7 @@ def download():
     if file is None:
         abort(403)
 
-    result = send_file(os.path.join(current_app.instance_path,'uploads/%d' % (id,)),
+    result = send_file(os.path.join(os.path.abspath(current_app.instance_path),'uploads/%d' % (id,)),
                 mimetype="application/octet-stream",
                 as_attachment=True,
                 attachment_filename=file['filename'],
