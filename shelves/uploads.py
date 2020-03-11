@@ -86,8 +86,8 @@ def view():
     if image is None:
         abort(403)
 
-    return send_from_directory(os.path.join(os.path.abspath(current_app.instance_path),
-        'uploads'), '%d.%s' % (id, image['ext']))
+    return send_file(os.path.join(os.path.abspath(current_app.instance_path),
+        'uploads/%d.%s' % (id, image['ext'])))
 
 @bp.route('/download')
 def download():
