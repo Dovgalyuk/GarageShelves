@@ -38,6 +38,7 @@ export default class FormCatalogCreate extends Component {
                         root = r.id;
                         return true;
                       }
+                      return false;
                     });
                     this.setState({loadingRoots:false, roots:data,
                                    form: {...this.state.form, root:root}});
