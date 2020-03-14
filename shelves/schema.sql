@@ -1,22 +1,5 @@
-# DROP DATABASE GarageShelves;
 CREATE DATABASE GarageShelves;
 USE GarageShelves;
-
-DROP TABLE IF EXISTS catalog_comment;
-DROP TABLE IF EXISTS item_comment;
-DROP TABLE IF EXISTS comment;
-DROP TABLE IF EXISTS catalog_history;
-DROP TABLE IF EXISTS catalog_attribute;
-DROP TABLE IF EXISTS catalog_relation;
-DROP TABLE IF EXISTS item_relation;
-DROP TABLE IF EXISTS item_attribute;
-DROP TABLE IF EXISTS image;
-DROP TABLE IF EXISTS item;
-DROP TABLE IF EXISTS catalog;
-DROP TABLE IF EXISTS catalog_type;
-DROP TABLE IF EXISTS collection;
-DROP TABLE IF EXISTS company;
-DROP TABLE IF EXISTS user;
 
 CREATE TABLE user (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -221,34 +204,11 @@ INSERT INTO user (username, password, admin, email)
 INSERT INTO collection (owner_id, title, description)
   VALUES (1, "Admin's collection", "");
 
-
 -- default catalogs
-
--- Update Dec 2019
-
--- ALTER TABLE catalog ADD type INTEGER NOT NULL;
--- ALTER TABLE catalog MODIFY COLUMN type_id INTEGER NULL DEFAULT NULL;
--- UPDATE catalog SET type = 3 WHERE type_id IN (SELECT id FROM catalog_type WHERE title="Kit");
--- UPDATE catalog SET type = 1 WHERE type_id IN (SELECT id FROM catalog_type WHERE title LIKE "%family%");
--- UPDATE catalog SET type = 4 WHERE type_id IN (SELECT id FROM catalog_type WHERE title="Software");
--- UPDATE catalog SET type = 2 WHERE type = 0;
 
 ---- COMPUTERS
 INSERT INTO catalog (type, title_eng) VALUES (1, "Computer");
 SET @comp = LAST_INSERT_ID();
-SET @old_comp = (SELECT id FROM catalog_type WHERE title="Computer");
-SET @fam_comp = (SELECT id FROM catalog_type WHERE title="Computer family");
--- include relations
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp AS catalog_id1, cat.id AS catalog_id2, 1 AS type FROM catalog cat WHERE
-     (cat.type_id=@old_comp OR cat.type_id=@fam_comp)
-     AND NOT EXISTS (SELECT * FROM catalog_relation WHERE catalog_id2=cat.id AND type=1
-         AND catalog_id1 IN (SELECT id FROM catalog WHERE type_id=@old_comp OR type_id=@fam_comp));
--- root relations
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp, cat.id, 6 FROM catalog cat
-     WHERE cat.type_id=@old_comp OR cat.type_id=@fam_comp;
-
 -- hardcoded ids!
 INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
   VALUES ("Computer families", 1, 1, @comp, 1, 1);
@@ -258,19 +218,6 @@ INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
 ---- CONSOLES
 INSERT INTO catalog (type, title_eng) VALUES (1, "Console");
 SET @comp = LAST_INSERT_ID();
-SET @old_comp = (SELECT id FROM catalog_type WHERE title="Console");
-SET @fam_comp = (SELECT id FROM catalog_type WHERE title="Console family");
--- include relations
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp AS catalog_id1, cat.id AS catalog_id2, 1 AS type FROM catalog cat WHERE
-     (cat.type_id=@old_comp OR cat.type_id=@fam_comp)
-     AND NOT EXISTS (SELECT * FROM catalog_relation WHERE catalog_id2=cat.id AND type=1
-         AND catalog_id1 IN (SELECT id FROM catalog WHERE type_id=@old_comp OR type_id=@fam_comp));
--- root relations
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp, cat.id, 6 FROM catalog cat
-     WHERE cat.type_id=@old_comp OR cat.type_id=@fam_comp;
-
 -- hardcoded ids!
 INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
   VALUES ("Console families", 1, 2, @comp, 1, 1);
@@ -280,19 +227,6 @@ INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
 ---- CALCULATORS
 INSERT INTO catalog (type, title_eng) VALUES (1, "Calculator");
 SET @comp = LAST_INSERT_ID();
-SET @old_comp = (SELECT id FROM catalog_type WHERE title="Calculator");
-SET @fam_comp = (SELECT id FROM catalog_type WHERE title="Calculator family");
--- include relations
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp AS catalog_id1, cat.id AS catalog_id2, 1 AS type FROM catalog cat WHERE
-     (cat.type_id=@old_comp OR cat.type_id=@fam_comp)
-     AND NOT EXISTS (SELECT * FROM catalog_relation WHERE catalog_id2=cat.id AND type=1
-         AND catalog_id1 IN (SELECT id FROM catalog WHERE type_id=@old_comp OR type_id=@fam_comp));
--- root relations
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp, cat.id, 6 FROM catalog cat
-     WHERE cat.type_id=@old_comp OR cat.type_id=@fam_comp;
-
 -- hardcoded ids!
 INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
   VALUES ("Calculator families", 1, 3, @comp, 1, 1);
@@ -302,19 +236,6 @@ INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
 ---- SOFTWARE
 INSERT INTO catalog (type, title_eng) VALUES (1, "Software");
 SET @comp = LAST_INSERT_ID();
-SET @old_comp = (SELECT id FROM catalog_type WHERE title="Software");
-SET @fam_comp = (SELECT id FROM catalog_type WHERE title="Software family");
--- include relations
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp AS catalog_id1, cat.id AS catalog_id2, 1 AS type FROM catalog cat WHERE
-     (cat.type_id=@old_comp OR cat.type_id=@fam_comp)
-     AND NOT EXISTS (SELECT * FROM catalog_relation WHERE catalog_id2=cat.id AND type=1
-         AND catalog_id1 IN (SELECT id FROM catalog WHERE type_id=@old_comp OR type_id=@fam_comp));
--- root relations
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp, cat.id, 6 FROM catalog cat
-     WHERE cat.type_id=@old_comp OR cat.type_id=@fam_comp;
-
 -- hardcoded ids!
 INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
   VALUES ("Software families", 1, 4, @comp, 1, 1);
@@ -324,19 +245,6 @@ INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
 ---- PERIPHERALS
 INSERT INTO catalog (type, title_eng) VALUES (1, "Peripheral device");
 SET @comp = LAST_INSERT_ID();
-SET @old_comp = (SELECT id FROM catalog_type WHERE title="Peripheral device");
-SET @fam_comp = (SELECT id FROM catalog_type WHERE title="Peripheral device family");
--- include relations
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp AS catalog_id1, cat.id AS catalog_id2, 1 AS type FROM catalog cat WHERE
-     (cat.type_id=@old_comp OR cat.type_id=@fam_comp)
-     AND NOT EXISTS (SELECT * FROM catalog_relation WHERE catalog_id2=cat.id AND type=1
-         AND catalog_id1 IN (SELECT id FROM catalog WHERE type_id=@old_comp OR type_id=@fam_comp));
--- root relations
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp, cat.id, 6 FROM catalog cat
-     WHERE cat.type_id=@old_comp OR cat.type_id=@fam_comp;
-
 -- hardcoded ids!
 INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
   VALUES ("Peripheral device families", 1, 5, @comp, 1, 1);
@@ -346,19 +254,6 @@ INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
 ---- DATA STORAGE
 INSERT INTO catalog (type, title_eng) VALUES (1, "Data storage");
 SET @comp = LAST_INSERT_ID();
-SET @old_comp = (SELECT id FROM catalog_type WHERE title="Data storage");
-SET @fam_comp = (SELECT id FROM catalog_type WHERE title="Data storage family");
--- include relations
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp AS catalog_id1, cat.id AS catalog_id2, 1 AS type FROM catalog cat WHERE
-     (cat.type_id=@old_comp OR cat.type_id=@fam_comp)
-     AND NOT EXISTS (SELECT * FROM catalog_relation WHERE catalog_id2=cat.id AND type=1
-         AND catalog_id1 IN (SELECT id FROM catalog WHERE type_id=@old_comp OR type_id=@fam_comp));
--- root relations
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp, cat.id, 6 FROM catalog cat
-     WHERE cat.type_id=@old_comp OR cat.type_id=@fam_comp;
-
 -- hardcoded ids!
 INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
   VALUES ("Data storage families", 1, 6, @comp, 1, 1);
@@ -366,32 +261,19 @@ INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
   VALUES ("Data storage", 2, 6, @comp, 2, 6);
 
 
--- swap storage relations
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-  SELECT catalog_id2, catalog_id1, 999 FROM catalog_relation WHERE type=4;
-DELETE FROM catalog_relation WHERE type=4;
-UPDATE catalog_relation SET type=4 WHERE type=999;
-
 -- Kit
 INSERT INTO catalog (type, title_eng) VALUES (3, "Kit");
 SET @comp = LAST_INSERT_ID();
-SET @old_comp = (SELECT id FROM catalog_type WHERE title="Kit");
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp, cat.id, 6 FROM catalog cat
-     WHERE cat.type_id=@old_comp;
 
 -- Cable/Adapter
 INSERT INTO catalog (type, title_eng) VALUES (1, "Cable/Adapter");
 SET @comp = LAST_INSERT_ID();
-SET @old_comp = (SELECT id FROM catalog_type WHERE title="Cable/Adapter");
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp, cat.id, 6 FROM catalog cat
-     WHERE cat.type_id=@old_comp;
 
--- printed stuff
+-- Printed stuff
 
 INSERT INTO catalog (type, title_eng) VALUES (1, "Printed material");
 SET @printed = LAST_INSERT_ID();
+-- hardcoded ids!
 INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
   VALUES ("Print material categories", 1, 7, @printed, 1, 1);
 INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
@@ -400,10 +282,6 @@ INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
 -- Book
 INSERT INTO catalog (type, title_eng) VALUES (1, "Book");
 SET @comp = LAST_INSERT_ID();
-SET @old_comp = (SELECT id FROM catalog_type WHERE title="Book");
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp, cat.id, 6 FROM catalog cat
-     WHERE cat.type_id=@old_comp;
 INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
    VALUES (@printed, @comp, 6);
 INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
@@ -412,10 +290,6 @@ INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
 -- Manual
 INSERT INTO catalog (type, title_eng) VALUES (1, "Manual");
 SET @comp = LAST_INSERT_ID();
-SET @old_comp = (SELECT id FROM catalog_type WHERE title="Manual");
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp, cat.id, 6 FROM catalog cat
-     WHERE cat.type_id=@old_comp;
 INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
    VALUES (@printed, @comp, 6);
 INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
@@ -424,10 +298,6 @@ INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
 -- Schematics
 INSERT INTO catalog (type, title_eng) VALUES (1, "Schematic");
 SET @comp = LAST_INSERT_ID();
-SET @old_comp = (SELECT id FROM catalog_type WHERE title="Schematics");
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp, cat.id, 6 FROM catalog cat
-     WHERE cat.type_id=@old_comp;
 INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
    VALUES (@printed, @comp, 6);
 INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
@@ -436,10 +306,6 @@ INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
 -- Mainboard
 INSERT INTO catalog (type, title_eng) VALUES (1, "Mainboard");
 SET @comp = LAST_INSERT_ID();
-SET @old_comp = (SELECT id FROM catalog_type WHERE title="Mainboard");
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp, cat.id, 6 FROM catalog cat
-     WHERE cat.type_id=@old_comp;
 
 INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
   VALUES ("Mainboards", 3, 5, @comp, 2, 6);
@@ -447,9 +313,5 @@ INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
 -- Other
 INSERT INTO catalog (type, title_eng) VALUES (1, "Other");
 SET @comp = LAST_INSERT_ID();
-SET @old_comp = (SELECT id FROM catalog_type WHERE title="Other");
-INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
-   SELECT @comp, cat.id, 6 FROM catalog cat
-     WHERE cat.type_id=@old_comp;
 
 -- TODO: category relation (equivalent to catalog_type)
