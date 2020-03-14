@@ -251,7 +251,6 @@ def filtered_query(args, count):
     includes_id = args.get('includes', -1, type=int)
     title = args.get('title')
     noparent = args.get('noparent', False, type=bool)
-    is_main = args.get('is_main', False, type=bool)
     noparent_rel = Relation.get_id(args.get('noparent_rel'))
 
     latest = args.get('latest', -1, type=int)
@@ -352,10 +351,6 @@ def filtered_query(args, count):
             params = (*params, c, Relation.REL_COMPATIBLE,)
             first = False
         where += ')'
-    if is_main:
-        where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
-                 '      WHERE catalog_id2 = c.id AND type = %s)'
-        params = (*params, Relation.REL_MAIN_ITEM,)
     if includes_id != -1:
         where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
                  '      WHERE catalog_id1 = c.id AND catalog_id2 = %s' \
