@@ -180,6 +180,7 @@ INSERT INTO page_catalog (num, title) VALUES (4, "Software");
 INSERT INTO page_catalog (num, title) VALUES (5, "Peripherals and parts");
 INSERT INTO page_catalog (num, title) VALUES (6, "Data storage");
 INSERT INTO page_catalog (num, title) VALUES (7, "Printed material");
+INSERT INTO page_catalog (num, title) VALUES (8, "Companies");
 
 CREATE TABLE page_catalog_section (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -313,5 +314,22 @@ INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
 -- Other
 INSERT INTO catalog (type, title_eng) VALUES (1, "Other");
 SET @comp = LAST_INSERT_ID();
+
+-- Companies
+INSERT INTO catalog (type, title_eng) VALUES (1, "Company");
+SET @comp = LAST_INSERT_ID();
+-- hardcoded ids!
+INSERT INTO page_catalog_section (title, num, page, parent, type, relation)
+  VALUES ("Companies", 1, 8, @comp, 2, 6);
+INSERT INTO catalog (type, title_eng, company_id)
+  SELECT 2, title, id FROM company;
+INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
+  SELECT @comp, catalog.id, 6 FROM company
+    JOIN catalog ON company.title=catalog.title_eng AND company.id=catalog.company_id;
+INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)
+  SELECT cc.id, c.id, 7 FROM catalog c
+    JOIN company ON c.company_id=company.id
+    JOIN catalog cc ON company.title=cc.title_eng AND company.id=cc.company_id
+  WHERE c.id <> cc.id;
 
 -- TODO: category relation (equivalent to catalog_type)
