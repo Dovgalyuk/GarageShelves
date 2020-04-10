@@ -8,6 +8,8 @@ class Type:
     TYPE_KIT = 3
     # Software or data
     TYPE_BITS = 4
+    # Company/manufacturer
+    TYPE_COMPANY = 5
 
     @staticmethod
     def get_id(name):
@@ -20,12 +22,14 @@ class Type:
                 return Type.TYPE_KIT
             if name == "bits":
                 return Type.TYPE_BITS
+            if name == "company":
+                return Type.TYPE_COMPANY
         except:
             pass
 
         try:
             id = int(name)
-            if id >= Type.TYPE_ABSTRACT and id <= Type.TYPE_BITS:
+            if id >= Type.TYPE_ABSTRACT and id <= Type.TYPE_COMPANY:
                 return id
         except:
             pass

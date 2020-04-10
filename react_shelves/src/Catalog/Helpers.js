@@ -4,7 +4,7 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faLaptop, faSave, faFile, faObjectGroup, faArchive } from '@fortawesome/free-solid-svg-icons'
+import { faLaptop, faSave, faFile, faObjectGroup, faArchive, faIndustry } from '@fortawesome/free-solid-svg-icons'
 import fetchBackend, { BackendURL, uploadBackend } from '../Backend'
 import { CatalogListSection } from './ListSection';
 
@@ -18,6 +18,7 @@ export class Logo extends Component {
             is_group:this.props.is_group,
             is_kit:this.props.is_kit,
             is_bits:this.props.is_bits,
+            is_company:this.props.is_company,
         }
     }
 
@@ -46,7 +47,8 @@ export class Logo extends Component {
                 .then(data => {
                     this.setState({img_id:data.logo_id,
                         is_physical:data.is_physical, is_kit:data.is_kit,
-                        is_group:data.is_group, is_bits:data.is_bits});
+                        is_group:data.is_group, is_bits:data.is_bits,
+                        is_company:data.is_company});
                 })
                 .catch(e => {});
         }
@@ -68,6 +70,7 @@ export class Logo extends Component {
                         : this.state.is_group ? faObjectGroup
                         : this.state.is_kit ? faArchive
                         : this.state.is_bits ? faSave
+                        : this.state.is_company ? faIndustry
                         : faFile }
                     size="4x" className="text-muted" />
             }
@@ -93,7 +96,8 @@ class CatalogNormalItem extends Component {
                         is_physical={this.props.item.is_physical}
                         is_group={this.props.item.is_group}
                         is_kit={this.props.item.is_kit}
-                        is_bits={this.props.item.is_bits} />
+                        is_bits={this.props.item.is_bits}
+                        is_company={this.props.item.is_company} />
                     </Col>
                     <Col xs={9} lg={9}>
                         <a className="action" href={"/catalog/view/" + this.props.item.id}>
@@ -107,7 +111,7 @@ class CatalogNormalItem extends Component {
                         &nbsp;
                         {this.props.item.company
                             ? <a className="text-secondary"
-                                href={"/company/view/" + this.props.item.company_id}>
+                                href={"/catalog/view/" + this.props.item.company_id}>
                                 {this.props.item.company}
                             </a>
                             : ""}

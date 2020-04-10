@@ -46,6 +46,11 @@ export default class CatalogView extends Component {
             {field:field, value:value});
     }
 
+    handleEditCompany = (value) => {
+      postBackend('catalog/_company_set', {},
+          {id1:value, id2:this.props.match.params.id});
+    }
+
     canEdit = () => {
         return this.props.auth.isAuthenticated && !this.state.loading
           && this.state.catalog.root_title;
@@ -124,17 +129,17 @@ export default class CatalogView extends Component {
   }
 
     handleLoadCompanies = callback => {
-        fetchBackend('company/_filtered_list', {})
+        fetchBackend('catalog/_filtered_list', {type: "company"})
             .then(response => response.json())
             .then(data => {
-                callback(data.map(c => { return {value:c.id, title:c.title}; }));
+                callback(data.map(c => { return {value:c.id, name:c.title_eng}; }));
             })
             .catch(e => {});
     }
 
     handleCompanyRender = (value, name) => {
         if (value > 0)
-            return <a href={"/company/view/" + value}>{ name }</a>;
+            return <a href={"/catalog/view/" + value}>{ name }</a>;
         else
             return <span>{ name} </span>;
     }
@@ -201,7 +206,7 @@ export default class CatalogView extends Component {
                                    canEdit = {this.canEdit}
                                    onSave={v => this.handleEditField("title", v)}/>
                       </h4>
-                      {catalog.root_title
+                      {catalog.root_title && !catalog.is_company
                        ? <>
                         <CatalogMain id={catalog.id} />
                         <div className="text-secondary">
@@ -220,7 +225,7 @@ export default class CatalogView extends Component {
                                           defaultName="Unknown"
                                           canEdit = {this.canEdit}
                                           onLoadList={this.handleLoadCompanies}
-                                          onSave={v => this.handleEditField("company_id", v)}
+                                          onSave={v => this.handleEditCompany(v)}
                                           onRender={this.handleCompanyRender}
                             />
                         </div>
@@ -245,7 +250,7 @@ export default class CatalogView extends Component {
                     }
                     &nbsp;
                     { (this.props.auth.isAuthenticated
-                        && !catalog.is_kit && !catalog.is_group)
+                        && catalog.is_physical && catalog.is_bits)
                       ? <Button variant="primary"
                                 onClick={this.handleCreateModificationButton}>
                           Create modification
@@ -320,6 +325,7 @@ export default class CatalogView extends Component {
                   : <div/>
                 }
                 { catalog.is_physical === 0 // physical compound items not supported yet
+                  && catalog.is_company === 0
                   ? <CatalogListSection
                     ref={(ref) => {this.childrenRef = ref;}}
                     filter={ {parent:catalog.id, parent_rel:"includes",
@@ -329,6 +335,12 @@ export default class CatalogView extends Component {
                     auth={this.props.auth} addButton />
                   : <div />
                 }
+
+                <CatalogListSection
+                      ref={(ref) => {this.producedRef = ref;}}
+                      filter={ {parent:catalog.id, parent_rel:"produced",
+                          not_type: "abstract"} }
+                      title="Manufactured items" />
 
                 <CatalogListSection
                     ref={(ref) => {this.softwareRef = ref;}}

@@ -31,7 +31,6 @@ class Navbar extends Component {
           <ul className="navbar-nav mr-auto">
             <Nav href="/">Home</Nav>
             <Nav href="/catalog">Catalog</Nav>
-            <Nav href="/company">Companies</Nav>
             <Nav href="/collection">All collections</Nav>
             {this.props.auth.isAuthenticated
               ? <Nav href="/profile">{this.props.auth.username}</Nav>

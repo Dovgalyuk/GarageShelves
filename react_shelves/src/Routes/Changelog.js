@@ -6,56 +6,6 @@ import ReactDiffViewer from 'react-diff-viewer'
 import fetchBackend, { postBackend } from '../Backend'
 import { Logo } from '../Catalog/Helpers'
 
-class ChangeCompany extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            loading1:true,
-            loading2:true,
-            company1:{},
-            company2:{},
-        };
-    }
-
-    componentDidMount() {
-        fetchBackend('company/_get', {id:this.props.company1})
-            .then(response => response.json())
-            .then(data => {
-                this.setState({loading1:false, company1:data});
-            })
-            .catch(e => this.setState({loading1:false}));
-        fetchBackend('company/_get', {id:this.props.company2})
-            .then(response => response.json())
-            .then(data => {
-                this.setState({loading2:false, company2:data});
-            })
-            .catch(e => this.setState({loading2:false}));
-    }
-
-    render() {
-        if (this.state.loading1 || this.state.loading2)
-            return <div>Loading...</div>;
-        return (
-            <Fragment>
-                Company from&nbsp;
-                {this.state.company1.id
-                    ? <a className="text-secondary"
-                        href={"/company/view/" + this.state.company1.id}>
-                        {this.state.company1.title}
-                      </a>
-                    : "none"}
-                &nbsp;to&nbsp;
-                {this.state.company2.id
-                    ? <a className="text-secondary"
-                        href={"/company/view/" + this.state.company2.id}>
-                        {this.state.company2.title}
-                      </a>
-                    : "none"}
-            </Fragment>
-        );
-    }
-}
-
 function ChangeField(props) {
     if (props.field === "year") {
         return (
@@ -100,9 +50,6 @@ function ChangeField(props) {
                     hideLineNumbers={true}
                 />
             </Fragment>);
-    }
-    if (props.field === "company_id") {
-        return <ChangeCompany company1={props.old_value} company2={props.value} />;
     }
     if (props.field === "create") {
         return "";

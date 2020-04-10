@@ -6,8 +6,6 @@ import Register from './Routes/Register';
 import Changelog from './Routes/Changelog';
 import CollectionView from './Routes/CollectionView';
 import Collections from './Routes/Collections';
-import CompanyView from "./Routes/CompanyView";
-import Companies from "./Routes/Companies";
 import Catalog from './Routes/Catalog';
 import CatalogView from './Routes/CatalogView';
 import ItemView from './Routes/ItemView';
@@ -104,10 +102,6 @@ class App extends Component {
                 <AppliedRoute path="/collection" exact component={Collections}
                               props={childProps} />
                 <AppliedRoute path="/collection/view/:id" exact component={CollectionView}
-                              props={childProps} />
-                <AppliedRoute path="/company" exact component={Companies}
-                              props={childProps} />
-                <AppliedRoute path="/company/view/:id" exact component={CompanyView}
                               props={childProps} />
                 <AppliedRoute path="/catalog" exact component={Catalog}
                               props={childProps} />

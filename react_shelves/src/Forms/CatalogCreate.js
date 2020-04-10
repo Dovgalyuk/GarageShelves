@@ -13,9 +13,7 @@ export default class FormCatalogCreate extends Component {
         super(props);
         this.state = {
             loadingRoots:!this.props.noroot,
-            loadingCompanies:true,
             roots:[],
-            companies:[],
             errors:[],
             form:{...this.defaultForm()},
         };
@@ -23,7 +21,7 @@ export default class FormCatalogCreate extends Component {
 
     defaultForm = () => {
         return {type:this.props.type ? this.props.type : "physical",
-                title:"", title_eng:"", company_id:-1, root:-1,
+                title:"", title_eng:"", root:-1,
                 year:"", description:"", parent:this.props.parent};
     }
 
@@ -45,14 +43,6 @@ export default class FormCatalogCreate extends Component {
                 })
                 .catch(e => this.props.onClose());
         }
-        if (this.state.loadingCompanies) {
-          fetchBackend('company/_filtered_list', {})
-              .then(response => response.json())
-              .then(data => {
-                  this.setState({loadingCompanies:false, companies:data});
-              })
-              .catch(e => this.props.onClose());
-      }
   }
 
     handleConfirm = event => {
@@ -103,7 +93,7 @@ export default class FormCatalogCreate extends Component {
               <h4>Create new catalog item</h4>
             </Modal.Header>
             <Modal.Body>
-              { (this.state.loadingCompanies || this.state.loadingRoots)
+              { this.state.loadingRoots
                 && <div>Loading...</div> }
               <Form>
                 <Form.Group as={Row}>
@@ -163,24 +153,6 @@ export default class FormCatalogCreate extends Component {
                   </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
-                  <Form.Label column xs={2}>Manufacturer:</Form.Label>
-                  <Col xs={10}>
-                    <Form.Control as="select"
-                      id="company_id"
-                      defaultValue={this.state.form.company}
-                      onChange={this.handleInput}>
-                      <option key={-1} value={-1}>
-                        Unknown
-                      </option>
-                      { this.state.companies.map((option, i) =>
-                        <option key={i} value={option.id}>
-                          {option.title}
-                        </option>)
-                      }
-                    </Form.Control>
-                  </Col>
-                </Form.Group>
-                <Form.Group as={Row}>
                   <Form.Label column xs={2}>Start of production year:</Form.Label>
                   <Col xs={10}>
                     <Form.Control type="text" id="year"
@@ -206,8 +178,7 @@ export default class FormCatalogCreate extends Component {
                 Close
               </Button>
               <SubmitButton caption="Create" onClick={this.handleConfirm}
-                disabled={this.state.loadingCompanies
-                          || this.state.loadingRoots
+                disabled={this.state.loadingRoots
                           || this.state.errors.submit}/>
             </Modal.Footer>
           </Modal>

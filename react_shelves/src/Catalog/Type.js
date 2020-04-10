@@ -12,6 +12,9 @@ export default function CatalogTypeName(props) {
     case 4:
     case "bits":
         return "Software/data/text without storage media";
+    case 5:
+        case "company":
+            return "Company/Individual creator";
     default:
         throw new Error("Invalid catalog type error");
     }

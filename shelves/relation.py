@@ -19,6 +19,9 @@ class Relation:
     # Root item in the inclusion chain
     #   first item is root
     REL_ROOT = 6
+    # Produced by company
+    #   first item is company
+    REL_PRODUCED = 7
 
     @staticmethod
     def get_id(name):
@@ -33,12 +36,14 @@ class Relation:
                 return Relation.REL_COMPATIBLE
             if name == "root":
                 return Relation.REL_ROOT
+            if name == "produced":
+                return Relation.REL_PRODUCED
         except:
             pass
 
         try:
             id = int(name)
-            if id >= Relation.REL_INCLUDES and id <= Relation.REL_ROOT:
+            if id >= Relation.REL_INCLUDES and id <= Relation.REL_PRODUCED:
                 return id
         except:
             pass
