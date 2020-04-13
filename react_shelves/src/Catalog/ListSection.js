@@ -99,6 +99,7 @@ export class CatalogListSection extends Component {
             {this.props.title
                 && (this.state.count > 0
                     || this.props.addButton
+                    || this.props.buttons
                     || Object.keys(this.state.filter).length > 0)
                 && <Row>
                     <Col>
@@ -116,6 +117,8 @@ export class CatalogListSection extends Component {
                                     Add new
                                   </Button>
                                 : ""} &nbsp;
+                            {this.props.buttons}
+                            &nbsp;
                             <Button variant={Object.keys(this.state.filter).length > 0 ? "primary" : "light"}
                                 onClick={() => this.setState({showFormFilter:true})}
                             >

@@ -239,17 +239,6 @@ export default class CatalogView extends Component {
                     <Col xs={2} className="align-self-top">
                     <ButtonToolbar>
                     { (this.props.auth.isAuthenticated
-                        && (catalog.is_physical === 1
-                            /* There can be kits referencing to software */
-                            || catalog.is_bits === 1))
-                      ? <Button variant="primary"
-                                onClick={this.handleCreateKitButton}>
-                          Create kit
-                        </Button>
-                      : <span/>
-                    }
-                    &nbsp;
-                    { (this.props.auth.isAuthenticated
                         && catalog.is_physical && catalog.is_bits)
                       ? <Button variant="primary"
                                 onClick={this.handleCreateModificationButton}>
@@ -321,7 +310,19 @@ export default class CatalogView extends Component {
                       ref={(ref) => {this.kitsRef = ref;}}
                       filter={ {notype:true, type: "kit",
                                 includes:catalog.id} }
-                      title="Kits with this item" />
+                      title="Kits with this item" 
+                      buttons={
+                        (this.props.auth.isAuthenticated
+                              && (catalog.is_physical === 1
+                                  /* There can be kits referencing to software */
+                                  || catalog.is_bits === 1))
+                            ? <Button variant="primary"
+                                      onClick={this.handleCreateKitButton}>
+                                Create kit
+                              </Button>
+                            : <span/>
+                      }
+                    />
                   : <div/>
                 }
                 { catalog.is_physical === 0 // physical compound items not supported yet
