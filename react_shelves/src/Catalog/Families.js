@@ -17,7 +17,7 @@ function CategoryButtons(props) {
                <Popover.Title as="h3">{props.header}</Popover.Title>
                <Popover.Content>
                 <Button variant="link" href={"/catalog/view/" + f.id}>
-                    {f.root_title} : {f.title_eng || f.title} 
+                    {f.root_title || "Category"} : {f.title_eng || f.title} 
                 </Button>
                 {props.auth.isAdmin
                     ? <Button size="sm" variant="danger"
