@@ -895,7 +895,7 @@ def _set_logo():
         get_catalog(id)
 
         file = request.files['file']
-        file_id = upload_image(file, 64, 64)
+        file_id = upload_image(file, width=64, height=64)
         if file_id is None:
             # Only 64x64 images can be used as a logo
             abort(400)
