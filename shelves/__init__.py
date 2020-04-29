@@ -3,7 +3,6 @@ import os
 from flask import (Flask, render_template)
 from flask_misaka import Misaka
 from flask_cors import CORS
-from .flask_util_js import FlaskUtilJs
 
 def create_app(test_config=None):
     # create and configure the app
@@ -21,7 +20,6 @@ def create_app(test_config=None):
 
     # init all after config
     Misaka(app)
-    FlaskUtilJs(app)
 
     # ensure the instance folder exists
     try:
