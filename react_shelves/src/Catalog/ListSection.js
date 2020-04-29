@@ -184,7 +184,7 @@ export class CatalogListSection extends Component {
 
 CatalogListSection.defaultProps = {
     variant: 'normal',
-    pageCount: 300,
+    pageCount: 99,
     rowCount: 3,
 }
 

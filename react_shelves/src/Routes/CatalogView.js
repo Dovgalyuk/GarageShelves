@@ -8,7 +8,8 @@ import fetchBackend, { postBackend } from '../Backend'
 import FormOwn from '../Forms/Own'
 import FormKitCreate from '../Forms/KitCreate'
 import FormModificationCreate from '../Forms/ModificationCreate'
-import { Logo, CatalogMain } from '../Catalog/Helpers'
+import { CatalogMain } from '../Catalog/Helpers'
+import { Logo } from "../Catalog/Logo";
 import { CatalogFamilies } from "../Catalog/Families";
 import { CatalogListSection } from "../Catalog/ListSection";
 import EditText from '../Editors/Text'

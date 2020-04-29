@@ -4,7 +4,7 @@ import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 import ReactDiffViewer from 'react-diff-viewer'
 import fetchBackend, { postBackend } from '../Backend'
-import { Logo } from '../Catalog/Helpers'
+import { Logo } from '../Catalog/Logo'
 
 function ChangeField(props) {
     if (props.field === "year") {

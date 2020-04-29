@@ -65,11 +65,9 @@ def get_catalog_full(id):
         ' IF(c.type = %s, 1, 0) AS is_company,'
         ' IFNULL(c.year, "") as year,'
         ' ccomp.title_eng as company, ccomp.id as company_id,'
-        ' a_logo.value_id as logo_id, c.type,'
+        ' c.type,'
         ' rr.catalog_id1 AS root, cr.title_eng AS root_title'
         ' FROM catalog c'
-        ' LEFT JOIN catalog_attribute a_logo'
-        '     ON (c.id = a_logo.catalog_id AND a_logo.type = %s)'
         ' LEFT JOIN catalog_relation rr ON rr.catalog_id2 = c.id AND rr.type = %s'
         ' LEFT JOIN catalog cr ON rr.catalog_id1 = cr.id'
         ' LEFT JOIN catalog_relation rcomp ON rcomp.catalog_id2 = c.id AND rcomp.type = %s'
@@ -77,7 +75,7 @@ def get_catalog_full(id):
         ' WHERE c.id = %s',
         (Type.TYPE_PHYSICAL, Type.TYPE_ABSTRACT, Type.TYPE_KIT,
          Type.TYPE_BITS, Type.TYPE_COMPANY,
-         Attribute.ATTR_LOGO, Relation.REL_ROOT,
+         Relation.REL_ROOT,
          Relation.REL_PRODUCED, id,)
     )
     return cursor.fetchone()
@@ -110,7 +108,10 @@ def get_catalog_logo(id):
         ' WHERE a.type = %s AND c.id = %s',
         (Attribute.ATTR_LOGO, id,)
     )
-    return cursor.fetchone()
+    res = cursor.fetchone()
+    if res:
+        return res['id']
+    return -1
 
 def create_catalog(cursor, type_id, title, title_eng, description, year, root_id):
     cursor.execute(
@@ -213,9 +214,27 @@ def check_parent_loops(main_id, subitem_id):
 # API Routes
 ###############################################################################
 
-@bp.route('/<int:id>/_get_logo')
-def _get_logo(id):
-    return jsonify(get_catalog_logo(id))
+@bp.route('/_get_logo')
+def _get_logo():
+    id = request.args.get('id', -1, type=int)
+
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT'
+        ' IF(c.type = %s, 1, 0) AS is_physical,'
+        ' IF(c.type = %s, 1, 0) AS is_group,'
+        ' IF(c.type = %s, 1, 0) AS is_kit,'
+        ' IF(c.type = %s, 1, 0) AS is_bits,'
+        ' IF(c.type = %s, 1, 0) AS is_company'
+        ' FROM catalog c WHERE id = %s',
+        (Type.TYPE_PHYSICAL, Type.TYPE_ABSTRACT, Type.TYPE_KIT,
+         Type.TYPE_BITS, Type.TYPE_COMPANY,
+         id,)
+    )
+    res = cursor.fetchone()
+    res['logo'] = get_catalog_logo(id)
+
+    return jsonify(res)
 
 @bp.route('/_get')
 def _get():
@@ -306,14 +325,11 @@ def filtered_query(args, count):
                 ' IF(c.type = %s, 1, 0) AS is_company,'                    \
                 ' c.year, '                                                \
                 ' ccomp.title_eng as company, ccomp.id as company_id,'     \
-                ' a_logo.value_id as logo_id,'                             \
                 ' (SELECT COUNT(*) FROM catalog cc'                        \
                 '   JOIN catalog_relation r WHERE cc.id=r.catalog_id2'     \
                 '   AND c.id=r.catalog_id1 AND r.type=%s) AS count,'       \
                 ' rr.catalog_id1 AS root, cr.title_eng AS root_title'      \
                 ' FROM catalog c'\
-                ' LEFT JOIN catalog_attribute a_logo'                      \
-                '      ON (c.id = a_logo.catalog_id AND a_logo.type = %s)' \
                 ' LEFT JOIN catalog_relation rr ON rr.catalog_id2 = c.id AND rr.type= %s'  \
                 ' LEFT JOIN catalog cr ON rr.catalog_id1 = cr.id' \
                 ' LEFT JOIN catalog_relation rcomp ON rcomp.catalog_id2 = c.id AND rcomp.type = %s' \
@@ -328,7 +344,7 @@ def filtered_query(args, count):
         params = (Type.TYPE_PHYSICAL, Type.TYPE_ABSTRACT,
                   Type.TYPE_KIT, Type.TYPE_BITS, Type.TYPE_COMPANY,
                   Relation.REL_INCLUDES,
-                  Attribute.ATTR_LOGO, Relation.REL_ROOT,
+                  Relation.REL_ROOT,
                   Relation.REL_PRODUCED, )
 
     if parent_id != -1:
