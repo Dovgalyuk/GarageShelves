@@ -111,7 +111,14 @@ def get_catalog_logo(id):
     res = cursor.fetchone()
     if res:
         return res['id']
+
+    # try with root
+    root = get_catalog_root(id)
+    if root != -1:
+        return get_catalog_logo(root)
+
     return -1
+
 
 def create_catalog(cursor, type_id, title, title_eng, description, year, root_id):
     cursor.execute(
