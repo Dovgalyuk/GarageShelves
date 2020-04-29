@@ -1,7 +1,6 @@
 import os
 
 from flask import (Flask, render_template)
-from flask_misaka import Misaka
 from flask_cors import CORS
 
 def create_app(test_config=None):
@@ -19,7 +18,6 @@ def create_app(test_config=None):
     #app.config.update(SESSION_COOKIE_SAMESITE='Lax')
 
     # init all after config
-    Misaka(app)
 
     # ensure the instance folder exists
     try:

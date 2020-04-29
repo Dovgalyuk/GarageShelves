@@ -1,6 +1,5 @@
 wheel
 flask
-flask-misaka
 flask-uploads
 flask-mysqldb
 pillow
