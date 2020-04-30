@@ -68,7 +68,7 @@ export default class Catalog extends Component {
               <h1>Catalog</h1>
             </div>
           </div>
-          <Tabs defaultActiveKey={this.state.pages[0].title} transition={false}>
+          <Tabs defaultActiveKey={this.state.pages[0].title} mountOnEnter={true}>
             { this.state.pages.map(p => <Tab eventKey={p.title} title={p.title} key={p.id}>
                 <CatalogSections page={p.id} auth={this.props.auth} />
               </Tab>)
