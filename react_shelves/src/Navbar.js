@@ -1,19 +1,8 @@
-import React, { Component } from 'react';
+import React, { Component } from 'react'
+import Navbar from 'react-bootstrap/Navbar'
+import Nav from 'react-bootstrap/Nav'
 
-class Nav extends Component {
-  // constructor(props) {
-  //     super(props);
-  // }
-  render() {
-    return (
-      <li className="nav-item">
-        <a className="nav-link" {...this.props}>{ this.props.children }</a>
-      </li>
-    );
-  }
-}
-
-class Navbar extends Component {
+class NavbarMain extends Component {
   handleLogout = event => {
       event.preventDefault();
       this.props.auth.userHasAuthenticated(false);
@@ -21,36 +10,31 @@ class Navbar extends Component {
 
   render() {
     return (
-      <nav className="navbar navbar-expand-lg navbar-light bg-light">
-        <a className="navbar-brand" href="/">Garage shelves</a>
-        <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span className="navbar-toggler-icon"></span>
-        </button>
+      <Navbar bg="light" variant="light" expand="md">
+        <Navbar.Brand href="/">Garage shelves</Navbar.Brand>
+        <Navbar.Toggle />
 
-        <div className="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul className="navbar-nav mr-auto">
-            <Nav href="/">Home</Nav>
-            <Nav href="/catalog">Catalog</Nav>
-            <Nav href="/collection">All collections</Nav>
+        <Navbar.Collapse className="justify-content-end">
+          <Nav className="mr-auto">
+            <Nav.Link href="/">Home</Nav.Link>
+            <Nav.Link href="/catalog">Catalog</Nav.Link>
+            <Nav.Link href="/collection">All collections</Nav.Link>
             {this.props.auth.isAuthenticated
-              ? <Nav href="/profile">{this.props.auth.username}</Nav>
-              : <Nav href="/register">Register</Nav>
+              ? <Nav.Link href="/profile">{this.props.auth.username}</Nav.Link>
+              : <Nav.Link href="/register">Register</Nav.Link>
             }
             {this.props.auth.isAuthenticated
-              ? <Nav href="#" onClick={this.handleLogout}>Logout</Nav>
-              : <Nav href="/login">Login</Nav>
+              ? <Nav.Link href="#" onClick={this.handleLogout}>Logout</Nav.Link>
+              : <Nav.Link href="/login">Login</Nav.Link>
             }
             {this.props.auth.isAdmin
-              ? <li className="nav-item justify-content-end">
-                  <a className="nav-link" href="/changelog">Changes log</a>
-                </li>
-              : <Nav></Nav>
+              && <Nav.Link href="/changelog">Changes log</Nav.Link>
             }
-          </ul>
-        </div>
-      </nav>
+          </Nav>
+        </Navbar.Collapse>
+      </Navbar>
     );
   }
 }
 
-export default Navbar;
+export default NavbarMain;

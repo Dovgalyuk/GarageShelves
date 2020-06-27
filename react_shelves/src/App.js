@@ -1,6 +1,6 @@
 import React, { Component, Fragment, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import Navbar from './Navbar';
+import NavbarMain from './Navbar';
 import Profile from './Routes/Profile';
 import Register from './Routes/Register';
 import Changelog from './Routes/Changelog';
@@ -91,7 +91,7 @@ class App extends Component {
 
     return (
       <Fragment>
-        <Navbar {...childProps} />
+        <NavbarMain {...childProps} />
         {/* TODO: Error messages here */}
         <div className="container">
           <Router childProps={childProps}>
