@@ -9,7 +9,7 @@ class FormCatalogSelect extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            software:-1
+            id:-1
         };
     }
 
@@ -19,7 +19,7 @@ class FormCatalogSelect extends Component {
 
     handleSelect = () => {
         this.props.onClose();
-        this.props.onSelect(this.state.software);
+        this.props.onSelect(this.state.id);
     }
 
     handleSelection = (items) => {
@@ -27,7 +27,7 @@ class FormCatalogSelect extends Component {
         if (items.length > 0) {
             v = items[0];
         }
-        this.setState({software: v});
+        this.setState({id: v});
     }
 
     render() {
@@ -48,7 +48,7 @@ class FormCatalogSelect extends Component {
                   Close
                 </Button>
                 <SubmitButton caption="OK" onClick={this.handleSelect}
-                        disabled={this.state.software < 0} />
+                        disabled={this.state.id < 0} />
               </Modal.Footer>
             </Modal>
         );

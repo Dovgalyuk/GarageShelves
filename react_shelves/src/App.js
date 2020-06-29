@@ -1,12 +1,14 @@
 import React, { Component, Fragment, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import NavbarMain from './Navbar';
+import NavbarMain from './Navbar/Main';
+import NavbarAdmin from './Navbar/Admin';
 import Profile from './Routes/Profile';
 import Register from './Routes/Register';
 import Changelog from './Routes/Changelog';
 import CollectionView from './Routes/CollectionView';
 import Collections from './Routes/Collections';
 import Catalog from './Routes/Catalog';
+import CatalogJoin from './Routes/Join';
 import CatalogView from './Routes/CatalogView';
 import ItemView from './Routes/ItemView';
 import Login from './Auth';
@@ -92,6 +94,7 @@ class App extends Component {
     return (
       <Fragment>
         <NavbarMain {...childProps} />
+        {this.state.isAdmin && <NavbarAdmin {...childProps} /> }
         {/* TODO: Error messages here */}
         <div className="container">
           <Router childProps={childProps}>
@@ -116,6 +119,8 @@ class App extends Component {
                 <AppliedRoute path="/register" exact component={Register}
                               props={childProps} />
                 <AppliedRoute path="/changelog" exact component={Changelog}
+                              props={childProps} />
+                <AppliedRoute path="/join" exact component={CatalogJoin}
                               props={childProps} />
                 <Route component={NotFound} />
               </Switch>

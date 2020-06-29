@@ -10,7 +10,7 @@ class NavbarMain extends Component {
 
   render() {
     return (
-      <Navbar bg="light" variant="light" expand="md">
+      <Navbar bg="dark" variant="dark" expand="md">
         <Navbar.Brand href="/">Garage shelves</Navbar.Brand>
         <Navbar.Toggle />
 
@@ -26,9 +26,6 @@ class NavbarMain extends Component {
             {this.props.auth.isAuthenticated
               ? <Nav.Link href="#" onClick={this.handleLogout}>Logout</Nav.Link>
               : <Nav.Link href="/login">Login</Nav.Link>
-            }
-            {this.props.auth.isAdmin
-              && <Nav.Link href="/changelog">Changes log</Nav.Link>
             }
           </Nav>
         </Navbar.Collapse>

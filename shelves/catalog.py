@@ -1,9 +1,10 @@
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, jsonify,
-
+    Response
 )
 from werkzeug.exceptions import abort
 import re
+from json import dumps
 
 from shelves.auth import (login_required, admin_required)
 from shelves.db import get_db_cursor, db_commit, db_rollback
@@ -99,7 +100,7 @@ def get_catalog_images(id):
     images = cursor.fetchall()
     return images
 
-def get_catalog_logo(id):
+def get_catalog_logo_own(id):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT img.id'
@@ -111,6 +112,12 @@ def get_catalog_logo(id):
     res = cursor.fetchone()
     if res:
         return res['id']
+    return None
+
+def get_catalog_logo(id):
+    res = get_catalog_logo_own(id)
+    if res:
+        return res
 
     # try with root
     root = get_catalog_root(id)
@@ -941,122 +948,151 @@ def _set_logo():
 
     return jsonify(result='success')
 
+def success():
+    return jsonify(result="success", error="")
+
+def error(err):
+    return jsonify(result="error", error=err)
+
+@bp.route('/_join', methods=('POST',))
+@login_required
+@admin_required
+def _join():
+    data = request.get_json(force=True)
+    cursor = get_db_cursor()
+    try:
+        id1 = int(data['id1'])
+        id2 = int(data['id2'])
+        if id1 == id2:
+            return error("can't join the item with itself")
+
+        title = data['title']
+        title_eng = data['title_eng']
+        year = data['year']
+        description = data['description']
+
+        if not title_eng or title_eng == '':
+            return error("title_eng wasn't specified")
+        if not title or title == '':
+            title = title_eng
+
+        if year == '':
+            year = None
+
+        # assert that catalog items exist
+        c1 = get_catalog(id1)
+        c2 = get_catalog(id2)
+
+        if c1['company_id'] != c2['company_id']:
+            return error("TODO: companies should match")
+
+        if c1['root'] != c2['root']:
+            return error("roots should match")
+
+        if c1['type'] != c2['type']:
+            return error("types should match")
+
+        if get_catalog_logo_own(id1) or get_catalog_logo_own(id2):
+            return error("TODO: can't join items with logo")
+
+        cursor.execute('SELECT * FROM catalog_relation'
+            ' WHERE catalog_id1 = %s AND catalog_id2 = %s',
+            (id1, id2,))
+        if cursor.fetchone():
+            return error("items relate to each other")
+
+        cursor.execute('SELECT * FROM catalog_relation'
+            ' WHERE catalog_id1 = %s AND catalog_id2 = %s',
+            (id2, id1,))
+        if cursor.fetchone():
+            return error("items relate to each other")
+
+        cursor.execute('SELECT * FROM page_catalog_section'
+            ' WHERE parent = %s OR parent = %s',
+            (id1, id2,))
+        if cursor.fetchone():
+            return error("can't join page directory items")
+
+        # Set new parameters of the catalog item
+        cursor.execute(
+            'UPDATE catalog SET title = %s, title_eng = %s, description = %s,'
+            ' year = %s'
+            ' WHERE id = %s',
+            (title, title_eng, description, year, id1,)
+        )
+
+        # Redirect items
+        cursor.execute(
+            'UPDATE item SET catalog_id = %s WHERE catalog_id = %s',
+            (id1, id2, )
+        )
+
+        # Redirect attributes
+        cursor.execute(
+            'UPDATE catalog_attribute SET catalog_id = %s WHERE catalog_id = %s',
+            (id1, id2, )
+        )
+
+        # Delete duplicate relations
+        for rel in range(Relation.REL_END):
+            cursor.execute(
+                'DELETE FROM catalog_relation WHERE catalog_id1 = %s AND type = %s'
+                ' AND catalog_id2 IN (SELECT DISTINCT catalog_id2 FROM'
+                                    ' (SELECT * FROM catalog_relation'
+                                    ' WHERE catalog_id1 = %s AND type = %s) AS tmp)',
+                (id2, rel, id1, rel,)
+            )
+            cursor.execute(
+                'DELETE FROM catalog_relation WHERE catalog_id2 = %s AND type = %s'
+                ' AND catalog_id1 IN (SELECT DISTINCT catalog_id1 FROM'
+                                    ' (SELECT * FROM catalog_relation'
+                                    ' WHERE catalog_id2 = %s AND type = %s) AS tmp)',
+                (id2, rel, id1, rel,)
+            )
+
+        # Redirect relations
+        cursor.execute(
+            'UPDATE catalog_relation SET catalog_id1 = %s WHERE catalog_id1 = %s',
+            (id1, id2, )
+        )
+        cursor.execute(
+            'UPDATE catalog_relation SET catalog_id2 = %s WHERE catalog_id2 = %s',
+            (id1, id2, )
+        )
+
+        # Redirect catalog history
+        cursor.execute(
+            'UPDATE catalog_history SET catalog_id = %s WHERE catalog_id = %s',
+            (id1, id2, )
+        )
+
+        # Redirect catalog item relations
+        cursor.execute(
+            'UPDATE catalog_item_relation SET catalog_id = %s WHERE catalog_id = %s',
+            (id1, id2, )
+        )
+
+        # Redirect comment relations
+        cursor.execute(
+            'UPDATE catalog_comment SET ref_id = %s WHERE ref_id = %s',
+            (id1, id2, )
+        )
+
+        # Delete old catalog item
+        cursor.execute('DELETE FROM catalog WHERE id = %s', (id2,))
+
+        # Commit all the changes
+        db_commit()
+
+    except:
+        db_rollback()
+        return error("uknown error")
+
+    return success()
+
 ###############################################################################
 # Routes
 ###############################################################################
-
-# @bp.route('/_join', methods=('POST',))
-# @login_required
-# @admin_required
-# def _join():
-#     id1 = int(request.form['id1'])
-#     id2 = int(request.form['id2'])
-#     logo = int(request.form['logos'])
-#     title = request.form['title']
-#     title_eng = request.form['title_eng']
-#     year = request.form['year']
-#     description = request.form['description']
-
-#     if not title:
-#         abort(403)
-
-#     if logo != 1 and logo != 2:
-#         abort(403)
-
-#     if year == '':
-#         year = None
-
-#     # assert that catalog items exist
-#     c1 = get_catalog(id1)
-#     c2 = get_catalog(id2)
-
-#     if c1['company_id'] != c2['company_id']:
-#         abort(403)
-
-#     if c1['type_id'] != c2['type_id']:
-#         abort(403)
-
-#     cursor = get_db_cursor()
-
-#     cursor.execute('SELECT * FROM catalog_relation'
-#         ' WHERE catalog_id1 = %s AND catalog_id2 = %s',
-#         (id1, id2,))
-#     if cursor.fetchone():
-#         abort(403)
-
-#     cursor.execute('SELECT * FROM catalog_relation'
-#         ' WHERE catalog_id1 = %s AND catalog_id2 = %s',
-#         (id2, id1,))
-#     if cursor.fetchone():
-#         abort(403)
-
-#     # Set new parameters of the catalog item
-#     cursor.execute(
-#         'UPDATE catalog SET title = %s, title_eng = %s, description = %s,'
-#         ' year = %s'
-#         ' WHERE id = %s',
-#         (title, title_eng, description, year, id1,)
-#     )
-
-#     # Set new logo
-#     if logo == 2:
-#         cursor.execute(
-#             'DELETE FROM catalog_attribute'
-#             ' WHERE catalog_id = %s AND type = %s',
-#             (id1, Attribute.ATTR_LOGO,)
-#         )
-#     else:
-#         cursor.execute(
-#             'DELETE FROM catalog_attribute'
-#             ' WHERE catalog_id = %s AND type = %s',
-#             (id2, Attribute.ATTR_LOGO,)
-#         )
-
-#     # Redirect items
-#     cursor.execute(
-#         'UPDATE item SET catalog_id = %s WHERE catalog_id = %s',
-#         (id1, id2, )
-#     )
-
-#     # Redirect attributes
-#     cursor.execute(
-#         'UPDATE catalog_attribute SET catalog_id = %s WHERE catalog_id = %s',
-#         (id1, id2, )
-#     )
-
-#     # Delete duplicate relations
-#     cursor.execute(
-#         'DELETE FROM catalog_relation WHERE catalog_id1 = %s AND type = %s'
-#         ' AND catalog_id2 IN (SELECT DISTINCT catalog_id2 FROM'
-#                              ' (SELECT * FROM catalog_relation'
-#                              ' WHERE catalog_id1 = %s AND type = %s) AS tmp)',
-#         (id2, Relation.REL_INCLUDES, id1, Relation.REL_INCLUDES,)
-#     )
-#     cursor.execute(
-#         'DELETE FROM catalog_relation WHERE catalog_id2 = %s AND type = %s'
-#         ' AND catalog_id1 IN (SELECT DISTINCT catalog_id1 FROM'
-#                              ' (SELECT * FROM catalog_relation'
-#                              ' WHERE catalog_id2 = %s AND type = %s) AS tmp)',
-#         (id2, Relation.REL_INCLUDES, id1, Relation.REL_INCLUDES,)
-#     )
-
-#     # Redirect relations
-#     cursor.execute(
-#         'UPDATE catalog_relation SET catalog_id1 = %s WHERE catalog_id1 = %s',
-#         (id1, id2, )
-#     )
-#     cursor.execute(
-#         'UPDATE catalog_relation SET catalog_id2 = %s WHERE catalog_id2 = %s',
-#         (id1, id2, )
-#     )
-
-#     # Delete old catalog item
-#     cursor.execute('DELETE FROM catalog WHERE id = %s', (id2,))
-
-#     # Commit all the changes
-#     db_commit()
-
-#     return redirect(url_for('catalog.view', id=id1))
 
 # @bp.route('/<int:id>/_delete')
 # @login_required

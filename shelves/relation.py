@@ -22,6 +22,8 @@ class Relation:
     # Produced by company
     #   first item is company
     REL_PRODUCED = 7
+    # End of relations. May increase when new relations are added.
+    REL_END = 8
 
     @staticmethod
     def get_id(name):
