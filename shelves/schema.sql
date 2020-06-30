@@ -27,11 +27,6 @@ CREATE TABLE catalog_type (
   is_kit BOOLEAN NOT NULL DEFAULT 0
 );
 
-CREATE TABLE company (
-  id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  title TEXT NOT NULL
-);
-
 CREATE TABLE catalog (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
   type_id INTEGER NOT NULL,
@@ -39,7 +34,6 @@ CREATE TABLE catalog (
   title TEXT NULL DEFAULT NULL,
   title_eng TEXT NULL DEFAULT NULL,
   description TEXT NULL DEFAULT NULL,
-  company_id INTEGER NULL DEFAULT NULL,
   year INTEGER NULL DEFAULT NULL,
 
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -47,8 +41,7 @@ CREATE TABLE catalog (
 
   FOREIGN KEY (type_id) REFERENCES catalog_type (id),
   FOREIGN KEY (root) REFERENCES catalog (id),
-  FOREIGN KEY (owner_id) REFERENCES user (id),
-  FOREIGN KEY (company_id) REFERENCES company (id)
+  FOREIGN KEY (owner_id) REFERENCES user (id)
 );
 
 CREATE TABLE catalog_history (

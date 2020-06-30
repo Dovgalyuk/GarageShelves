@@ -249,8 +249,9 @@ export default class CatalogView extends Component {
                     }
                     &nbsp;
                     { this.props.auth.isAuthenticated
-                          && (catalog.root_title === "Data storage"
-                              || catalog.root_title === "Software")
+                          && ((catalog.root_title === "Data storage"
+                                && catalog.is_physical)
+                              || catalog.is_bits)
                       ? <Button variant="primary"
                                 onClick={this.handleAddSoftwareButton}>
                           Add software
