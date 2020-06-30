@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
+// import Badge from 'react-bootstrap/Badge'
 import fetchBackend from '../Backend'
 import { CatalogListSection } from './ListSection';
 import { Logo } from './Logo';
@@ -22,9 +23,14 @@ class CatalogNormalItem extends Component {
                     </Col>
                     <Col xs={9} lg={9}>
                         <a className="action" href={"/catalog/view/" + this.props.item.id}>
-                        <h5>{this.props.item.root_title && !this.props.notype
+                        <h5>
+                            {/* {this.props.item.is_group ? <Badge variant="info">F</Badge> : ""}
+                            {this.props.item.is_kit ? <Badge variant="warning">K</Badge> : ""}
+                            {" "} */}
+                            {this.props.item.root_title && !this.props.notype
                                     ? this.props.item.root_title + " : " : ""}
-                            {this.props.item.title_eng ? this.props.item.title_eng : this.props.item.title}</h5>
+                            {this.props.item.title_eng ? this.props.item.title_eng : this.props.item.title}
+                        </h5>
                         </a>
                     <h6 className="text-secondary">{this.props.item.title_eng ? this.props.item.title : ""}</h6>
                     <p>

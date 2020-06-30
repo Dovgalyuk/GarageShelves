@@ -1,12 +1,12 @@
-import React, { Component, Fragment } from 'react';
-import Button from 'react-bootstrap/Button';
-import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
-import Popover from 'react-bootstrap/Popover';
+import React, { Component, Fragment } from 'react'
+import Button from 'react-bootstrap/Button'
+import ButtonToolbar from 'react-bootstrap/ButtonToolbar'
+import Popover from 'react-bootstrap/Popover'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons'
-import fetchBackend, { postBackend } from '../Backend';
+import fetchBackend, { postBackend } from '../Backend'
 import FormCatalogSelect from '../Forms/CatalogSelect'
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 
 function CategoryButtons(props) {
     return (<>
@@ -19,7 +19,7 @@ function CategoryButtons(props) {
                 <Button variant="link" href={"/catalog/view/" + f.id}>
                     {f.root_title || "Category"} : {f.title_eng || f.title} 
                 </Button>
-                {props.auth.isAdmin
+                {props.auth.isAdmin && f.own
                     ? <Button size="sm" variant="danger"
                           onClick={() => props.handleDelete(f.id, props.relation)}>
                         <FontAwesomeIcon icon={faTrashAlt} />
@@ -28,7 +28,7 @@ function CategoryButtons(props) {
               </Popover.Content>
             </Popover>
             }>
-            <Button size="sm" variant={props.variant}>
+            <Button size="sm" variant={f.own ? "primary" : "secondary"}>
             {f.title_eng || f.title}
             </Button>
         </OverlayTrigger>
@@ -53,16 +53,16 @@ export class CatalogFamilies extends Component {
         this.handleUpdate();
     }
     handleUpdate = () => {
-        fetchBackend('catalog/_filtered_list',
-            { includes: this.props.id, type: "abstract", child_rel: "includes" }
+        fetchBackend('catalog/_included_rec',
+            { id: this.props.id, type: "abstract", rel: "includes" }
         )
             .then(response => response.json())
             .then(data => {
                 this.setState({ families: data });
             })
             .catch(e => {});
-        fetchBackend('catalog/_filtered_list',
-            { includes: this.props.id, child_rel: "compatible" }
+        fetchBackend('catalog/_included_rec',
+            { id: this.props.id, rel: "compatible" }
         )
             .then(response => response.json())
             .then(data => {
@@ -80,14 +80,14 @@ export class CatalogFamilies extends Component {
             });
     }
     handleAddFamily = () => {
-        this.setState({ showForm: true, formTitle: "Add family",
+        this.setState({ showForm: true, formTitle: "Add new family",
             path: "family",
             filter: {
                 parent: this.props.root, parent_rel: "root",
                 type: "abstract", notype:true} });
     }
     handleAddPlatform = () => {
-        this.setState({ showForm: true, path: "compatible", formTitle: "Add platform",
+        this.setState({ showForm: true, path: "compatible", formTitle: "Add target platform",
             filter: {parent_name: "Computer,Console,Calculator", parent_rel: "root", notype: true} });
     }
     handleFormClose = () => {
@@ -104,31 +104,28 @@ export class CatalogFamilies extends Component {
     render() {
         return (<Fragment>
             <ButtonToolbar>
+                <Button size="sm" variant="light"
+                    onClick={this.handleAddFamily}
+                    disabled={!this.props.auth.isAdmin}>
+                    Families
+                </Button>
+                &nbsp;
                 <CategoryButtons categories={this.state.families}
                          handleDelete={this.handleDelete}
                          auth={this.props.auth}
                          header="Belongs to"
-                         relation="includes"
-                         variant="primary" />
+                         relation="includes"/>
+                <Button size="sm" variant="light"
+                    onClick={this.handleAddPlatform}
+                    disabled={!this.props.auth.isAdmin}>
+                    Platforms
+                </Button>
+                &nbsp;
                 <CategoryButtons categories={this.state.platforms}
                          handleDelete={this.handleDelete}
                          auth={this.props.auth}
                          header="Compatible with"
-                         relation="compatible"
-                         variant="info" />
-                {this.props.auth.isAdmin
-                    ? <>
-                        <Button size="sm" variant="outline-primary" onClick={this.handleAddFamily}>
-                          Add family
-                        </Button>
-                        &nbsp;
-                      </>
-                    : <div />}
-                {this.props.auth.isAdmin
-                    ? <Button size="sm" variant="outline-info" onClick={this.handleAddPlatform}>
-                        Add platform
-                      </Button>
-                    : <div />}
+                         relation="compatible"/>
             </ButtonToolbar>
             {(this.props.auth.isAuthenticated && this.props.auth.isAdmin)
                 ? <FormCatalogSelect
