@@ -1110,8 +1110,20 @@ def _join():
             (id1, id2, )
         )
 
+        # save kit relations to add later
+        cursor.execute('SELECT c.id FROM catalog c'
+            ' INNER JOIN catalog_relation cr ON c.id = cr.catalog_id1'
+            ' WHERE c.type = %s AND cr.catalog_id2 = %s AND cr.type = %s'
+            ' AND EXISTS (SELECT * FROM catalog_relation'
+            '     WHERE catalog_id1=c.id AND catalog_id2=%s AND type=%s)',
+            (Type.TYPE_KIT, id2, Relation.REL_INCLUDES,
+            id1, Relation.REL_INCLUDES,)
+        )
+        kits = cursor.fetchall()
+
         # Delete duplicate relations
         for rel in range(Relation.REL_END):
+            # id2 is main
             cursor.execute(
                 'DELETE FROM catalog_relation WHERE catalog_id1 = %s AND type = %s'
                 ' AND catalog_id2 IN (SELECT DISTINCT catalog_id2 FROM'
@@ -1119,12 +1131,20 @@ def _join():
                                     ' WHERE catalog_id1 = %s AND type = %s) AS tmp)',
                 (id2, rel, id1, rel,)
             )
+            # id2 is part
             cursor.execute(
                 'DELETE FROM catalog_relation WHERE catalog_id2 = %s AND type = %s'
                 ' AND catalog_id1 IN (SELECT DISTINCT catalog_id1 FROM'
                                     ' (SELECT * FROM catalog_relation'
                                     ' WHERE catalog_id2 = %s AND type = %s) AS tmp)',
                 (id2, rel, id1, rel,)
+            )
+
+        # add kits back
+        for k in kits:
+            cursor.execute('INSERT INTO catalog_relation'
+                '(catalog_id1, catalog_id2, type) VALUES (%s, %s, %s)',
+                (k['id'], id1, Relation.REL_INCLUDES)
             )
 
         # Redirect relations
