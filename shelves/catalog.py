@@ -726,7 +726,7 @@ def _create():
         parent = get_catalog(parent_id)
         root_id = get_catalog_root(parent_id)
         # parent is itself a root
-        if root_id:
+        if root_id is None:
             root_id = parent_id
             #parent_id = -1
     except:
