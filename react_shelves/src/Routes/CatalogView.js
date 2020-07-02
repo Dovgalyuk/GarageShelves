@@ -240,7 +240,7 @@ export default class CatalogView extends Component {
                     <Col xs={2} className="align-self-top">
                     <ButtonToolbar>
                     { (this.props.auth.isAuthenticated
-                        && catalog.is_physical && catalog.is_bits)
+                        && (catalog.is_physical || catalog.is_bits))
                       ? <Button variant="primary"
                                 onClick={this.handleCreateModificationButton}>
                           Create modification
@@ -261,6 +261,7 @@ export default class CatalogView extends Component {
                     &nbsp;
                     { this.props.auth.isAuthenticated
                       && (catalog.is_group === 1 || catalog.is_kit === 1)
+                      && catalog.root_title
                       ? <Button variant="primary"
                                 onClick={this.handleAddSubitemButton}>
                           Add existing subitem
@@ -268,8 +269,9 @@ export default class CatalogView extends Component {
                       : <span/>
                     }
                     &nbsp;
-                    { (this.props.auth.isAuthenticated
-                        && (catalog.is_physical || catalog.is_kit))
+                    { this.props.auth.isAuthenticated
+                        && (catalog.is_physical || catalog.is_kit)
+                        && catalog.root_title
                       ? <Button variant="primary"
                                 onClick={this.handleOwnButton}>
                           I own this

@@ -29,6 +29,18 @@ def get_catalog_root(id):
         res = -1
     return res
 
+def get_catalog_modification_source(id):
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT catalog_id1 FROM catalog_relation'
+        ' WHERE catalog_id2 = %s AND type = %s',
+        (id, Relation.REL_MODIFICATION))
+    try:
+        res = cursor.fetchone()['catalog_id1']
+    except:
+        res = None
+    return res
+
 def get_catalog_none(id):
     cursor = get_db_cursor()
     cursor.execute(
@@ -230,7 +242,9 @@ def families(id):
         'SELECT r.catalog_id1 AS id'
         ' FROM catalog_relation r'
         ' LEFT JOIN catalog c ON r.catalog_id1 = c.id'
-        ' WHERE r.catalog_id2 = %s AND r.type = %s AND c.type = %s',
+        ' WHERE r.catalog_id2 = %s'
+        ' AND r.type = %s'
+        ' AND c.type = %s',
         (id, Relation.REL_INCLUDES, Type.TYPE_ABSTRACT, )
     )
     return cursor.fetchall()
@@ -485,6 +499,10 @@ def included_rec(id, t, rel):
     for fam in families(id):
         result.update(included(fam['id'], t, rel, False))
         result.update(included_rec(fam['id'], t, rel))
+    m = get_catalog_modification_source(id)
+    if m:
+        result.update(included(m, t, rel, False))
+        result.update(included_rec(m, t, rel))
 
     return result
 
@@ -602,6 +620,9 @@ def _own():
     if not catalog['is_physical'] and not catalog['is_kit']:
         abort(403)
 
+    if not catalog['root']:
+        abort(403)
+
     collection = get_user_collection(g.user['id'])
     try:
         main = request.json["-1"]
@@ -704,11 +725,9 @@ def _create():
     # override root, if specified
     try:
         id = int(request.json['root'])
-        #print(id)
         if id != -1:
             root = get_catalog(id)
-            #print(root)
-            if root['is_group'] == 0:
+            if root['is_group'] == 0 or root['root']:
                 raise Exception
             root_id = id
     except:
@@ -930,6 +949,9 @@ def _subitem_add():
     main = get_catalog(id)
     get_catalog(subitem)
     if not main['is_kit'] and not main['is_group']:
+        abort(403)
+
+    if not main['root']:
         abort(403)
 
     # assert that this does not create a loop
