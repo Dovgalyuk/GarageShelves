@@ -435,8 +435,8 @@ def filtered_query(args, count):
         params = (*params, catalog_not_type)
     if noparent:
         where += ' AND NOT EXISTS (SELECT 1 FROM catalog_relation' \
-                 '      WHERE catalog_id1 = %s AND catalog_id2 = c.id AND type = %s)'
-        params = (*params, parent_id, noparent_rel)
+                 '      WHERE catalog_id2 = c.id AND type = %s)'
+        params = (*params, noparent_rel)
     if title:
         # TODO: spaces are not supported in the template?
         where += ' AND (c.title LIKE %s OR c.title_eng LIKE %s)'
