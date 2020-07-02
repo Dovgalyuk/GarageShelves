@@ -77,7 +77,7 @@ def check_parent_loops(main_id, subitem_id):
 def _filtered_list():
     user_id = request.args.get('user', -1, type=int)
     parent_id = request.args.get('parent', -1, type=int)
-    noparent = request.args.get('noparent', False, type=bool)
+    noparent = request.args.get('noparent') == 'true'
     catalog_id = request.args.get('catalog', -1, type=int)
     catalog_title = request.args.get('catalog_title')
     includes_id = request.args.get('includes', -1, type=int)

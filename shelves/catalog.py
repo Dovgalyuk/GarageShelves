@@ -16,30 +16,32 @@ from shelves.type import Type
 
 bp = Blueprint('catalog', __name__, url_prefix='/catalog')
 
-
-def get_catalog_root(id):
+def get_catalog_parent(id, rel):
     cursor = get_db_cursor()
     cursor.execute(
         'SELECT catalog_id1 FROM catalog_relation'
         ' WHERE catalog_id2 = %s AND type = %s',
-        (id, Relation.REL_ROOT))
-    try:
-        res = cursor.fetchone()['catalog_id1']
-    except:
-        res = -1
-    return res
-
-def get_catalog_modification_source(id):
-    cursor = get_db_cursor()
-    cursor.execute(
-        'SELECT catalog_id1 FROM catalog_relation'
-        ' WHERE catalog_id2 = %s AND type = %s',
-        (id, Relation.REL_MODIFICATION))
+        (id, rel))
     try:
         res = cursor.fetchone()['catalog_id1']
     except:
         res = None
     return res
+
+def get_catalog_child(id, rel):
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT catalog_id2 FROM catalog_relation'
+        ' WHERE catalog_id1 = %s AND type = %s',
+        (id, rel))
+    try:
+        res = cursor.fetchone()['catalog_id2']
+    except:
+        res = None
+    return res
+
+def get_catalog_root(id):
+    return get_catalog_parent(id, Relation.REL_ROOT)
 
 def get_catalog_none(id):
     cursor = get_db_cursor()
@@ -133,20 +135,20 @@ def get_catalog_logo(id):
 
     # try with root
     root = get_catalog_root(id)
-    if root != -1:
+    if root:
         return get_catalog_logo(root)
 
     return -1
 
 
-def create_catalog(cursor, type_id, title, title_eng, description, year, root_id):
+def create_catalog(cursor, type_id, title, title_eng, description, year, root_id = None):
     cursor.execute(
         'INSERT INTO catalog (type, title, title_eng, description, year)'
         ' VALUES (%s, %s, %s, %s, %s)',
         (type_id, title, title_eng, description, year)
     )
     catalog_id = cursor.lastrowid
-    if root_id != -1:
+    if root_id:
         cursor.execute(
             'INSERT INTO catalog_relation'
             ' (catalog_id1, catalog_id2, type)'
@@ -316,7 +318,7 @@ def filtered_query(args, count):
 
     includes_id = args.get('includes', -1, type=int)
     title = args.get('title')
-    noparent = args.get('noparent', False, type=bool)
+    noparent = args.get('noparent') == 'true'
     noparent_rel = Relation.get_id(args.get('noparent_rel'))
 
     latest = args.get('latest', -1, type=int)
@@ -499,7 +501,9 @@ def included_rec(id, t, rel):
     for fam in families(id):
         result.update(included(fam['id'], t, rel, False))
         result.update(included_rec(fam['id'], t, rel))
-    m = get_catalog_modification_source(id)
+
+    # current item is modification
+    m = get_catalog_parent(id, Relation.REL_MODIFICATION)
     if m:
         result.update(included(m, t, rel, False))
         result.update(included_rec(m, t, rel))
@@ -514,6 +518,12 @@ def _included_rec():
     result = {}
     result.update(included_rec(id, t, rel))
     result.update(included(id, t, rel, True))
+
+    # main item in the kit
+    m = get_catalog_child(id, Relation.REL_MAIN_ITEM)
+    if m:
+        result.update(included(m, t, rel, False))
+        result.update(included_rec(m, t, rel))
 
     return jsonify(list(result.values()))
 
@@ -716,7 +726,7 @@ def _create():
         parent = get_catalog(parent_id)
         root_id = get_catalog_root(parent_id)
         # parent is itself a root
-        if root_id == -1:
+        if root_id:
             root_id = parent_id
             #parent_id = -1
     except:
