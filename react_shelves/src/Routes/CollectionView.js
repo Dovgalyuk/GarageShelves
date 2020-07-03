@@ -83,7 +83,7 @@ export default class CollectionView extends Component {
         if (!hasPhysical) {
             var pages = [];
             this.state.pages.forEach(p => {
-              if (p.id != id) {
+              if (p.id !== id) {
                 pages.push(p);
               }
             });
