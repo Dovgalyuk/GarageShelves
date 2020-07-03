@@ -13,7 +13,7 @@ class CollectionPage extends Component {
       super(props);
       this.state = {
           loading:true,
-          sections:{},
+          sections:[],
       };
   }
 
@@ -21,7 +21,8 @@ class CollectionPage extends Component {
     fetchBackend('page/sections', {page:this.props.page})
         .then(response => response.json())
         .then(data => {
-            this.setState({loading:false, sections:data});
+            this.setState({loading:false, sections:data},
+              () => this.props.onLoad(data));
         })
         .catch(e => this.setState({loading:false}));
   }
@@ -30,6 +31,7 @@ class CollectionPage extends Component {
     if (this.state.loading) {
       return "Loading...";
     }
+
     return (
       <>
         { this.state.sections.map(s => {
@@ -55,8 +57,9 @@ export default class CollectionView extends Component {
             loading:true,
             collection:{},
             loadingPages:true,
-            pages:{},
+            pages:[],
         };
+        this.refs = {};
     }
 
     componentDidMount() {
@@ -72,6 +75,20 @@ export default class CollectionView extends Component {
                 this.setState({loadingPages:false, pages:data});
             })
             .catch(e => this.setState({loadingPages:false}));
+    }
+
+    loadPage(id, sections) {
+        var hasPhysical = sections.reduce((a, s) => s.is_physical, 0);
+
+        if (!hasPhysical) {
+            var pages = [];
+            this.state.pages.forEach(p => {
+              if (p.id != id) {
+                pages.push(p);
+              }
+            });
+            this.setState({pages:pages});
+        }
     }
 
     render() {
@@ -97,12 +114,16 @@ export default class CollectionView extends Component {
                 </Col>
               </Row>
               <Tabs defaultActiveKey={this.state.pages[0].title} transition={false}>
-                { this.state.pages.map(p => <Tab eventKey={p.title} title={p.title} key={p.id}>
-                      <CollectionPage page={p.id} auth={this.props.auth}
-                          collection={this.state.collection.id} />
-                    </Tab>)
+                { this.state.pages.map(p => {
+                    return <Tab eventKey={p.title} title={p.title} key={p.id}>
+                      <CollectionPage page={p.id} title={p.title} auth={this.props.auth}
+                          collection={this.state.collection.id}
+                          onLoad={(sections) => this.loadPage(p.id, sections)}
+                          key={p.id} />
+                    </Tab>
+                  })
                 }
-                <Tab eventKey="software" title="All items">
+                <Tab eventKey="all" title="All items">
                   <ItemListSection filter={ {collection:this.state.collection.id } }
                                   title="Items in the collection" />
                 </Tab>

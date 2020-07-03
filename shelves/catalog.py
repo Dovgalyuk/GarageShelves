@@ -306,6 +306,7 @@ def _get_main():
 
 def filtered_query(args, count):
     parent_id = args.get('parent', -1, type=int)
+    grandparent_id = args.get('grandparent', -1, type=int)
     # many different parent categories
     category_ids = []
     categories = args.get('categories')
@@ -347,6 +348,14 @@ def filtered_query(args, count):
     limitFirst = args.get('limitFirst', -1, type=int)
     limitPage = args.get('limitPage', -1, type=int)
 
+    if grandparent_id != -1:
+        cursor = get_db_cursor()
+        cursor.execute('CREATE TEMPORARY TABLE parents SELECT c.id'
+            ' FROM catalog_relation r'
+            ' LEFT JOIN catalog c ON r.catalog_id2 = c.id'
+            ' WHERE r.catalog_id1 = %s AND r.type = %s',
+            (grandparent_id, Relation.REL_INCLUDES))
+
     suffix = ''
     where = ' WHERE 1 = 1'
     if count:
@@ -387,6 +396,12 @@ def filtered_query(args, count):
                   Relation.REL_INCLUDES,
                   Relation.REL_ROOT,
                   Relation.REL_PRODUCED, )
+
+    if grandparent_id != -1:
+        query += ' JOIN catalog_relation crp ON c.id = crp.catalog_id2' \
+                 ' JOIN parents ON parents.id = crp.catalog_id1'
+        where += ' AND crp.type = %s'
+        params = (*params, parent_rel,)
 
     if parent_id != -1:
         query += ' JOIN catalog_relation crp ON c.id = crp.catalog_id2'

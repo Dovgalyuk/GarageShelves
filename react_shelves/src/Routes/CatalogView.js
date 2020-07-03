@@ -249,9 +249,7 @@ export default class CatalogView extends Component {
                     }
                     &nbsp;
                     { this.props.auth.isAuthenticated
-                          && ((catalog.root_title === "Data storage"
-                                && catalog.is_physical)
-                              || catalog.is_bits)
+                          && !catalog.is_kit
                       ? <Button variant="primary"
                                 onClick={this.handleAddSoftwareButton}>
                           Add software
@@ -334,7 +332,6 @@ export default class CatalogView extends Component {
                   ? <CatalogListSection
                     ref={(ref) => {this.childrenRef = ref;}}
                     filter={ {parent:catalog.id, parent_rel:"includes",
-                        noparent: catalog.is_kit === 0, noparent_rel:"modification",
                         not_type: "abstract", noroot: catalog.is_group === 1} }
                     title="Includes the following catalog items"
                     auth={this.props.auth} addButton />
@@ -350,9 +347,16 @@ export default class CatalogView extends Component {
                 <CatalogListSection
                     ref={(ref) => {this.softwareRef = ref;}}
                     filter={ {parent:catalog.id, parent_rel:"stores",
-                              noparent: catalog.is_kit === 0, noparent_rel:"modification",
                               type:"bits", noroot: true} }
                     title="Includes the software" />
+
+                { catalog.is_kit
+                  ? <CatalogListSection
+                      filter={ {grandparent:catalog.id, parent_rel:"stores",
+                                type:"bits", noroot: true} }
+                      title="Software on the kit items" />
+                  : <div/>
+                }
 
                 <CatalogListSection
                     ref={(ref) => {this.modificationsRef = ref;}}
@@ -394,8 +398,7 @@ export default class CatalogView extends Component {
                 : <div/>
               }
               { this.props.auth.isAuthenticated
-                    && (catalog.root_title === "Data storage"
-                        || catalog.is_bits === 1)
+                    && !catalog.is_kit
                     ? <FormCatalogSelect open={this.state.showFormAddSoftware}
                           title="Add software"
                           onClose={this.handleFormAddSoftwareClose}
