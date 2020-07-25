@@ -11,7 +11,7 @@ class NavbarMain extends Component {
   render() {
     return (
       <Navbar bg="dark" variant="dark" expand="md">
-        <Navbar.Brand href="/">Garage shelves</Navbar.Brand>
+        <Navbar.Brand href="/">Vintage computer collections</Navbar.Brand>
         <Navbar.Toggle />
 
         <Navbar.Collapse className="justify-content-end">
