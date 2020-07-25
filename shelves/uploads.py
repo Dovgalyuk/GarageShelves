@@ -12,38 +12,6 @@ from shelves.db import get_db_cursor, db_commit
 
 bp = Blueprint('uploads', __name__, url_prefix='/uploads')
 
-IMAGE_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
-
-def allowed_image(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in IMAGE_EXTENSIONS
-
-def upload_image(file,desc='',width=-1,height=-1):
-    if not allowed_image(file.filename):
-        abort(403)
-
-    if not g.user:
-        abort(403)
-
-    img = Image.open(file)
-    if width != -1:
-        if (img.width != width and img.height != height) or img.width > width or img.height > height:
-            return None
-
-    filename = secure_filename(file.filename)
-    ext = filename.rsplit('.', 1)[1].lower()
-
-    cursor = get_db_cursor()
-    cursor.execute(
-        'INSERT INTO image (ext, filename, description, owner_id) VALUES (%s, %s, %s, %s)',
-        (ext, filename, desc, g.user['id'],)
-    )
-    file_id = cursor.lastrowid
-    img.save(os.path.join(
-        os.path.join(os.path.abspath(current_app.instance_path), 'uploads'),
-        '%d.%s' % (file_id, ext)))
-    return file_id
-
 def upload_file(file, desc):
     if not g.user:
         abort(403)
@@ -60,34 +28,6 @@ def upload_file(file, desc):
         os.path.join(os.path.abspath(current_app.instance_path), 'uploads'),
         '%d' % (file_id,)))
     return file_id
-
-# @bp.route('/<int:id>')
-# def view(id):
-#     cursor = get_db_cursor();
-#     cursor.execute(
-#         'SELECT * FROM image WHERE id = %s',
-#         (id,)
-#         )
-#     image = cursor.fetchone()
-
-#     return send_from_directory(os.path.join(current_app.instance_path,
-#         'uploads'), '%d.%s' % (id, image['ext']))
-
-@bp.route('/view')
-def view():
-    id = request.args.get('id', -1, type=int)
-
-    cursor = get_db_cursor();
-    cursor.execute(
-        'SELECT * FROM image WHERE id = %s',
-        (id,)
-        )
-    image = cursor.fetchone()
-    if image is None:
-        abort(403)
-
-    return send_file(os.path.join(os.path.abspath(current_app.instance_path),
-        'uploads/%d.%s' % (id, image['ext'])))
 
 @bp.route('/download')
 def download():

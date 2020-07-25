@@ -5,7 +5,7 @@ from werkzeug.exceptions import abort
 
 from shelves.auth import (login_required)
 from shelves.db import get_db_cursor, db_commit, db_rollback
-from shelves.uploads import upload_image
+from shelves.image import upload_image
 from shelves.relation import Relation
 from shelves.attribute import Attribute
 from shelves.catalog import get_catalog

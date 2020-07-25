@@ -51,7 +51,7 @@ export class Logo extends Component {
     render() {
         return (<div onDoubleClick={this.handleDoubleClick}>
             {this.state.img_id && this.state.img_id !== -1
-                ? <img src={BackendURL('uploads/view', { id: this.state.img_id })} alt="logo" />
+                ? <img src={BackendURL('image/view', { id: this.state.img_id, width: 64, height: 64 })} alt="logo" />
                 : <FontAwesomeIcon icon={this.state.is_physical ? faLaptop
                     : this.state.is_group ? faObjectGroup
                         : this.state.is_kit ? faArchive

@@ -9,7 +9,8 @@ from json import dumps
 from shelves.auth import (login_required, admin_required)
 from shelves.db import get_db_cursor, db_commit, db_rollback
 from shelves.collection import get_user_collection
-from shelves.uploads import upload_image, upload_file
+from shelves.image import upload_image
+from shelves.uploads import upload_file
 from shelves.relation import Relation
 from shelves.attribute import Attribute
 from shelves.type import Type

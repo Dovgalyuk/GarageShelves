@@ -14,9 +14,9 @@ class Image extends Component {
                 <button type="button" className="btn btn-link"
                         onClick={() => this.props.showForm(this.props.id)}>
                   <div className="thumbnail">
-                    <img alt={this.props.description} width="230" height="230"
+                    <img alt={this.props.description} width="256" height="256"
                          className="figure-img img-fluid rounded"
-                         src={BackendURL('uploads/view', {id:this.props.id})}
+                         src={BackendURL('image/view', {id:this.props.id, width: 256, height: 256})}
                          />
                   </div>
                 </button>
@@ -134,7 +134,7 @@ class ImageListSection extends Component {
                       </Modal.Header>
 
                       <Modal.Body>
-                        <img src={BackendURL('uploads/view', {id:this.state.showImg})}
+                        <img src={BackendURL('image/view', {id:this.state.showImg})}
                              alt="Full size"
                              className="figure-img img-fluid rounded" width="auto" />
                       </Modal.Body>

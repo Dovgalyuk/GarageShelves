@@ -3,10 +3,15 @@ import os
 from flask import (Flask, render_template)
 from flask_cors import CORS
 
+from . import utils
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     CORS(app, supports_credentials=True)
+
+    # compatible with flask-images
+    app.config.setdefault('IMAGES_CACHE', '/tmp/flask-images')
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -21,16 +26,10 @@ def create_app(test_config=None):
     # init all after config
 
     # ensure the instance folder exists
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
+    utils.makedirs(app.instance_path)
 
     # ensure the uploads folder exists
-    try:
-        os.makedirs(os.path.join(app.instance_path, 'uploads'))
-    except OSError:
-        pass
+    utils.makedirs(os.path.join(app.instance_path, 'uploads'))
 
     from . import db
     db.init_app(app)
@@ -61,5 +60,8 @@ def create_app(test_config=None):
 
     from . import page
     app.register_blueprint(page.bp)
+
+    from . import image
+    app.register_blueprint(image.bp)
 
     return app
