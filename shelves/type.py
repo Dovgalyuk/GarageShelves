@@ -35,3 +35,14 @@ class Type:
             pass
 
         return -1
+
+    @staticmethod
+    def split_string(s):
+        type_ids = []
+        if s:
+            for t in s.split(','):
+                try:
+                    type_ids.append(Type.get_id(t))
+                except:
+                    pass # do nothing
+        return type_ids

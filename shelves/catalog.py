@@ -225,13 +225,10 @@ def check_parent_loops(main_id, subitem_id):
             return False
         if next not in checked:
             checked.add(next)
-            # TODO: other relations?
             cursor.execute(
                 'SELECT catalog_id1 FROM catalog_relation'
-                ' WHERE (type = %s OR type = %s OR type = %s)'
-                '   AND catalog_id2 = %s',
-                (Relation.REL_INCLUDES, Relation.REL_MAIN_ITEM,
-                 Relation.REL_MODIFICATION, next,)
+                ' WHERE catalog_id2 = %s',
+                (next,)
             )
             for v in cursor.fetchall():
                 queue.add(v['catalog_id1'])
@@ -250,6 +247,12 @@ def families(id):
         (id, Relation.REL_INCLUDES, Type.TYPE_ABSTRACT, )
     )
     return cursor.fetchall()
+
+def success():
+    return jsonify(result="success", error="")
+
+def error(err):
+    return jsonify(result="error", error=err)
 
 ###############################################################################
 # API Routes
@@ -326,16 +329,9 @@ def filtered_query(args, count):
     if latest > 100:
         return abort(400)
 
-    types = args.get('type')
-    type_ids = []
-    if types:
-        for t in types.split(','):
-            try:
-                type_ids.append(Type.get_id(t))
-            except:
-                pass # do nothing
+    type_ids = Type.split_string(args.get('type'))
+    catalog_not_type_ids = Type.split_string(args.get('not_type'))
 
-    catalog_not_type = Type.get_id(args.get('not_type'))
     parent_rel = Relation.get_id(args.get('parent_rel'))
     parents = args.get('parent_name')
     parent_names = []
@@ -379,7 +375,7 @@ def filtered_query(args, count):
                 '   JOIN catalog_relation r WHERE cc.id=r.catalog_id2'     \
                 '   AND c.id=r.catalog_id1 AND r.type=%s) AS count,'       \
                 ' rr.catalog_id1 AS root, cr.title_eng AS root_title'      \
-                ' FROM catalog c'\
+                ' FROM catalog c' \
                 ' LEFT JOIN catalog_relation rr ON rr.catalog_id2 = c.id AND rr.type= %s'  \
                 ' LEFT JOIN catalog cr ON rr.catalog_id1 = cr.id' \
                 ' LEFT JOIN catalog_relation rcomp ON rcomp.catalog_id2 = c.id AND rcomp.type = %s' \
@@ -391,6 +387,9 @@ def filtered_query(args, count):
             suffix = ' ORDER BY c.created DESC LIMIT %d' % latest
         elif limitFirst >= 0 and limitPage > 0:
             suffix += ' LIMIT %d,%d' % (limitFirst, limitPage)
+        else:
+            # don't allow requesting all items
+            suffix += ' LIMIT 100'
         params = (Type.TYPE_PHYSICAL, Type.TYPE_ABSTRACT,
                   Type.TYPE_KIT, Type.TYPE_BITS, Type.TYPE_COMPANY,
                   Relation.REL_INCLUDES,
@@ -447,7 +446,7 @@ def filtered_query(args, count):
             params = (*params, t,)
             first = False
         where += ')'
-    if catalog_not_type != -1:
+    for catalog_not_type in catalog_not_type_ids:
         where += ' AND c.type <> %s'
         params = (*params, catalog_not_type)
     if noparent:
@@ -657,7 +656,7 @@ def _own():
         cursor = get_db_cursor()
         item_id = add_ownership(cursor, id, iid, collection['id'])
 
-        for xxx, attr in request.json.items():
+        for _, attr in request.json.items():
             subitem = attr['id']
             subid = int(subitem)
             if id == subid:
@@ -893,6 +892,8 @@ def _relation_remove():
         rel_id = Relation.REL_INCLUDES
     elif rel == 'compatible':
         rel_id = Relation.REL_COMPATIBLE
+    else:
+        abort(403)
     cursor = get_db_cursor()
     cursor.execute(
         'DELETE FROM catalog_relation'
@@ -902,96 +903,73 @@ def _relation_remove():
     db_commit()
     return jsonify(result='success')
 
-@bp.route('/_family_add', methods=('POST',))
+@bp.route('/_relation_add', methods=('POST',))
 @admin_required
-def _family_add():
+def _relation_add():
     id1 = int(request.json['id1'])
     id2 = int(request.json['id2'])
+    rel = Relation.get_id(request.json['rel'])
 
-    # assert the ids
-    get_catalog(id1)
-    get_catalog(id2)
+    # check rules
+    c1 = get_catalog(id1)
+    c2 = get_catalog(id2)
 
-    cursor = get_db_cursor()
-    cursor.execute(
-        'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
-        ' VALUES (%s, %s, %s)',
-        (id1, id2, Relation.REL_INCLUDES,)
-    )
+    # don't add anything to root categories
+    if not c1['root'] or not c2['root']:
+        return error("can't add root category")
 
-    # TODO: correct roots?
+    t1 = c1['type']
+    t2 = c2['type']
 
-    db_commit()
-    return jsonify(result='success')
+    if rel == Relation.REL_INCLUDES:
+        if t1 == Type.TYPE_ABSTRACT:
+            # groups may include only within the same root
+            if c1['root'] != c2['root']:
+                return error("can't add group from different root")
+        elif t1 == Type.TYPE_PHYSICAL:
+            if t2 not in [Type.TYPE_PHYSICAL, Type.TYPE_BITS]:
+                return error("can't add to physical item")
+        elif t1 == Type.TYPE_KIT:
+            if t2 not in [Type.TYPE_PHYSICAL, Type.TYPE_KIT]:
+                return error("can't add to kit")
+        else:
+            return error("can't set such relation")
+        # TODO bits includes bits instead of stores?
+    elif rel == Relation.REL_MAIN_ITEM:
+        return error("can't set main item")
+    elif rel == Relation.REL_MODIFICATION:
+        return error("can't set modification")
+    elif rel == Relation.REL_STORES:
+        if t2 != Type.TYPE_BITS or not t1 in [Type.TYPE_PHYSICAL, Type.TYPE_BITS]:
+            return error("can't set storage for software")
+    elif rel == Relation.REL_COMPATIBLE:
+        # first one is platform
+        if not t1 in [Type.TYPE_ABSTRACT, Type.TYPE_BITS, Type.TYPE_PHYSICAL]:
+            return error("incorrect first item for compatible relation")
+        if t2 == Type.TYPE_COMPANY:
+            return error("incorrect second item for compatible relation")
+    elif rel == Relation.REL_ROOT:
+        return error("can't set root relation")
+    elif rel == Relation.REL_PRODUCED:
+        return error("can't set produced relation")
+        # TODO use _company_set for now
+        # if t1 != Type.TYPE_COMPANY or t2 == Type.TYPE_COMPANY:
+        #     abort(403)
 
-@bp.route('/_compatible_add', methods=('POST',))
-@admin_required
-def _compatible_add():
-    id1 = int(request.json['id1'])
-    id2 = int(request.json['id2'])
-
-    # assert the ids
-    get_catalog(id1)
-    get_catalog(id2)
-
-    cursor = get_db_cursor()
-    cursor.execute(
-        'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
-        ' VALUES (%s, %s, %s)',
-        (id1, id2, Relation.REL_COMPATIBLE,)
-    )
-    db_commit()
-    return jsonify(result='success')
-
-@bp.route('/_software_add', methods=('POST',))
-@admin_required
-def _software_add():
-    id = int(request.json['id'])
-    software = int(request.json['software'])
-
-    # assert the ids
-    get_catalog(id)
-    soft = get_catalog(software)
-    if soft['type'] != Type.TYPE_BITS:
-        abort(403)
-
-    cursor = get_db_cursor()
-    cursor.execute(
-        'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
-        ' VALUES (%s, %s, %s)',
-        (id, software, Relation.REL_STORES,)
-    )
-    db_commit()
-    return jsonify(result='success')
-
-@bp.route('/_subitem_add', methods=('POST',))
-@admin_required
-def _subitem_add():
-    id = int(request.json['id'])
-    subitem = int(request.json['subitem'])
-
-    # assert the ids
-    main = get_catalog(id)
-    get_catalog(subitem)
-    if not main['is_kit'] and not main['is_group']:
-        abort(403)
-
-    if not main['root']:
-        abort(403)
-
-    # assert that this does not create a loop
-    if not check_parent_loops(id, subitem) or id == subitem:
-        # TODO: return readable error
-        abort(403)
+    # check loops
+    if not check_parent_loops(id1, id2) or id1 == id2:
+        return error("there is already relation between items")
 
     cursor = get_db_cursor()
     cursor.execute(
         'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
         ' VALUES (%s, %s, %s)',
-        (id, subitem, Relation.REL_INCLUDES,)
+        (id1, id2, rel,)
     )
     db_commit()
-    return jsonify(result='success')
+
+    return success()
+
 
 @bp.route('/_company_set', methods=('POST',))
 @admin_required
@@ -1049,12 +1027,6 @@ def _set_logo():
         abort(403)
 
     return jsonify(result='success')
-
-def success():
-    return jsonify(result="success", error="")
-
-def error(err):
-    return jsonify(result="error", error=err)
 
 @bp.route('/_join', methods=('POST',))
 @login_required

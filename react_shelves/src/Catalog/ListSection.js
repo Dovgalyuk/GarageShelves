@@ -7,9 +7,10 @@ import Badge from 'react-bootstrap/Badge';
 import Pagination from 'react-bootstrap/Pagination'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFilter } from '@fortawesome/free-solid-svg-icons'
-import fetchBackend from '../Backend';
+import fetchBackend, { postBackend } from '../Backend';
 import FormCatalogCreate from '../Forms/CatalogCreate';
 import FormCatalogFilter from '../Forms/Filter';
+import FormCatalogSelect from '../Forms/CatalogSelect'
 import { CatalogItem } from './Helpers';
 
 export class CatalogListSection extends Component {
@@ -20,6 +21,7 @@ export class CatalogListSection extends Component {
             rows: [],
             showFormCreate: false,
             showFormFilter: false,
+            showFormAdd: false,
             filter: {},
             page: 0,
             count: -1,
@@ -69,6 +71,33 @@ export class CatalogListSection extends Component {
     handleFormCreateClose = event => {
         this.setState({ showFormCreate: false });
     }
+
+    /* Add existing subitem */
+
+    handleAddButton = () => {
+        this.setState({showFormAdd:true});
+    }
+
+    handleFormAddClose = () => {
+        this.setState({showFormAdd:false});
+    }
+
+    handleFormAddSelect = (subitem) => {
+        postBackend('catalog/_relation_add', {},
+            {id1:this.props.mainId, id2:subitem, rel:this.props.addRelation})
+            .then(response => response.json())
+            .then(data => {
+                if (data.result === "error") {
+                    alert("Error: " + data.error);
+                }}
+            )
+            .catch(e => {})
+            .finally((e) => {
+                this.handleUpdate(0);
+            });
+    }
+
+
     handlePage = page => {
         this.handleUpdate(page);
     }
@@ -99,6 +128,7 @@ export class CatalogListSection extends Component {
             {this.props.title
                 && (this.state.count > 0
                     || this.props.addButton
+                    || this.props.addFilter
                     || this.props.buttons
                     || Object.keys(this.state.filter).length > 0)
                 && <Row>
@@ -113,10 +143,19 @@ export class CatalogListSection extends Component {
                             {(this.props.addButton
                                 && this.props.auth
                                 && this.props.auth.isAuthenticated)
-                                ? <Button type="button" className="btn btn-primary" onClick={this.handleCreateButton}>
+                                ? <Button variant="primary" onClick={this.handleCreateButton}>
                                     Add new
                                   </Button>
                                 : ""} &nbsp;
+                            { this.props.auth && this.props.auth.isAuthenticated
+                                && this.props.addFilter && this.props.mainId
+                                ? <Button variant="primary"
+                                            onClick={this.handleAddButton}>
+                                    Add existing
+                                </Button>
+                                : ""
+                            }
+                            &nbsp;
                             {this.props.buttons}
                             &nbsp;
                             <Button variant={Object.keys(this.state.filter).length > 0 ? "primary" : "light"}
@@ -178,6 +217,14 @@ export class CatalogListSection extends Component {
             <FormCatalogFilter open={this.state.showFormFilter}
                 onClose={() => this.setState({showFormFilter:false})}
                 onConfirm={this.handleFilterUpdate} />
+            { this.props.addFilter && this.props.mainId
+              && this.props.auth && this.props.auth.isAuthenticated
+                ? <FormCatalogSelect open={this.state.showFormAdd}
+                        title="Add existing subitem"
+                        onClose={this.handleFormAddClose}
+                        onSelect={this.handleFormAddSelect}
+                        filter={this.props.addFilter} />
+                : <div />}
         </Fragment>;
     }
 }
@@ -192,7 +239,10 @@ CatalogListSection.propTypes = {
     variant: PropTypes.oneOf(
         ['normal', 'tiny']
     ).isRequired,
+    mainId: PropTypes.number,
     filter: PropTypes.object.isRequired,
+    addFilter: PropTypes.object,
+    addRelation: PropTypes.string,
     pageCount: PropTypes.number.isRequired,
     rowCount: PropTypes.number.isRequired,
     onClick: PropTypes.func,

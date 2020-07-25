@@ -81,7 +81,7 @@ export class CatalogFamilies extends Component {
     }
     handleAddFamily = () => {
         this.setState({ showForm: true, formTitle: "Add new family",
-            path: "family",
+            path: "includes",
             filter: {
                 parent: this.props.root, parent_rel: "root",
                 type: "abstract", notype:true} });
@@ -94,8 +94,8 @@ export class CatalogFamilies extends Component {
         this.setState({ showForm: false });
     }
     handleFormSelect = (family) => {
-        var path = 'catalog/_' + this.state.path + '_add';
-        postBackend(path, {}, { id2: this.props.id, id1: family })
+        postBackend('catalog/_relation_add', {},
+            { id2: this.props.id, id1: family, rel:this.state.path })
             .catch(e => { })
             .finally((e) => {
                 this.handleUpdate();

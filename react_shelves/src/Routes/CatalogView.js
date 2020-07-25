@@ -18,7 +18,6 @@ import ImageListSection from '../Image'
 import AttachmentListSection from '../Attachment'
 import { ItemListSection } from '../Item/ListSection'
 import { CatalogComments } from '../Comment'
-import FormCatalogSelect from '../Forms/CatalogSelect'
 
 export default class CatalogView extends Component {
     constructor(props) {
@@ -29,7 +28,6 @@ export default class CatalogView extends Component {
             showFormOwn:false,
             showFormCreateKit:false,
             showFormCreateModification:false,
-            showFormAddSoftware:false,
         };
     }
 
@@ -71,25 +69,6 @@ export default class CatalogView extends Component {
 
     handleFormCreateKitClose = event => {
         this.setState({showFormCreateKit:false});
-    }
-
-    /* Add existing subitem */
-
-    handleAddSubitemButton = () => {
-        this.setState({showFormAddSubitem:true});
-    }
-
-    handleFormAddSubitemClose = () => {
-        this.setState({showFormAddSubitem:false});
-    }
-
-    handleSubitemSelect = (subitem) => {
-        postBackend('catalog/_subitem_add', {},
-            {id:this.state.catalog.id, subitem:subitem})
-            .catch(e => {})
-            .finally((e) => {
-                this.handleUpdateCatalogItems();
-            });
     }
 
     /* Create modification */
@@ -143,29 +122,6 @@ export default class CatalogView extends Component {
             return <a href={"/catalog/view/" + value}>{ name }</a>;
         else
             return <span>{ name} </span>;
-    }
-
-    handleAddSoftwareButton = event => {
-      this.setState({showFormAddSoftware:true});
-    }
-
-    handleFormAddSoftwareClose = event => {
-      this.setState({showFormAddSoftware:false});
-    }
-
-    handleUpdateSoftware = () => {
-      if (this.softwareRef) {
-          this.softwareRef.handleUpdate();
-      }
-    }
-
-    handleSoftwareSelect = (software) => {
-      postBackend('catalog/_software_add', {},
-          {id:this.state.catalog.id, software:software})
-          .catch(e => {})
-          .finally((e) => {
-              this.handleUpdateSoftware();
-          });
     }
 
     render() {
@@ -239,34 +195,6 @@ export default class CatalogView extends Component {
                     </Col>
                     <Col xs={2} className="align-self-top">
                     <ButtonToolbar>
-                    { (this.props.auth.isAuthenticated
-                        && (catalog.is_physical || catalog.is_bits))
-                      ? <Button variant="primary"
-                                onClick={this.handleCreateModificationButton}>
-                          Create modification
-                        </Button>
-                      : <span/>
-                    }
-                    &nbsp;
-                    { this.props.auth.isAuthenticated
-                          && !catalog.is_kit
-                      ? <Button variant="primary"
-                                onClick={this.handleAddSoftwareButton}>
-                          Add software
-                        </Button>
-                      : <span/>
-                    }
-                    &nbsp;
-                    { this.props.auth.isAuthenticated
-                      && (catalog.is_group === 1 || catalog.is_kit === 1)
-                      && catalog.root_title
-                      ? <Button variant="primary"
-                                onClick={this.handleAddSubitemButton}>
-                          Add existing subitem
-                        </Button>
-                      : <span/>
-                    }
-                    &nbsp;
                     { this.props.auth.isAuthenticated
                         && (catalog.is_physical || catalog.is_kit)
                         && catalog.root_title
@@ -333,7 +261,12 @@ export default class CatalogView extends Component {
                     ref={(ref) => {this.childrenRef = ref;}}
                     filter={ {parent:catalog.id, parent_rel:"includes",
                         not_type: "abstract", noroot: catalog.is_group === 1} }
-                    title="Includes the following catalog items"
+                    addFilter={catalog.is_group === 1
+                               ? {parent:catalog.root, parent_rel:"root", type:"physical,kit", notype:true}
+                               : catalog.is_kit === 1 ? {type:"physical,kit"} : null }
+                    addRelation="includes"
+                    mainId={catalog.id}
+                    title="Includes the catalog items"
                     auth={this.props.auth} addButton />
                   : <div />
                 }
@@ -348,12 +281,18 @@ export default class CatalogView extends Component {
                     ref={(ref) => {this.softwareRef = ref;}}
                     filter={ {parent:catalog.id, parent_rel:"stores",
                               type:"bits", noroot: true} }
+                    addFilter={catalog.is_physical === 1 || catalog.is_bits === 1
+                              ? {notype: true, type: "bits"}
+                              : null}
+                    addRelation="stores"
+                    mainId={catalog.id}
+                    auth={this.props.auth}
                     title="Includes the software" />
 
                 { catalog.is_kit
                   ? <CatalogListSection
                       filter={ {grandparent:catalog.id, parent_rel:"stores",
-                                type:"bits", noroot: true} }
+                                type:"bits", noroot: true} }                      
                       title="Software on the kit items" />
                   : <div/>
                 }
@@ -362,6 +301,15 @@ export default class CatalogView extends Component {
                     ref={(ref) => {this.modificationsRef = ref;}}
                     filter={ {parent_rel:"modification", parent:catalog.id,
                               not_type:"abstract", noroot: true} }
+                    buttons={
+                      (this.props.auth.isAuthenticated
+                        && (catalog.is_physical || catalog.is_bits))
+                      ? <Button variant="primary"
+                                onClick={this.handleCreateModificationButton}>
+                          Create modification
+                        </Button>
+                      : null
+                    }
                     title="Catalog item modifications" />
 
                 { this.props.auth.isAuthenticated
@@ -395,26 +343,6 @@ export default class CatalogView extends Component {
                          handleUpdateItems={this.handleUpdateModificationItems}
                          main_id={catalog.id}
                          main_title={catalog.title_eng || catalog.title} />
-                : <div/>
-              }
-              { this.props.auth.isAuthenticated
-                    && !catalog.is_kit
-                    ? <FormCatalogSelect open={this.state.showFormAddSoftware}
-                          title="Add software"
-                          onClose={this.handleFormAddSoftwareClose}
-                          onSelect={this.handleSoftwareSelect}
-                          filter={{notype: true, type: "bits"}} />
-                : <div/>
-              }
-              { this.props.auth.isAuthenticated
-                    && (catalog.is_group === 1 || catalog.is_kit === 1)
-                    ? <FormCatalogSelect open={this.state.showFormAddSubitem}
-                          title="Add existing subitem"
-                          onClose={this.handleFormAddSubitemClose}
-                          onSelect={this.handleSubitemSelect}
-                          filter={catalog.is_group === 1
-                              ? {parent:catalog.root, parent_rel:"root", type:"physical", notype:true}
-                              : {not_type:"abstract"} } />
                 : <div/>
               }
             </>
