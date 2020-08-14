@@ -9,6 +9,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.exceptions import abort
 
 from shelves.db import get_db_cursor, db_commit
+from mail import mail_send_register
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -213,6 +214,9 @@ def register():
         db_commit()
         session.clear()
         session['user_id'] = id
+
+        mail_send_register(email)
+
         return jsonify(result='success')
 
     return jsonify(error=error)

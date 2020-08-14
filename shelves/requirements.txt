@@ -5,3 +5,4 @@ flask-mysqldb
 pillow
 flask-cors
 flup
+flask-mail
