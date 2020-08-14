@@ -10,6 +10,7 @@ function NavbarAdmin(props) {
             <Navbar.Text>Admin actions:</Navbar.Text>
             <Nav.Link href="/changelog">View changes log</Nav.Link>
             <Nav.Link href="/join">Join two catalog items</Nav.Link>
+            <Nav.Link href="/message">Send a message</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Navbar>

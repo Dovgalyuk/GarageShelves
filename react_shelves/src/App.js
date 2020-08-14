@@ -15,6 +15,7 @@ import Login from './Auth';
 import AppliedRoute from "./AppliedRoute";
 import fetchBackend, { postBackend } from './Backend'
 import { Home } from './Routes/Home';
+import MessageRoute from './Routes/Message';
 
 class NotFound extends Component {
   render() { return "Not found"; }
@@ -121,6 +122,8 @@ class App extends Component {
                 <AppliedRoute path="/changelog" exact component={Changelog}
                               props={childProps} />
                 <AppliedRoute path="/join" exact component={CatalogJoin}
+                              props={childProps} />
+                <AppliedRoute path="/message" exact component={MessageRoute}
                               props={childProps} />
                 <Route component={NotFound} />
               </Switch>

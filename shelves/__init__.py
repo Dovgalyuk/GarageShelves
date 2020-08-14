@@ -36,6 +36,7 @@ def create_app(test_config=None):
 
     from . import mail
     mail.init_app(app)
+    app.register_blueprint(mail.bp)
 
     from . import auth
     app.register_blueprint(auth.bp)
