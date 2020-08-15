@@ -1,9 +1,13 @@
+import hashlib
 from shelves.db import get_db_cursor
 
 class UserStatus:
     REGISTERED = 0
     ACTIVE = 1
     BLOCKED = 2
+
+def user_hash(email, id):
+    return hashlib.md5(("%s%s" % (email, id)).encode('utf-8')).hexdigest()
 
 def get_user(id):
     cursor = get_db_cursor()

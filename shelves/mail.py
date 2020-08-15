@@ -1,4 +1,3 @@
-import hashlib
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for,
     jsonify
@@ -6,7 +5,7 @@ from flask import (
 from flask_mail import Mail, Message
 
 from shelves.auth import (login_required, admin_required)
-from shelves.user import get_user
+from shelves.user import get_user, user_hash
 
 bp = Blueprint('mail', __name__, url_prefix='/mail')
 
@@ -23,7 +22,7 @@ def mail_send_register(email, id):
                "To complete your registration, please follow the link: " \
                "https://vintagecomputercollections.com/confirm_email?" \
                "email=" + email + \
-               "&h=" + hashlib.md5(("%s%s" % (email, id)).encode('utf-8')).hexdigest()
+               "&h=" + user_hash(email, id)
     mail.send(msg)
 
 #########################################################################

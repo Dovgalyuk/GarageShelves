@@ -10,7 +10,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.exceptions import abort
 
 from shelves.db import get_db_cursor, db_commit
-from shelves.user import UserStatus, get_user
+from shelves.user import UserStatus, get_user, user_hash
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -233,3 +233,33 @@ def register():
         return jsonify(result='success')
 
     return jsonify(error=error)
+
+@bp.route('/confirm_email', methods=('POST',))
+def confirm_email():
+    try:
+        email = request.json['email']
+        h = request.json['h']
+        cursor = get_db_cursor()
+        cursor.execute(
+            'SELECT * FROM user WHERE email = %s', (email,)
+        )
+        user = cursor.fetchone()
+        if user is None:
+            return jsonify(error='Can\'t find the user.')
+
+        if user['status'] != UserStatus.REGISTERED:
+            return jsonify(error='Can\'t enable this user login.')
+
+        hash = user_hash(email, user['id'])
+        if h != hash:
+            return jsonify(error='Wrong confirmation code.')
+
+        cursor.execute(
+            'UPDATE user SET status = %s WHERE id = %s',
+            (UserStatus.ACTIVE, user['id'],)
+        )
+        db_commit()
+    except:
+        return jsonify(error='Internal server error.')
+
+    return jsonify(success='Email was successfully validated.')

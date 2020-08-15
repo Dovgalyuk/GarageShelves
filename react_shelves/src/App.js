@@ -16,6 +16,7 @@ import AppliedRoute from "./AppliedRoute";
 import fetchBackend, { postBackend } from './Backend'
 import { Home } from './Routes/Home';
 import MessageRoute from './Routes/Message';
+import ConfirmEmail from './Routes/ConfirmEmail';
 
 class NotFound extends Component {
   render() { return "Not found"; }
@@ -63,7 +64,7 @@ class App extends Component {
   }
 
   async componentDidMount() {
-      this.loadSession();
+    this.loadSession();
   }
 
   userHasAuthenticated = authenticated => {
@@ -122,6 +123,8 @@ class App extends Component {
                 <AppliedRoute path="/join" exact component={CatalogJoin}
                               props={childProps} />
                 <AppliedRoute path="/message" exact component={MessageRoute}
+                              props={childProps} />
+                <AppliedRoute path="/confirm_email" exact component={ConfirmEmail}
                               props={childProps} />
                 <Route component={NotFound} />
               </Switch>
