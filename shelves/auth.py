@@ -48,7 +48,7 @@ def admin_required(view):
     return wrapped_view
 
 def confirm_register(email, id):
-    if os.environ.get('FLASK_ENV') == 'production':
+    if os.environ.get('FLASK_ENV') != 'development':
         from shelves.mail import mail_send_register
         mail_send_register(email, id)
 
@@ -221,7 +221,7 @@ def register():
             session.clear()
             #session['user_id'] = id
 
-            if os.environ.get('FLASK_ENV') == 'production':
+            if os.environ.get('FLASK_ENV') != 'development':
                 confirm_register(email, id)
             else:
                 cursor.execute('UPDATE user SET status = %s WHERE id = %s',

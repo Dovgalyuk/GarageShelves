@@ -23,7 +23,7 @@ def mail_send_register(email, id):
                "To complete your registration, please follow the link: " \
                "https://vintagecomputercollections.com/confirm_email?" \
                "email=" + email + \
-               "h=" + hashlib.md5("%s%s" % (email, id)).hexdigest()
+               "&h=" + hashlib.md5(("%s%s" % (email, id)).encode('utf-8')).hexdigest()
     mail.send(msg)
 
 #########################################################################
