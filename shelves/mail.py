@@ -1,3 +1,4 @@
+import hashlib
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for,
     jsonify
@@ -14,10 +15,15 @@ mail = Mail()
 def init_app(app):
     mail.init_app(app)
 
-def mail_send_register(email):
-    msg = Message("Registered new user",
+def mail_send_register(email, id):
+    msg = Message("Registration on VintageComputerCollections.com",
             recipients=[email])
-    msg.body = "testing"
+    msg.body = "Thank you for registering on VintageComputerCollections.com\n" \
+               "\n" \
+               "To complete your registration, please follow the link: " \
+               "https://vintagecomputercollections.com/confirm_email?" \
+               "email=" + email + \
+               "h=" + hashlib.md5("%s%s" % (email, id)).hexdigest()
     mail.send(msg)
 
 #########################################################################
@@ -28,7 +34,7 @@ def mail_send_register(email):
 @admin_required
 @login_required
 def message():
-    id = request.form.get('id', -1, type=int)
+    id = request.json['id']
     try:
         user = get_user(id)
         msg = Message("New message",

@@ -1,5 +1,10 @@
 from shelves.db import get_db_cursor
 
+class UserStatus:
+    REGISTERED = 0
+    ACTIVE = 1
+    BLOCKED = 2
+
 def get_user(id):
     cursor = get_db_cursor()
     cursor.execute(

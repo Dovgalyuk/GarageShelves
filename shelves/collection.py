@@ -5,6 +5,7 @@ from werkzeug.exceptions import abort
 
 from shelves.auth import login_required
 from shelves.db import get_db_cursor, db_commit
+from shelves.user import UserStatus
 
 bp = Blueprint('collection', __name__, url_prefix='/collection')
 
@@ -58,7 +59,9 @@ def _filtered_list():
         'SELECT c.id, title, description, created, owner_id, username,'
         ' (SELECT COUNT(*) FROM item it WHERE it.collection_id=c.id) AS count'
         ' FROM collection c JOIN user u ON c.owner_id = u.id'
-        ' ORDER BY created DESC'
+        ' WHERE u.status = %s'
+        ' ORDER BY title',
+        (UserStatus.ACTIVE,)
     )
     collections = db.fetchall()
 
@@ -68,34 +71,3 @@ def _filtered_list():
 def _get():
     id = request.args.get('id', -1, type=int)
     return jsonify(get_collection(id, False))
-
-###############################################################################
-# Routes
-###############################################################################
-
-@bp.route('/<int:id>/update', methods=('GET', 'POST'))
-@login_required
-def update(id):
-    collection = get_collection(id, True)
-
-    if request.method == 'POST':
-        title = request.form['title']
-        description = request.form['description']
-        error = None
-
-        if not title:
-            error = 'Title is required.'
-
-        if error is not None:
-            flash(error)
-        else:
-            db = get_db_cursor()
-            db.execute(
-                'UPDATE collection SET title = %s, description = %s'
-                ' WHERE id = %s',
-                (title, description, id)
-            )
-            db_commit()
-            return redirect(url_for('collection.view', id=id))
-
-    return render_template('collection/update.html', collection=collection)

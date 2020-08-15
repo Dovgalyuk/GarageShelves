@@ -44,7 +44,8 @@ export class Register extends Component {
             if (response.error) {
                 this.setState({error:response.error, alert:null});
             } else {
-                this.props.auth.userHasAuthenticated(true);
+                //this.props.auth.userHasAuthenticated(true);
+                alert('Please check your mailbox to complete the registration')
                 this.props.history.push("/");
             }
         })

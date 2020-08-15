@@ -111,7 +111,7 @@ class ChangeItem extends Component {
                 { !this.state.loadingCatalog
                     ? <h5>
                         {this.props.item.field === "create" ? "Created " : "Changed "}
-                        <a className="action" href={"/catalog/view/" + this.props.item.id}>
+                        <a className="action" href={"/catalog/view/" + this.props.item.catalog_id}>
                           {this.state.catalog.root_title
                                ? this.state.catalog.root_title + " : " : ""}
                           {this.state.catalog.title_eng ? this.state.catalog.title_eng : this.state.catalog.title}

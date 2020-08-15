@@ -71,9 +71,7 @@ class App extends Component {
           postBackend('auth/_logout')
               .catch(error => {})
               .finally(() => this.logout());
-      }
-      else
-      {
+      } else {
           this.loadSession();
       }
   }

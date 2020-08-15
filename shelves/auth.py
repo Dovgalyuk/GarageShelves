@@ -1,5 +1,6 @@
 import functools
 import re
+import os
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for,
@@ -9,6 +10,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.exceptions import abort
 
 from shelves.db import get_db_cursor, db_commit
+from shelves.user import UserStatus, get_user
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -19,16 +21,8 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        cursor = get_db_cursor()
         # TODO: multiple collections
-        cursor.execute(
-            'SELECT user.id as id, username, admin, collection.id as col_id,'
-            ' email FROM user '
-            ' LEFT JOIN collection ON user.id = collection.owner_id'
-            ' WHERE user.id = %s',
-            (user_id,)
-        )
-        g.user = cursor.fetchone()
+        g.user = get_user(user_id)
 
 def login_required(view):
     @functools.wraps(view)
@@ -53,6 +47,11 @@ def admin_required(view):
 
     return wrapped_view
 
+def confirm_register(email, id):
+    if os.environ.get('FLASK_ENV') == 'production':
+        from shelves.mail import mail_send_register
+        mail_send_register(email, id)
+
 ###############################################################################
 # API Routes
 ###############################################################################
@@ -72,6 +71,11 @@ def _login():
         error = 'Incorrect username.'
     elif not check_password_hash(user['password'], password):
         error = 'Incorrect password.'
+    elif user['status'] == UserStatus.REGISTERED:
+        error = 'This profile is not yet activated. Confirmation e-mail was re-sent.'
+        confirm_register(login, user['id'])
+    elif user['status'] == UserStatus.BLOCKED:
+        error = 'This profile is blocked.'
 
     if error is None:
         session.clear()
@@ -93,6 +97,9 @@ def _session():
 @bp.route('/_logout', methods=('POST',))
 def _logout():
     session.clear()
+    # Flask bug workaround
+    # empty session cookie does not get correct SameSite attribute
+    session['user_id'] = -1
     return jsonify(error='No session')
 
 @bp.route('/get')
@@ -200,22 +207,28 @@ def register():
                 error = 'User with name {} is already registered.'.format(username)
 
     if error is None:
-        cursor.execute(
-            'INSERT INTO user (email, username, password) VALUES (%s, %s, %s)',
-            (email, username, generate_password_hash(password))
-        )
-        id = cursor.lastrowid
-        cursor.execute(
-            'INSERT INTO collection (title, description, owner_id)'
-            ' VALUES (%s, %s, %s)',
-            (collection_title, collection_description, id)
-        )
-        db_commit()
-        session.clear()
-        session['user_id'] = id
+        try:
+            cursor.execute(
+                'INSERT INTO user (email, username, password) VALUES (%s, %s, %s)',
+                (email, username, generate_password_hash(password))
+            )
+            id = cursor.lastrowid
+            cursor.execute(
+                'INSERT INTO collection (title, description, owner_id)'
+                ' VALUES (%s, %s, %s)',
+                (collection_title, collection_description, id)
+            )
+            session.clear()
+            #session['user_id'] = id
 
-        from shelves.mail import mail_send_register
-        mail_send_register(email)
+            if os.environ.get('FLASK_ENV') == 'production':
+                confirm_register(email, id)
+            else:
+                cursor.execute('UPDATE user SET status = %s WHERE id = %s',
+                    (UserStatus.ACTIVE, id,))
+            db_commit()
+        except:
+            return jsonify(error='Internal server error')
 
         return jsonify(result='success')
 
