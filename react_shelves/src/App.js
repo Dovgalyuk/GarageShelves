@@ -94,7 +94,7 @@ class App extends Component {
     return (
       <Fragment>
         <NavbarMain {...childProps} />
-        {this.state.isAdmin && <NavbarAdmin {...childProps} /> }
+        {this.state.isAdmin ? <NavbarAdmin {...childProps} /> : <div/>}
         {/* TODO: Error messages here */}
         <div className="container">
           <Router childProps={childProps}>
