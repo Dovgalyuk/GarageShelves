@@ -236,19 +236,6 @@ def check_parent_loops(main_id, subitem_id):
     #
     return True
 
-def families(id):
-    cursor = get_db_cursor()
-    cursor.execute(
-        'SELECT r.catalog_id1 AS id'
-        ' FROM catalog_relation r'
-        ' LEFT JOIN catalog c ON r.catalog_id1 = c.id'
-        ' WHERE r.catalog_id2 = %s'
-        ' AND r.type = %s'
-        ' AND c.type = %s',
-        (id, Relation.REL_INCLUDES, Type.TYPE_ABSTRACT, )
-    )
-    return cursor.fetchall()
-
 def success():
     return jsonify(result="success", error="")
 
@@ -486,24 +473,33 @@ def _filtered_count():
 
     return jsonify(result)
 
-def included(id, t, rel, own=False):
-    cursor = get_db_cursor()
+def included_rec(id, t, rel):
     params = ()
     q = ''
     if t != -1:
-        q = 'AND c.type = %s'
+        q = ' WHERE c.type = %s'
         params = (t,)
 
+    cursor = get_db_cursor()
     cursor.execute(
-        'SELECT c.id, c.title, c.title_eng,'
-        ' cr.title_eng AS root_title, %s AS own'
-        ' FROM catalog c'
-        ' LEFT JOIN catalog_relation rr ON rr.catalog_id2 = c.id AND rr.type = %s'
-        ' LEFT JOIN catalog cr ON rr.catalog_id1 = cr.id'
-        ' WHERE EXISTS (SELECT 1 FROM catalog_relation'
-        '      WHERE catalog_id1 = c.id AND catalog_id2 = %s'
-        '      AND type = %s)' + q
-        , (own, Relation.REL_ROOT, id, rel, *params))
+        'WITH RECURSIVE families (id) AS ('
+        '  SELECT %s'
+        '  UNION DISTINCT'
+        '  SELECT r.catalog_id1 FROM families'
+        '  INNER JOIN catalog_relation AS r ON families.id = r.catalog_id2 AND (r.type = %s OR r.type = %s)'
+        '  INNER JOIN catalog c ON c.id = r.catalog_id1'
+        '  WHERE c.type = %s'
+        ')'
+        'SELECT c.id, c.title_eng, IF(families.id = %s, 1, 0) AS own,'
+        '  cr.title_eng AS root_title'
+        '  FROM families'
+        '  INNER JOIN catalog_relation r ON r.catalog_id2 = families.id AND r.type = %s'
+        '  INNER JOIN catalog c ON r.catalog_id1 = c.id'
+        '  LEFT JOIN catalog_relation rr ON rr.catalog_id2 = c.id AND rr.type = %s'
+        '  LEFT JOIN catalog cr ON rr.catalog_id1 = cr.id' + q,
+        (id, Relation.REL_INCLUDES, Relation.REL_MODIFICATION, Type.TYPE_ABSTRACT,
+         id, rel, Relation.REL_ROOT, *params)
+    )
 
     res = {}
     for c in cursor.fetchall():
@@ -511,34 +507,19 @@ def included(id, t, rel, own=False):
 
     return res
 
-def included_rec(id, t, rel):
-    result = {}
-    for fam in families(id):
-        result.update(included(fam['id'], t, rel, False))
-        result.update(included_rec(fam['id'], t, rel))
-
-    # current item is modification
-    m = get_catalog_parent(id, Relation.REL_MODIFICATION)
-    if m:
-        result.update(included(m, t, rel, False))
-        result.update(included_rec(m, t, rel))
-
-    return result
-
 @bp.route('/_included_rec')
 def _included_rec():
     id = request.args.get('id', -1, type=int)
     t = Type.get_id(request.args.get('type'))
     rel = Relation.get_id(request.args.get('rel'))
     result = {}
-    result.update(included_rec(id, t, rel))
-    result.update(included(id, t, rel, True))
 
     # main item in the kit
     m = get_catalog_child(id, Relation.REL_MAIN_ITEM)
     if m:
-        result.update(included(m, t, rel, False))
         result.update(included_rec(m, t, rel))
+
+    result.update(included_rec(id, t, rel))
 
     return jsonify(list(result.values()))
 

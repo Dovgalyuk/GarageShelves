@@ -13,7 +13,12 @@ Now edit config.cfg in the instance subdirectory.
 
 ### Setup mysql
 
+MySQL 8.0 is required.
+
 ```
+wget -c https://dev.mysql.com/get/mysql-apt-config_0.8.11-1_all.deb
+sudo dpkg -i mysql-apt-config_0.8.11-1_all.deb
+sudo apt update
 sudo apt install mysql-server
 sudo mysql_secure_installation
 mysql -u root -p < shelves/schema.sql
