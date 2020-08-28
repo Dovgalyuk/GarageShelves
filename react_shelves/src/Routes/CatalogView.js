@@ -235,7 +235,9 @@ export default class CatalogView extends Component {
                       title="Includes the families" />
                   : <div/>
                 }
-                { catalog.is_physical === 1 || catalog.is_bits === 1
+                { catalog.is_physical === 1 || catalog.is_kit === 1
+                   // TODO: remove is_bits
+                   || catalog.is_bits === 1
                   ? <CatalogListSection
                       ref={(ref) => {this.kitsRef = ref;}}
                       filter={ {notype:true, type: "kit",
@@ -257,10 +259,11 @@ export default class CatalogView extends Component {
                 }
                 { catalog.is_physical === 0 // physical compound items not supported yet
                   && catalog.is_company === 0
+                  && catalog.is_bits === 0 // "includes the software" for bits
                   ? <CatalogListSection
                     ref={(ref) => {this.childrenRef = ref;}}
                     filter={ {parent:catalog.id, parent_rel:"includes",
-                        not_type: "abstract", noroot: catalog.is_group === 1} }
+                        not_type: "abstract,bits", noroot: catalog.is_group === 1} }
                     addFilter={catalog.is_group === 1
                                ? {parent:catalog.root, parent_rel:"root", type:"physical,kit", notype:true}
                                : catalog.is_kit === 1 ? {type:"physical,kit"} : null }

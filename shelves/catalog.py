@@ -310,8 +310,6 @@ def filtered_query(args, count):
 
     includes_id = args.get('includes', -1, type=int)
     title = args.get('title')
-    noparent = args.get('noparent') == 'true'
-    noparent_rel = Relation.get_id(args.get('noparent_rel'))
 
     latest = args.get('latest', -1, type=int)
     if latest > 100:
@@ -332,22 +330,17 @@ def filtered_query(args, count):
     limitFirst = args.get('limitFirst', -1, type=int)
     limitPage = args.get('limitPage', -1, type=int)
 
-    if grandparent_id != -1:
-        cursor = get_db_cursor()
-        cursor.execute('CREATE TEMPORARY TABLE parents SELECT c.id'
-            ' FROM catalog_relation r'
-            ' LEFT JOIN catalog c ON r.catalog_id2 = c.id'
-            ' WHERE r.catalog_id1 = %s AND r.type = %s',
-            (grandparent_id, Relation.REL_INCLUDES))
-
-    suffix = ''
+    prefix = ''
+    query = ''
     where = ' WHERE 1 = 1'
+    suffix = ''
+    params = ()
     if count:
-        query = 'SELECT COUNT(*) as count'                                 \
+        query += 'SELECT COUNT(*) as count'                                 \
                 ' FROM catalog c '
-        params = ()
+        #params = ()
     else:
-        query = 'SELECT c.id, c.title, c.title_eng, c.created,'
+        query += 'SELECT c.id, c.title, c.title_eng, c.created,'
         if parent_id != -1 or parent_names:
             query += "crp.id AS list_id, "
         else:
@@ -378,17 +371,26 @@ def filtered_query(args, count):
         else:
             # don't allow requesting all items
             suffix += ' LIMIT 100'
-        params = (Type.TYPE_PHYSICAL, Type.TYPE_ABSTRACT,
+        params = (*params, Type.TYPE_PHYSICAL, Type.TYPE_ABSTRACT,
                   Type.TYPE_KIT, Type.TYPE_BITS, Type.TYPE_COMPANY,
                   Relation.REL_INCLUDES,
                   Relation.REL_ROOT,
                   Relation.REL_PRODUCED, )
 
     if grandparent_id != -1:
+        if prefix == '':
+            prefix += 'WITH'
+        else:
+            prefix += ','
+        prefix += ' parents (id) AS (' \
+            ' SELECT c.id' \
+            ' FROM catalog_relation r' \
+            ' LEFT JOIN catalog c ON r.catalog_id2 = c.id' \
+            ' WHERE r.catalog_id1 = %s AND r.type = %s)'
         query += ' JOIN catalog_relation crp ON c.id = crp.catalog_id2' \
-                 ' JOIN parents ON parents.id = crp.catalog_id1'
+            ' JOIN parents ON parents.id = crp.catalog_id1'
         where += ' AND crp.type = %s'
-        params = (*params, parent_rel,)
+        params = (grandparent_id, Relation.REL_INCLUDES, *params, parent_rel,)
 
     if parent_id != -1:
         query += ' JOIN catalog_relation crp ON c.id = crp.catalog_id2'
@@ -420,10 +422,15 @@ def filtered_query(args, count):
             first = False
         where += ')'
     if includes_id != -1:
-        where += ' AND EXISTS (SELECT 1 FROM catalog_relation' \
-                 '      WHERE catalog_id1 = c.id AND catalog_id2 = %s' \
-                 '      AND type = %s)'
-        params = (*params, includes_id, child_rel,)
+        if prefix == '':
+            prefix += 'WITH'
+        else:
+            prefix += ','
+        prefix += ' includes_items (id)' \
+                ' AS (SELECT DISTINCT catalog_id1 FROM catalog_relation'\
+                ' WHERE catalog_id2 = %s AND type = %s)'
+        query += ' INNER JOIN includes_items ii ON ii.id = c.id'
+        params = (includes_id, child_rel, *params)
     if type_ids:
         where += ' AND ('
         first = True
@@ -437,23 +444,25 @@ def filtered_query(args, count):
     for catalog_not_type in catalog_not_type_ids:
         where += ' AND c.type <> %s'
         params = (*params, catalog_not_type)
-    if noparent:
-        where += ' AND NOT EXISTS (SELECT 1 FROM catalog_relation' \
-                 '      WHERE catalog_id2 = c.id AND type = %s)'
-        params = (*params, noparent_rel)
     if title:
         # TODO: spaces are not supported in the template?
         where += ' AND (c.title LIKE %s OR c.title_eng LIKE %s)'
         params = (*params, '%' + title + '%', '%' + title + '%')
 
     if storage_item_id != -1:
-        where += ' AND EXISTS (SELECT 1 FROM catalog_item_relation' \
-                 '      WHERE catalog_id = c.id AND item_id = %s AND type = %s)'
-        params = (*params, storage_item_id, Relation.REL_STORES,)
+        if prefix == '':
+            prefix += 'WITH'
+        else:
+            prefix += ','
+        prefix += ' storage_items (id) AS (' \
+                  'SELECT catalog_id FROM catalog_item_relation' \
+                  ' WHERE item_id = %s AND type = %s)'
+        query += ' INNER JOIN storage_items ON c.id = storage_items.id'
+        params = (storage_item_id, Relation.REL_STORES, *params)
 
     #print(query + where + suffix)
     #print(params)
-    return {"query":query + where + suffix, "params":params}
+    return {"query":prefix + query + where + suffix, "params":params}
 
 @bp.route('/_filtered_list')
 def _filtered_list():
@@ -470,6 +479,21 @@ def _filtered_count():
     cursor = get_db_cursor()
     cursor.execute(q['query'], q['params'])
     result = cursor.fetchone()
+
+    return jsonify(result)
+
+@bp.route('/_categories')
+def _categories():
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT c.id, c.title_eng FROM catalog c'
+        ' LEFT JOIN catalog_relation r'
+        '  ON c.id = r.catalog_id2 AND r.type = %s'
+        ' WHERE r.catalog_id1 IS NULL'
+        '  AND c.type = %s',
+        (Relation.REL_ROOT, Type.TYPE_ABSTRACT, )
+    )
+    result = cursor.fetchall()
 
     return jsonify(result)
 
@@ -817,7 +841,7 @@ def _create_kit():
     id = int(request.args['id'])
     catalog = get_catalog(id)
     # TODO
-    if not catalog['is_physical'] and catalog['root_title'] != 'Software':
+    if not catalog['is_physical'] and not catalog['is_kit']:
         abort(403)
 
     kit_type = Type.TYPE_KIT
@@ -830,7 +854,14 @@ def _create_kit():
     try:
         cursor = get_db_cursor()
 
-        cursor.execute('SELECT id FROM catalog WHERE title_eng = "Kit"')
+        cursor.execute(
+            'SELECT c.id FROM catalog c'
+            ' LEFT JOIN catalog_relation r'
+            '   ON r.catalog_id2 = c.id'
+            '   AND r.type = %s'
+            ' WHERE title_eng = "Kit" AND r.catalog_id1 IS NULL',
+            (Relation.REL_ROOT,)
+        )
         root = cursor.fetchone()
 
         kit_id = create_catalog(cursor,

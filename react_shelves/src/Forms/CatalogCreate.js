@@ -27,19 +27,11 @@ export default class FormCatalogCreate extends Component {
 
     handleShow = event => {
         if (this.state.loadingRoots) {
-            fetchBackend('catalog/_filtered_list', {noparent:true})
+            fetchBackend('catalog/_categories')
                 .then(response => response.json())
                 .then(data => {
-                    var root = -1;
-                    data.some(r => {
-                      if (r.is_group === 1) {
-                        root = r.id;
-                        return true;
-                      }
-                      return false;
-                    });
                     this.setState({loadingRoots:false, roots:data,
-                                   form: {...this.state.form, root:root}});
+                                   form: {...this.state.form, root:data[0].id}});
                 })
                 .catch(e => this.props.onClose());
         }
@@ -105,11 +97,13 @@ export default class FormCatalogCreate extends Component {
                           onChange={this.handleInput}
                           defaultValue={this.state.form.type} >
                         <option value="physical">Physical item</option>
-                        { (!this.props.not_type || this.props.not_type !== "abstract")
+                        { (!this.props.not_type || !this.props.not_type.includes("abstract"))
                           && <option value="abstract">Group/family/class</option>
                         }
                         {/*TODO <option value="kit">Kit</option> */}
-                        <option value="bits">Software/data/text without storage media</option>
+                        { (!this.props.not_type || !this.props.not_type.includes("bits"))
+                          && <option value="bits">Software/data/text without storage media</option>
+                        }
                       </Form.Control>
                     }
                   </Col>
@@ -122,12 +116,9 @@ export default class FormCatalogCreate extends Component {
                           onChange={this.handleInput}
                           defaultValue={this.state.form.root} >
                         { this.state.roots.map((option, i) => {
-                            if (option.is_group === 1) {
-                              return (<option key={i} value={option.id}>
-                                  {option.title_eng}
-                                </option>);
-                            }
-                            return "";
+                            return (<option key={i} value={option.id}>
+                                {option.title_eng}
+                              </option>);
                           }
                         )}
                       </Form.Control>

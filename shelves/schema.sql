@@ -20,18 +20,10 @@ CREATE TABLE collection (
   FOREIGN KEY (owner_id) REFERENCES user (id)
 );
 
-CREATE TABLE catalog_type (
-  id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  title TEXT NOT NULL,
-  is_physical BOOLEAN NOT NULL DEFAULT 1,
-  is_group BOOLEAN NOT NULL DEFAULT 0,
-  is_kit BOOLEAN NOT NULL DEFAULT 0
-);
-
 CREATE TABLE catalog (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  type_id INTEGER NOT NULL,
   type INTEGER NOT NULL,
+  #category INTEGER NOT NULL,
   title TEXT NULL DEFAULT NULL,
   title_eng TEXT NULL DEFAULT NULL,
   description TEXT NULL DEFAULT NULL,
@@ -40,8 +32,7 @@ CREATE TABLE catalog (
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   owner_id INTEGER NULL DEFAULT NULL,
 
-  FOREIGN KEY (type_id) REFERENCES catalog_type (id),
-  FOREIGN KEY (root) REFERENCES catalog (id),
+  #FOREIGN KEY (category) REFERENCES catalog (id),
   FOREIGN KEY (owner_id) REFERENCES user (id)
 );
 
