@@ -34,6 +34,10 @@ export default class FormCatalogFilter extends Component {
         this.props.onClose();
     }
 
+    handleClear = () => {
+      this.setState({categories: [], title: ""});
+    }
+
     handleInput = event => {
         this.setState({[event.target.id]: event.target.value});
     }
@@ -88,8 +92,8 @@ export default class FormCatalogFilter extends Component {
               </Form>
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onClick={this.handleHide}>
-                Close
+              <Button variant="secondary" onClick={this.handleClear}>
+                Clear
               </Button>
               <Button variant="primary" onClick={this.handleConfirm}
                 disabled={this.state.loadingTypes}>

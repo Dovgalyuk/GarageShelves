@@ -335,6 +335,7 @@ def filtered_query(args, count):
     where = ' WHERE 1 = 1'
     suffix = ''
     params = ()
+    prefix_params = ()
     if count:
         query += 'SELECT COUNT(*) as count'                                 \
                 ' FROM catalog c '
@@ -390,7 +391,8 @@ def filtered_query(args, count):
         query += ' JOIN catalog_relation crp ON c.id = crp.catalog_id2' \
             ' JOIN parents ON parents.id = crp.catalog_id1'
         where += ' AND crp.type = %s'
-        params = (grandparent_id, Relation.REL_INCLUDES, *params, parent_rel,)
+        prefix_params = (*prefix_params, grandparent_id, Relation.REL_INCLUDES,)
+        params = (*params, parent_rel,)
 
     if parent_id != -1:
         query += ' JOIN catalog_relation crp ON c.id = crp.catalog_id2'
@@ -410,17 +412,23 @@ def filtered_query(args, count):
         where += ') AND crp.type = %s'
         params = (*params, parent_rel,)
     if category_ids:
-        where += ' AND ('
+        if prefix == '':
+            prefix += 'WITH'
+        else:
+            prefix += ','
+        prefix += ' category_ids (id) AS' \
+                  ' (SELECT DISTINCT catalog_id2 FROM catalog_relation' \
+                  '      WHERE type = %s AND ('
+        prefix_params = (*prefix_params, Relation.REL_COMPATIBLE,)
         first = True
         for c in category_ids:
             if not first:
-                where += ' OR '
-            where += ' EXISTS (SELECT 1 FROM catalog_relation' \
-                     '      WHERE catalog_id1 = %s AND catalog_id2 = c.id' \
-                     '      AND type = %s)'
-            params = (*params, c, Relation.REL_COMPATIBLE,)
+                prefix += ' OR '
+            prefix += 'catalog_id1 = %s'
+            prefix_params = (*prefix_params, c, )
             first = False
-        where += ')'
+        prefix += '))'
+        query += ' INNER JOIN category_ids ci ON ci.id = c.id'
     if includes_id != -1:
         if prefix == '':
             prefix += 'WITH'
@@ -430,7 +438,7 @@ def filtered_query(args, count):
                 ' AS (SELECT DISTINCT catalog_id1 FROM catalog_relation'\
                 ' WHERE catalog_id2 = %s AND type = %s)'
         query += ' INNER JOIN includes_items ii ON ii.id = c.id'
-        params = (includes_id, child_rel, *params)
+        prefix_params = (*prefix_params, includes_id, child_rel,)
     if type_ids:
         where += ' AND ('
         first = True
@@ -458,11 +466,12 @@ def filtered_query(args, count):
                   'SELECT catalog_id FROM catalog_item_relation' \
                   ' WHERE item_id = %s AND type = %s)'
         query += ' INNER JOIN storage_items ON c.id = storage_items.id'
-        params = (storage_item_id, Relation.REL_STORES, *params)
+        prefix_params = (*prefix_params, storage_item_id, Relation.REL_STORES,)
 
-    #print(query + where + suffix)
-    #print(params)
-    return {"query":prefix + query + where + suffix, "params":params}
+    print(prefix + query + where + suffix)
+    print(prefix_params)
+    print(params)
+    return {"query":prefix + query + where + suffix, "params":(*prefix_params, *params)}
 
 @bp.route('/_filtered_list')
 def _filtered_list():
