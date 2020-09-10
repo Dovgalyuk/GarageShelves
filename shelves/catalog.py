@@ -141,6 +141,13 @@ def get_catalog_logo(id):
 
     return -1
 
+def create_relation(cursor, id1, id2, rel):
+    cursor.execute(
+        'INSERT INTO catalog_relation'
+        ' (catalog_id1, catalog_id2, type)'
+        ' VALUES (%s, %s, %s)',
+        (id1, id2, rel)
+    )
 
 def create_catalog(cursor, type_id, title, title_eng, description, year, root_id = None):
     cursor.execute(
@@ -150,12 +157,7 @@ def create_catalog(cursor, type_id, title, title_eng, description, year, root_id
     )
     catalog_id = cursor.lastrowid
     if root_id:
-        cursor.execute(
-            'INSERT INTO catalog_relation'
-            ' (catalog_id1, catalog_id2, type)'
-            ' VALUES (%s, %s, %s)',
-            (root_id, catalog_id, Relation.REL_ROOT)
-        )
+        create_relation(cursor, root_id, catalog_id, Relation.REL_ROOT)
     if not g.user['admin']:
         cursor.execute(
             'INSERT INTO catalog_history'
@@ -788,12 +790,7 @@ def _create():
             type_id, title, title_eng, description, year, root_id)
 
         if parent_id != -1:
-            cursor.execute(
-                'INSERT INTO catalog_relation'
-                ' (catalog_id1, catalog_id2, type)'
-                ' VALUES (%s, %s, %s)',
-                (parent_id, catalog_id, Relation.REL_INCLUDES)
-            )
+            create_relation(cursor, parent_id, catalog_id, Relation.REL_INCLUDES)
         db_commit()
     except:
         db_rollback()
@@ -831,12 +828,7 @@ def _create_modification():
             catalog['type'], title, title_eng, description,
             year, get_catalog_root(id))
 
-        cursor.execute(
-            'INSERT INTO catalog_relation'
-            ' (catalog_id1, catalog_id2, type)'
-            ' VALUES (%s, %s, %s)',
-            (id, catalog_id, Relation.REL_MODIFICATION)
-        )
+        create_relation(cursor, id, catalog_id, Relation.REL_MODIFICATION)
         db_commit()
     except:
         db_rollback()
@@ -878,24 +870,8 @@ def _create_kit():
             root['id'])
 
         # Add main item into the kit
-        cursor.execute(
-            'INSERT INTO catalog_relation'
-            ' (catalog_id1, catalog_id2, type)'
-            ' VALUES (%s, %s, %s), (%s, %s, %s)',
-            (kit_id, id, Relation.REL_INCLUDES,
-             kit_id, id, Relation.REL_MAIN_ITEM,)
-        )
-
-        # for item in request.json['items']:
-        #     title_item = item['title']
-        #     item_id = create_catalog(cursor,
-        #         Type.TYPE_PHYSICAL, title_item, '', '', None, catalog['company_id'])
-        #     cursor.execute(
-        #         'INSERT INTO catalog_relation'
-        #         ' (catalog_id1, catalog_id2, type)'
-        #         ' VALUES (%s, %s, %s)',
-        #         (kit_id, item_id, Relation.REL_INCLUDES,)
-        #     )
+        create_relation(cursor, kit_id, id, Relation.REL_INCLUDES)
+        create_relation(cursor, kit_id, id, Relation.REL_MAIN_ITEM)
         db_commit()
     except:
         db_rollback()
@@ -983,11 +959,7 @@ def _relation_add():
         return error("there is already relation between items")
 
     cursor = get_db_cursor()
-    cursor.execute(
-        'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
-        ' VALUES (%s, %s, %s)',
-        (id1, id2, rel,)
-    )
+    create_relation(cursor, id1, id2, rel)
     db_commit()
 
     return success()
@@ -1010,11 +982,7 @@ def _company_set():
     )
     if id1 != -1:
         get_catalog(id1)
-        cursor.execute(
-            'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)'
-            ' VALUES (%s, %s, %s)',
-            (id1, id2, Relation.REL_PRODUCED,)
-        )
+        create_relation(cursor, id1, id2, Relation.REL_PRODUCED)
     db_commit()
     return jsonify(result='success')
 
@@ -1161,10 +1129,7 @@ def _join():
 
         # add kits back
         for k in kits:
-            cursor.execute('INSERT INTO catalog_relation'
-                '(catalog_id1, catalog_id2, type) VALUES (%s, %s, %s)',
-                (k['id'], id1, Relation.REL_INCLUDES)
-            )
+            create_relation(cursor, k['id'], id1, Relation.REL_INCLUDES)
 
         # Redirect relations
         cursor.execute(
