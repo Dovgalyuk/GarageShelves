@@ -5,16 +5,18 @@ import Button from 'react-bootstrap/Button'
 import ReactDiffViewer from 'react-diff-viewer'
 import fetchBackend, { postBackend } from '../Backend'
 import { Logo } from '../Catalog/Logo'
+import { Image } from '../Image'
+import { Attachment } from '../Attachment'
 
 function ChangeField(props) {
-    if (props.field === "year") {
-        return (
-            <Fragment>
-                Year from&nbsp;
-                <span className="badge badge-secondary">{props.old_value}</span>
-                &nbsp;to <span className="badge badge-secondary">{props.value}</span>
-            </Fragment>);
-    }
+    // if (props.field === "year") {
+    //     return (
+    //         <Fragment>
+    //             Year from&nbsp;
+    //             <span className="badge badge-secondary">{props.old_value}</span>
+    //             &nbsp;to <span className="badge badge-secondary">{props.value}</span>
+    //         </Fragment>);
+    // }
     if (props.field === "description") {
         return (
             <Fragment>
@@ -26,38 +28,23 @@ function ChangeField(props) {
                     hideLineNumbers={true}
                 />
             </Fragment>);
-    }
-    if (props.field === "title") {
+    } else if (props.field === 'image') {
         return (
-            <Fragment>
-                Title
-                <ReactDiffViewer
-                    oldValue={props.old_value}
-                    newValue={props.value}
-                    splitView={false}
-                    hideLineNumbers={true}
-                />
-            </Fragment>);
-    }
-    if (props.field === "title_eng") {
+            <>
+                Image
+                <Image id={props.value} />
+            </>
+        );
+    } else if (props.field === 'attach') {
         return (
-            <Fragment>
-                Title in English
-                <ReactDiffViewer
-                    oldValue={props.old_value}
-                    newValue={props.value}
-                    splitView={false}
-                    hideLineNumbers={true}
-                />
-            </Fragment>);
-    }
-    if (props.field === "create") {
-        return "";
+            <>
+                Attachment
+                <Attachment id={props.value} />
+            </>
+        );
     }
     return (<Fragment>
-                <p>Field={props.field}</p>
-                <p>Old Value={props.old_value}</p>
-                <p>Value={props.value}</p>
+                <p>{props.description}</p>
             </Fragment>);
 }
 
@@ -121,7 +108,8 @@ class ChangeItem extends Component {
                 }
                 <ChangeField field={this.props.item.field}
                              old_value={this.props.item.old_value || ""}
-                             value={this.props.item.value || ""} />
+                             value={this.props.item.value || ""}
+                             description={this.props.item.description || ""} />
                 { !this.state.loadingUser &&
                   <p>by <span className="font-italic">{this.state.user.username}</span> at <span className="font-italic">{this.props.item.created}</span>
                   </p>

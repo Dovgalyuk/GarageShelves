@@ -1,35 +1,63 @@
 import React, { Component } from 'react';
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
+import PropTypes from 'prop-types'
 import fetchBackend, { BackendURL } from './Backend'
 import { FormUpload } from './Forms/Upload';
 
-class Image extends Component {
-    handleShow = () => {
-        this.showForm(this.props.id);
+export class Image extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            loading: true,
+            description: ""
+        };
+    }
+
+    componentDidMount() {
+        fetchBackend('image/get', {id:this.props.id})
+            .then(response => response.json())
+            .then(data => {
+                this.setState({loading:false, description:data.description});
+            })
+            .catch(e => this.setState({loading:false}));
+    }
+
+    handleClick = () => {
+        this.props.showForm(this.props.id);
     }
 
     render() {
         return <div className="col-3">
                 <button type="button" className="btn btn-link"
-                        onClick={() => this.props.showForm(this.props.id)}>
+                        onClick={this.handleClick}>
                   <div className="thumbnail">
-                    <img alt={this.props.description} width="256" height="256"
+                    <img alt={this.state.description} width="256" height="256"
                          className="figure-img img-fluid rounded"
                          src={BackendURL('image/view', {id:this.props.id, width: 256, height: 256})}
                          />
                   </div>
                 </button>
-                <center>{this.props.description}</center>
+                <center>{this.state.description}</center>
                </div>;
     }
+}
+
+Image.defaultProps = {
+    showForm: (id) => {},
+    description: "",
+}
+
+Image.propTypes = {
+    id: PropTypes.number.isRequired,
+    showForm: PropTypes.func.isRequired,
+    description: PropTypes.string.isRequired,
 }
 
 function ImageListRow(props) {
     return <div className="row pt-2">
              { props.row.map((img) =>
                 <Image key={img.id} id={img.id}
-                    description={img.description}
                     showForm={props.showForm}/>)}
            </div>;
 }
@@ -101,11 +129,11 @@ class ImageListSection extends Component {
                         <h3 className="pt-4">{this.props.title}</h3>
                       </div></div>
                     }
-                    {(this.props.auth.isAdmin
+                    {(this.props.auth.isAuthenticated
                           || (this.props.owner && this.props.auth.user_id === this.props.owner))
                       ? <>
                             <Button onClick={() => this.setState({uploadOpen:true})}>
-                                Upload file
+                                Upload image
                             </Button>
                             <FormUpload open={this.state.uploadOpen}
                                 type="image"

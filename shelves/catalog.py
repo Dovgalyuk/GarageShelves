@@ -7,7 +7,7 @@ import re
 from json import dumps
 
 from shelves.auth import (login_required, admin_required)
-from shelves.db import get_db_cursor, db_commit, db_rollback
+from shelves.db import get_db_cursor, db_commit, db_rollback, db_escape_string
 from shelves.collection import get_user_collection
 from shelves.image import upload_image
 from shelves.uploads import upload_file
@@ -106,14 +106,22 @@ def get_catalog(id):
 def get_catalog_images(id):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT img.id, img.filename, img.description'
-        ' FROM catalog c JOIN catalog_attribute a ON c.id = a.catalog_id'
-        ' JOIN image img ON a.value_id = img.id'
-        ' WHERE a.type = %s AND c.id = %s',
+        'SELECT a.value_id AS id'
+        ' FROM catalog_attribute a'
+        ' WHERE a.type = %s AND a.catalog_id = %s',
         (Attribute.ATTR_IMAGE, id,)
     )
-    images = cursor.fetchall()
-    return images
+    return cursor.fetchall()
+
+def get_catalog_attachments(id):
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT a.value_id AS id'
+        ' FROM catalog_attribute a'
+        ' WHERE a.type = %s AND a.catalog_id = %s',
+        (Attribute.ATTR_ATTACH, id,)
+    )
+    return cursor.fetchall()
 
 def get_catalog_logo_own(id):
     cursor = get_db_cursor()
@@ -148,6 +156,57 @@ def create_relation(cursor, id1, id2, rel):
         ' VALUES (%s, %s, %s)',
         (id1, id2, rel)
     )
+    if not g.user['admin']:
+        rel_id = cursor.lastrowid
+        cat = get_catalog(id2)
+        cursor.execute(
+            'INSERT INTO catalog_history'
+            ' (catalog_id, user_id, field, value, undo_query, description)'
+            ' VALUES (%s, %s, %s, %s, %s, %s)',
+            (id1, g.user['id'], 'relation', rel,
+            'DELETE FROM catalog_relation WHERE id = %d' % rel_id,
+            'Add relation "' + Relation.get_name(rel) + '" with ' + cat['title_eng'])
+        )
+
+def delete_relation(cursor, id1, id2, rel):
+    cursor.execute(
+        'DELETE FROM catalog_relation'
+        ' WHERE catalog_id1=%s AND catalog_id2=%s AND type=%s',
+        (id1, id2, rel,)
+    )
+    if not g.user['admin']:
+        cat = get_catalog(id2)
+        cursor.execute(
+            'INSERT INTO catalog_history'
+            ' (catalog_id, user_id, field, value, undo_query, description)'
+            ' VALUES (%s, %s, %s, %s, %s, %s)',
+            (id1, g.user['id'], 'relation', rel,
+            'INSERT INTO catalog_relation (catalog_id1, catalog_id2, type)' \
+                ' VALUES (%s, %s, %s)' % (id1, id2, rel),
+            'Delete relation ' + Relation.get_name(rel) + ' with ' + cat['title_eng'])
+        )
+
+def create_attribute(cursor, id, type, val):
+    cursor.execute(
+        'INSERT INTO catalog_attribute (type, catalog_id, value_id)'
+        ' VALUES (%s, %s, %s)',
+        (type, id, val,)
+    )
+    if not g.user['admin']:
+        attr = cursor.lastrowid
+        type_s = 'attribute'
+        if type == Attribute.ATTR_IMAGE:
+            type_s = 'image'
+        elif type == Attribute.ATTR_ATTACH:
+            type_s = 'attach'
+        cursor.execute(
+            'INSERT INTO catalog_history'
+            ' (catalog_id, user_id, field, value, undo_query, description)'
+            ' VALUES (%s, %s, %s, %s, %s, %s)',
+            (id, g.user['id'], type_s, val,
+            'DELETE FROM catalog_attribute WHERE id = %s' % attr,
+            'Add attribute %s/%s' % (type, val,))
+        )
 
 def create_catalog(cursor, type_id, title, title_eng, description, year, root_id = None):
     cursor.execute(
@@ -156,15 +215,20 @@ def create_catalog(cursor, type_id, title, title_eng, description, year, root_id
         (type_id, title, title_eng, description, year)
     )
     catalog_id = cursor.lastrowid
-    if root_id:
-        create_relation(cursor, root_id, catalog_id, Relation.REL_ROOT)
     if not g.user['admin']:
         cursor.execute(
             'INSERT INTO catalog_history'
-            ' (catalog_id, user_id, field, value, old_value)'
+            ' (catalog_id, user_id, field, undo_query, description)'
             ' VALUES (%s, %s, %s, %s, %s)',
-            (catalog_id, g.user['id'], "create", "", "")
+            (catalog_id, g.user['id'], "create",
+             'DELETE FROM catalog WHERE id = %s' % catalog_id,
+             'Create catalog item ' + title_eng
+            )
         )
+
+    if root_id:
+        create_relation(cursor, root_id, catalog_id, Relation.REL_ROOT)
+
     return catalog_id
 
 # insert ownership record for the specified item
@@ -470,9 +534,9 @@ def filtered_query(args, count):
         query += ' INNER JOIN storage_items ON c.id = storage_items.id'
         prefix_params = (*prefix_params, storage_item_id, Relation.REL_STORES,)
 
-    print(prefix + query + where + suffix)
-    print(prefix_params)
-    print(params)
+    # print(prefix + query + where + suffix)
+    # print(prefix_params)
+    # print(params)
     return {"query":prefix + query + where + suffix, "params":(*prefix_params, *params)}
 
 @bp.route('/_filtered_list')
@@ -566,19 +630,10 @@ def _images():
 @bp.route('/_attachments')
 def _attachments():
     id = request.args.get('id', -1, type=int)
-    cursor = get_db_cursor()
-    cursor.execute(
-        'SELECT att.id, att.filename, att.description'
-        ' FROM catalog c JOIN catalog_attribute a ON c.id = a.catalog_id'
-        ' JOIN attachment att ON a.value_id = att.id'
-        ' WHERE a.type = %s AND c.id = %s',
-        (Attribute.ATTR_ATTACH, id,)
-    )
-    return jsonify(cursor.fetchall())
+    return jsonify(get_catalog_attachments(id))
 
 @bp.route('/_upload_image', methods=('POST',))
 @login_required
-@admin_required
 def _upload_image():
     id = request.form.get('id', -1, type=int)
     get_catalog(id)
@@ -590,11 +645,7 @@ def _upload_image():
     if file:
         file_id = upload_image(file, request.form.get('desc'))
         cursor = get_db_cursor()
-        cursor.execute(
-            'INSERT INTO catalog_attribute (type, catalog_id, value_id)'
-            ' VALUES (%s, %s, %s)',
-            (Attribute.ATTR_IMAGE, id, file_id,)
-        )
+        create_attribute(cursor, id, Attribute.ATTR_IMAGE, file_id)
         db_commit()
         cursor.execute('SELECT id, filename FROM image WHERE id = %s',
             (file_id,))
@@ -604,7 +655,6 @@ def _upload_image():
 
 @bp.route('/_upload_file', methods=('POST',))
 @login_required
-@admin_required
 def _upload_file():
     id = request.form.get('id', -1, type=int)
     get_catalog(id)
@@ -616,11 +666,7 @@ def _upload_file():
     if file:
         file_id = upload_file(file, request.form.get('desc'))
         cursor = get_db_cursor()
-        cursor.execute(
-            'INSERT INTO catalog_attribute (type, catalog_id, value_id)'
-            ' VALUES (%s, %s, %s)',
-            (Attribute.ATTR_ATTACH, id, file_id,)
-        )
+        create_attribute(cursor, id, Attribute.ATTR_ATTACH, file_id)
         db_commit()
         cursor.execute('SELECT id, filename FROM attachment WHERE id = %s',
             (file_id,))
@@ -710,9 +756,13 @@ def _update():
             'year']:
             abort(403)
         if field == 'year':
-            year = int(value)
-            if year < 1500 or year > 2100:
-                abort(403)
+            if value == "":
+                value = None
+            else:
+                year = int(value)
+                if year < 1500 or year > 2100:
+                    abort(403)
+                value = year
         cursor = get_db_cursor()
         # field is validated, use concatenation here
         cursor.execute(
@@ -720,11 +770,20 @@ def _update():
             (value, id)
         )
         if not g.user['admin']:
+            old_value = catalog[field]
+            if old_value:
+                if field != 'year':
+                    old_value = '"' + db_escape_string(old_value) + '"'
+            else:
+                old_value = 'NULL'
             cursor.execute(
                 'INSERT INTO catalog_history'
-                ' (catalog_id, user_id, field, value, old_value)'
-                ' VALUES (%s, %s, %s, %s, %s)',
-                (id, g.user['id'], field, value, catalog[field])
+                ' (catalog_id, user_id, field, value, old_value, undo_query, description)'
+                ' VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                (id, g.user['id'], field, value, catalog[field],
+                    'UPDATE catalog SET %s = %s WHERE id = %s' % (field, old_value, id,),
+                    'Change %s from %s to %s' % (field, catalog[field], value)
+                )
             )
         db_commit()
     except:
@@ -781,7 +840,7 @@ def _create():
         error = 'title_eng is required'
 
     if error is not None:
-        print(error)
+        # print(error)
         abort(403, error)
 
     try:
@@ -880,7 +939,7 @@ def _create_kit():
     return jsonify(result='success')
 
 @bp.route('/_relation_remove', methods=('POST',))
-@admin_required
+@login_required
 def _relation_remove():
     id1 = int(request.json['id1'])
     id2 = int(request.json['id2'])
@@ -893,16 +952,12 @@ def _relation_remove():
     else:
         abort(403)
     cursor = get_db_cursor()
-    cursor.execute(
-        'DELETE FROM catalog_relation'
-        ' WHERE catalog_id1=%s AND catalog_id2=%s AND type=%s',
-        (id1, id2, rel_id,)
-    )
+    delete_relation(cursor, id1, id2, rel_id)
     db_commit()
     return jsonify(result='success')
 
 @bp.route('/_relation_add', methods=('POST',))
-@admin_required
+@login_required
 def _relation_add():
     id1 = int(request.json['id1'])
     id2 = int(request.json['id2'])
@@ -966,20 +1021,17 @@ def _relation_add():
 
 
 @bp.route('/_company_set', methods=('POST',))
-@admin_required
+@login_required
 def _company_set():
     id1 = int(request.json['id1'])
     id2 = int(request.json['id2'])
 
     # assert the ids
-    get_catalog(id2)
+    cat = get_catalog(id2)
 
     cursor = get_db_cursor()
-    cursor.execute(
-        'DELETE FROM catalog_relation'
-        ' WHERE catalog_id2=%s AND type=%s',
-        (id2, Relation.REL_PRODUCED,)
-    )
+    if cat['company_id']:
+        delete_relation(cursor, cat['company_id'], id2, Relation.REL_PRODUCED)
     if id1 != -1:
         get_catalog(id1)
         create_relation(cursor, id1, id2, Relation.REL_PRODUCED)
@@ -1065,6 +1117,12 @@ def _join():
         if cursor.fetchone():
             return error("items relate to each other")
 
+        cursor.execute('SELECT * FROM catalog_history'
+            ' WHERE catalog_id = %s OR catalog_id = %s',
+            (id1, id2,))
+        if cursor.fetchone():
+            return error('items modifications should be approved or deleted')
+
         cursor.execute('SELECT * FROM catalog_relation'
             ' WHERE catalog_id1 = %s AND catalog_id2 = %s',
             (id2, id1,))
@@ -1141,12 +1199,6 @@ def _join():
             (id1, id2, )
         )
 
-        # Redirect catalog history
-        cursor.execute(
-            'UPDATE catalog_history SET catalog_id = %s WHERE catalog_id = %s',
-            (id1, id2, )
-        )
-
         # Redirect catalog item relations
         cursor.execute(
             'UPDATE catalog_item_relation SET catalog_id = %s WHERE catalog_id = %s',
@@ -1170,34 +1222,3 @@ def _join():
         return error("uknown error")
 
     return success()
-
-###############################################################################
-# Routes
-###############################################################################
-
-# @bp.route('/<int:id>/_delete')
-# @login_required
-# @admin_required
-# def _delete(id):
-#     # assert id is correct
-#     catalog = get_catalog(id)
-
-#     cursor = get_db_cursor()
-#     # delete attributes
-#     cursor.execute(
-#         'DELETE FROM catalog_attribute WHERE catalog_id = %s',
-#         (id,)
-#     )
-#     # delete relations
-#     cursor.execute(
-#         'DELETE FROM catalog_relation WHERE catalog_id1 = %s OR catalog_id2 = %s',
-#         (id, id,)
-#     )
-#     # delete item
-#     cursor.execute('DELETE FROM catalog WHERE id = %s', (id,));
-
-#     # TODO: delete child items for the kit?
-
-#     db_commit()
-
-#     return redirect(url_for('catalog.index'))

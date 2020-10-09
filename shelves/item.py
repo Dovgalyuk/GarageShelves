@@ -16,10 +16,9 @@ bp = Blueprint('item', __name__, url_prefix='/item')
 def get_item_images(id):
     cursor = get_db_cursor()
     cursor.execute(
-        'SELECT img.id, img.filename, img.description'
-        ' FROM item i JOIN item_attribute a ON i.id = a.item_id'
-        ' JOIN image img ON a.value_id = img.id'
-        ' WHERE a.type = %s AND i.id = %s',
+        'SELECT a.value_id AS id'
+        ' FROM item_attribute a'
+        ' WHERE a.type = %s AND a.item_id = %s',
         (Attribute.ATTR_IMAGE, id,)
     )
     return cursor.fetchall()

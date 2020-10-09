@@ -5,17 +5,39 @@ import Button from 'react-bootstrap/Button'
 import fetchBackend, { BackendURL } from './Backend'
 import { FormUpload } from './Forms/Upload';
 
-function Attachment(props) {
-    return (
-        <Row><Col>
-            <Button variant="link"
-                    href={BackendURL('uploads/download', {id:props.id})}>
-                {props.filename}
-            </Button>
-        </Col><Col>
-            {props.description}
-        </Col></Row>
-    );
+export class Attachment extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            loading: true,
+            filename: "",
+            description: ""
+        };
+    }
+
+    componentDidMount() {
+        fetchBackend('uploads/get', {id:this.props.id})
+            .then(response => response.json())
+            .then(data => {
+                this.setState({loading: false,
+                    filename: data.filename,
+                    description: data.description});
+            })
+            .catch(e => this.setState({loading:false}));
+    }
+
+    render() {
+        return (
+            <Row><Col>
+                <Button variant="link"
+                        href={BackendURL('uploads/download', {id:this.props.id})}>
+                    {this.state.filename}
+                </Button>
+            </Col><Col>
+                {this.state.description}
+            </Col></Row>
+        );
+    }
 }
 
 class AttachmentListSection extends Component {
@@ -58,7 +80,7 @@ class AttachmentListSection extends Component {
                         <h3 className="pt-4">{this.props.title}</h3>
                       </div></div>
                     }
-                    {(this.props.auth.isAdmin
+                    {(this.props.auth.isAuthenticated
                           || (this.props.owner && this.props.auth.user_id === this.props.owner))
                       && <>
                             <Button onClick={() => this.setState({uploadOpen:true})}>
@@ -73,7 +95,7 @@ class AttachmentListSection extends Component {
                         </>
                     }
                     {this.state.items.map((item) =>
-                       <Attachment key={item.id} {...item} />)}
+                       <Attachment key={item.id} id={item.id} />)}
                </>;
     }
 }

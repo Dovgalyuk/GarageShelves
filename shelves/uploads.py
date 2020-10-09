@@ -1,7 +1,7 @@
 import os
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for,
-    current_app, send_from_directory, send_file
+    current_app, send_from_directory, send_file, jsonify
 )
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
@@ -28,6 +28,20 @@ def upload_file(file, desc):
         os.path.join(os.path.abspath(current_app.instance_path), 'uploads'),
         '%d' % (file_id,)))
     return file_id
+
+@bp.route('/get')
+def get():
+    id = request.args.get('id', -1, type=int)
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT filename, description FROM attachment WHERE id = %s',
+        (id,)
+    )
+    res = cursor.fetchone()
+    if res is None:
+        abort(403)
+
+    return jsonify(res)
 
 @bp.route('/download')
 def download():

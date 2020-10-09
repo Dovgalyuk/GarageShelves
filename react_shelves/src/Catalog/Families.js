@@ -19,7 +19,7 @@ function CategoryButtons(props) {
                 <Button variant="link" href={"/catalog/view/" + f.id}>
                     {f.root_title || "Category"} : {f.title_eng || f.title} 
                 </Button>
-                {props.auth.isAdmin && f.own
+                {props.auth.isAuthenticated && f.own
                     ? <Button size="sm" variant="danger"
                           onClick={() => props.handleDelete(f.id, props.relation)}>
                         <FontAwesomeIcon icon={faTrashAlt} />
@@ -106,7 +106,7 @@ export class CatalogFamilies extends Component {
             <ButtonToolbar>
                 <Button size="sm" variant="light"
                     onClick={this.handleAddFamily}
-                    disabled={!this.props.auth.isAdmin}>
+                    disabled={!this.props.auth.isAuthenticated}>
                     Families
                 </Button>
                 &nbsp;
@@ -117,7 +117,7 @@ export class CatalogFamilies extends Component {
                          relation="includes"/>
                 <Button size="sm" variant="light"
                     onClick={this.handleAddPlatform}
-                    disabled={!this.props.auth.isAdmin}>
+                    disabled={!this.props.auth.isAuthenticated}>
                     Platforms
                 </Button>
                 &nbsp;
@@ -127,7 +127,7 @@ export class CatalogFamilies extends Component {
                          header="Compatible with"
                          relation="compatible"/>
             </ButtonToolbar>
-            {(this.props.auth.isAuthenticated && this.props.auth.isAdmin)
+            {(this.props.auth.isAuthenticated)
                 ? <FormCatalogSelect
                     title={this.state.formTitle}
                     open={this.state.showForm}

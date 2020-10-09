@@ -1,6 +1,7 @@
 import React, { Component, Fragment, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import CookieConsent from "react-cookie-consent"
+import Navbar from 'react-bootstrap/Navbar'
 import NavbarMain from './Navbar/Main';
 import NavbarAdmin from './Navbar/Admin';
 import Profile from './Routes/Profile';
@@ -96,7 +97,9 @@ class App extends Component {
       <Fragment>
         <CookieConsent>This website uses cookies to enhance the user experience.</CookieConsent>
         <NavbarMain {...childProps} />
-        {this.state.isAdmin ? <NavbarAdmin {...childProps} /> : <div/>}
+        {this.state.isAdmin
+          ? <NavbarAdmin {...childProps} />
+          : <Navbar bg="light" variant="light" />}
         {/* TODO: Error messages here */}
         <div className="container">
           <Router childProps={childProps}>

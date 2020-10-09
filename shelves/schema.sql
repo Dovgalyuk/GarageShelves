@@ -40,9 +40,11 @@ CREATE TABLE catalog_history (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
   catalog_id INTEGER NOT NULL,
   user_id INTEGER NOT NULL,
-  field TEXT NOT NULL,
+  field TEXT NULL,
   value TEXT NULL,
   old_value TEXT NULL,
+  undo_query TEXT NOT NULL,
+  description TEXT NULL,
 
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

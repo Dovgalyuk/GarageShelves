@@ -34,7 +34,7 @@ def list():
     cursor.execute(
         'SELECT *'
         ' FROM catalog_history ch'
-        ' ORDER BY ch.created'
+        ' ORDER BY ch.created, ch.id'
         )
     return jsonify(cursor.fetchall())
 
@@ -47,11 +47,6 @@ def approve():
 
     cursor = get_db_cursor()
 
-    if item['field'] != 'create':
-        cursor.execute(
-            'UPDATE catalog SET ' + item['field'] + ' = %s WHERE id = %s',
-            (item['value'], item['catalog_id'],)
-        )
     cursor.execute(
         'DELETE FROM catalog_history WHERE id = %s', (id,)
     )
@@ -67,13 +62,11 @@ def undo():
     item = get_item(id)
 
     if item['field'] == 'create':
+        # no cascade delete yet
         abort(403)
 
     cursor = get_db_cursor()
-    cursor.execute(
-        'UPDATE catalog SET ' + item['field'] + ' = %s WHERE id = %s',
-        (item['old_value'], item['catalog_id'],)
-    )
+    cursor.execute(item['undo_query'])
     cursor.execute(
         'DELETE FROM catalog_history WHERE id = %s', (id,)
     )

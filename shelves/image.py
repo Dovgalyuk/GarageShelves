@@ -1,7 +1,7 @@
 import os
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for,
-    current_app, send_from_directory, send_file
+    current_app, send_from_directory, send_file, jsonify
 )
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
@@ -44,6 +44,19 @@ def upload_image(file,desc='',width=-1,height=-1):
         '%d.%s' % (file_id, ext)))
     return file_id
 
+@bp.route('/get')
+def get():
+    id = request.args.get('id', -1, type=int)
+    cursor = get_db_cursor()
+    cursor.execute(
+        'SELECT description FROM image WHERE id = %s',
+        (id,)
+    )
+    image = cursor.fetchone()
+    if image is None:
+        abort(403)
+
+    return jsonify(image)
 
 @bp.route('/view')
 def view():

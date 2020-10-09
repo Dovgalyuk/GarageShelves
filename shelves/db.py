@@ -13,6 +13,8 @@ def get_db_cursor():
 
     return g.db.cursor(MySQLdb.cursors.DictCursor)
 
+def db_escape_string(s):
+    return mysql.connection.escape_string(s)
 
 def close_db(e=None):
     db = g.pop('db', None)

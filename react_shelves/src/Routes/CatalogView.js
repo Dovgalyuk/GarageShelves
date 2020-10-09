@@ -180,7 +180,7 @@ export default class CatalogView extends Component {
                                           hint={"Company name"}
                                           defaultValue={-1}
                                           defaultName="Unknown"
-                                          canEdit = {() => this.canEdit() && this.props.auth.isAdmin}
+                                          canEdit = {() => this.canEdit() && this.props.auth.isAuthenticated}
                                           onLoadList={this.handleLoadCompanies}
                                           onSave={v => this.handleEditCompany(v)}
                                           onRender={this.handleCompanyRender}
