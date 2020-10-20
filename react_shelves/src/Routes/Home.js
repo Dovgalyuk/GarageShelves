@@ -20,7 +20,9 @@ export class Home extends Component {
               your collection.
             </p>
           <p className="lead">All items that you own must refer to the catalog items.
-              Catalog items are description of the device classes and managed by admin.
+              Catalog items are description of the device classes. They also can include
+              images, files, and text description. Catalog items may be grouped into kits
+              to define packages as they were selled.
             </p>
         </Col>
       </Row>
