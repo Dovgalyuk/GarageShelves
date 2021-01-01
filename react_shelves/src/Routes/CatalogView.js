@@ -263,7 +263,7 @@ export default class CatalogView extends Component {
                   ? <CatalogListSection
                     ref={(ref) => {this.childrenRef = ref;}}
                     filter={ {parent:catalog.id, parent_rel:"includes",
-                        not_type: "abstract,bits", noroot: catalog.is_group === 1} }
+                        not_type: "abstract", noroot: catalog.is_group === 1} }
                     addFilter={catalog.is_group === 1
                                ? {parent:catalog.root, parent_rel:"root", type:"physical,kit", notype:true}
                                : catalog.is_kit === 1 ? {type:"physical,kit"} : null }
@@ -290,7 +290,7 @@ export default class CatalogView extends Component {
                     addRelation="stores"
                     mainId={catalog.id}
                     auth={this.props.auth}
-                    title="Includes the software" />
+                    title="Stores the software" />
 
                 { catalog.is_kit
                   ? <CatalogListSection
