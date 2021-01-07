@@ -18,6 +18,7 @@ class NavbarMain extends Component {
           <Nav className="mr-auto">
             <Nav.Link href="/">Home</Nav.Link>
             <Nav.Link href="/catalog">Catalog</Nav.Link>
+            <Nav.Link href="/search">Search</Nav.Link>
             <Nav.Link href="/collection">All collections</Nav.Link>
             {this.props.auth.isAuthenticated
               ? <Nav.Link href="/profile">{this.props.auth.username}</Nav.Link>

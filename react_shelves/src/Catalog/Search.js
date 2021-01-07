@@ -66,9 +66,3 @@ CatalogSearch.propTypes = {
     filter: PropTypes.object.isRequired,
     onSelection: PropTypes.func,
 }  
-
-export default function CatalogSearchTab(props) {
-    return (
-        <CatalogSearch listProps={{variant:"normal"}} />
-    );
-}

@@ -13,6 +13,7 @@ import Catalog from './Routes/Catalog';
 import CatalogJoin from './Routes/Join';
 import CatalogView from './Routes/CatalogView';
 import ItemView from './Routes/ItemView';
+import Search from './Routes/Search'
 import Login from './Auth';
 import AppliedRoute from "./AppliedRoute";
 import fetchBackend, { postBackend } from './Backend'
@@ -116,6 +117,8 @@ class App extends Component {
                 <AppliedRoute path="/catalog/view/:id" exact component={CatalogView}
                               props={childProps} />
                 <AppliedRoute path="/item/view/:id" exact component={ItemView}
+                              props={childProps} />
+                <AppliedRoute path="/search" exact component={Search}
                               props={childProps} />
                 <AppliedRoute path="/login" exact component={Login}
                               props={childProps} />

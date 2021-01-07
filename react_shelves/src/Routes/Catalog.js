@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import Tabs from 'react-bootstrap/Tabs'
 import Tab from 'react-bootstrap/Tab'
 import { CatalogListSection } from "../Catalog/ListSection";
-import CatalogSearchTab from '../Catalog/Search'
 import fetchBackend from '../Backend'
 
 class CatalogSections extends Component {
@@ -73,9 +72,6 @@ export default class Catalog extends Component {
                 <CatalogSections page={p.id} auth={this.props.auth} />
               </Tab>)
             }
-            <Tab eventKey="search" title="Search">
-              <CatalogSearchTab auth={this.props.auth} />
-            </Tab>
           </Tabs>
         </>
       );
