@@ -33,15 +33,13 @@ export class CatalogListSection extends Component {
         return this.props.variant === "tiny";
     }
 
-    handleUpdate = (p) => {
+    handleUpdate = (page) => {
         if (this.props.filter.noload) {
             this.setState({loading: false});
             return;
         }
-        var page = this.state.page;
-        if (p) {
-            page = p;
-        }
+        if (typeof(page) === 'undefined')
+            page = this.state.page;
         fetchBackend('catalog/_filtered_count',
             {...this.props.filter, ...this.state.filter} )
             .then(response => response.json())
@@ -93,7 +91,7 @@ export class CatalogListSection extends Component {
             )
             .catch(e => {})
             .finally((e) => {
-                this.handleUpdate(0);
+                this.handleUpdate(this.state.page);
             });
     }
 

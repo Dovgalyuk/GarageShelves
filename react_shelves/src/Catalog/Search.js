@@ -26,7 +26,7 @@ export class CatalogSearch extends Component {
 
     handleUpdate = () => {
         this.setState({filter: this.getFilter()},
-            () => this.listRef.handleUpdate())
+            () => this.listRef.handleUpdate(0))
     }
 
     handleChange = (event) => {
