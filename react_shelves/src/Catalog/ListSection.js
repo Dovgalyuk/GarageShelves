@@ -11,7 +11,7 @@ import fetchBackend, { postBackend } from '../Backend';
 import FormCatalogCreate from '../Forms/CatalogCreate';
 import FormCatalogFilter from '../Forms/Filter';
 import FormCatalogSelect from '../Forms/CatalogSelect'
-import { CatalogItem } from './Helpers';
+import { CatalogItem } from "./CatalogItem";
 
 export class CatalogListSection extends Component {
     constructor(props) {

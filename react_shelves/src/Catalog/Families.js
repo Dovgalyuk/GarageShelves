@@ -1,4 +1,6 @@
 import React, { Component, Fragment } from 'react'
+import PropTypes from 'prop-types';
+import Badge from 'react-bootstrap/Badge'
 import Button from 'react-bootstrap/Button'
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar'
 import Popover from 'react-bootstrap/Popover'
@@ -10,7 +12,7 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 
 function CategoryButtons(props) {
     return (<>
-      {props.categories.map((f) => <div key={f.id}>
+      {props.categories.map((f) => <span key={f.id}>
         <OverlayTrigger trigger="click" placement="right"
             overlay={
             <Popover>
@@ -19,30 +21,103 @@ function CategoryButtons(props) {
                 <Button variant="link" href={"/catalog/view/" + f.id}>
                     {f.root_title || "Category"} : {f.title_eng || f.title} 
                 </Button>
-                {props.auth.isAuthenticated && f.own
+                { props.canDelete && f.own && props.handleDelete
                     ? <Button size="sm" variant="danger"
-                          onClick={() => props.handleDelete(f.id, props.relation)}>
+                          onClick={() => props.handleDelete(f.id)}>
                         <FontAwesomeIcon icon={faTrashAlt} />
                     </Button>
-                    : <div />}
+                    : <div />
+                }
               </Popover.Content>
             </Popover>
             }>
-            <Button size="sm" variant={f.own ? "primary" : "secondary"}>
-            {f.title_eng || f.title}
-            </Button>
+            { props.tiny
+                ? <Badge variant="secondary">{f.title_eng || f.title}</Badge>
+                : <Button size="sm" variant={f.own ? "primary" : "secondary"}>
+                    {f.title_eng || f.title}
+                  </Button>
+            }
         </OverlayTrigger>
         &nbsp;
-      </div>)}
+      </span>)}
     </>);
 }
+
+CategoryButtons.defaultProps = {
+    tiny: false,
+    canDelete: false,
+    header: "",
+};
+
+CategoryButtons.propTypes = {
+    categories: PropTypes.array.isRequired,
+    tiny: PropTypes.bool.isRequired,
+    handleDelete: PropTypes.func,
+    canDelete: PropTypes.bool,
+    header: PropTypes.string,
+};
+
+export class PlatformButtons extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            platforms: [],
+            showForm: false,
+            filter: {},
+            formTitle: "",
+            path: "",
+        };
+    }
+    componentDidMount() {
+        this.handleUpdate();
+    }
+    handleDelete = (family, relation) => {
+        postBackend('catalog/_relation_remove', {},
+            { id2: this.props.id, id1: family, rel: relation }
+        )
+            .catch(e => { })
+            .finally((e) => {
+                this.handleUpdate();
+            });
+    }
+    handleUpdate = () => {
+        fetchBackend('catalog/_included_rec',
+            { id: this.props.id, rel: "compatible" }
+        )
+            .then(response => response.json())
+            .then(data => {
+                this.setState({ platforms: data });
+            })
+            .catch(e => {});
+    }
+
+    render() {
+        return (<CategoryButtons categories={this.state.platforms}
+            handleDelete={(id) => this.handleDelete(id, "compatible")}
+            canDelete={this.props.canDelete}
+            header={this.props.header}
+            tiny={this.props.tiny}/>);
+    }
+};
+
+PlatformButtons.defaultProps = {
+    tiny: false,
+    canDelete: false,
+    header: "",
+};
+
+PlatformButtons.propTypes = {
+    id: PropTypes.number.isRequired,
+    tiny: PropTypes.bool.isRequired,
+    canDelete: PropTypes.bool,
+    header: PropTypes.string,
+};
 
 export class CatalogFamilies extends Component {
     constructor(props) {
         super(props);
         this.state = {
             families: [],
-            platforms: [],
             showForm: false,
             filter: {},
             formTitle: "",
@@ -61,14 +136,7 @@ export class CatalogFamilies extends Component {
                 this.setState({ families: data });
             })
             .catch(e => {});
-        fetchBackend('catalog/_included_rec',
-            { id: this.props.id, rel: "compatible" }
-        )
-            .then(response => response.json())
-            .then(data => {
-                this.setState({ platforms: data });
-            })
-            .catch(e => {});
+        this.platformsRef.handleUpdate();
     }
     handleDelete = (family, relation) => {
         postBackend('catalog/_relation_remove', {},
@@ -111,21 +179,19 @@ export class CatalogFamilies extends Component {
                 </Button>
                 &nbsp;
                 <CategoryButtons categories={this.state.families}
-                         handleDelete={this.handleDelete}
-                         auth={this.props.auth}
-                         header="Belongs to"
-                         relation="includes"/>
+                         handleDelete={(id) => this.handleDelete(id, "includes")}
+                         canDelete={this.props.auth.isAuthenticated}
+                         header="Belongs to"/>
                 <Button size="sm" variant="light"
                     onClick={this.handleAddPlatform}
                     disabled={!this.props.auth.isAuthenticated}>
                     Platforms
                 </Button>
                 &nbsp;
-                <CategoryButtons categories={this.state.platforms}
-                         handleDelete={this.handleDelete}
-                         auth={this.props.auth}
-                         header="Compatible with"
-                         relation="compatible"/>
+                <PlatformButtons ref={(ref) => {this.platformsRef = ref;}}
+                        id={this.props.id}
+                        canDelete={this.props.auth.isAuthenticated}
+                        header="Compatible with"/>
             </ButtonToolbar>
             {(this.props.auth.isAuthenticated)
                 ? <FormCatalogSelect
