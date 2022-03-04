@@ -8,14 +8,15 @@
     "@fortawesome/react-fontawesome": "^0.1.14",
     "bootstrap": "^4.5.3",
     "fetch-suspense": "^1.2.2",
+    "query-string": "^7.1.1",
     "react": "^16.14.0",
     "react-bootstrap": "^1.4.0",
     "react-cookie-consent": "^5.2.0",
     "react-diff-viewer": "^1.1.0",
     "react-dom": "^16.14.0",
-    "react-markdown": "^4.3.1",
+    "react-markdown": "^8.0.0",
     "react-router-dom": "^4.3.1",
-    "react-scripts": "^3.4.4"
+    "react-scripts": "^5.0.0"
   },
   "scripts": {
     "start": "react-scripts start",
