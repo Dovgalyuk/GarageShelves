@@ -85,7 +85,7 @@ class CatalogProps extends Component {
                     <h5>Descrption</h5>
                 </Row>
                 <Row>
-                    <ReactMarkdown escapeHtml={false} source={ cat.description } />
+                    <ReactMarkdown escapeHtml={false}>{ cat.description }</ReactMarkdown>
                 </Row>
                 <Button onClick={this.handleFormOpen}>Select catalog item</Button>
                 <FormCatalogSelect

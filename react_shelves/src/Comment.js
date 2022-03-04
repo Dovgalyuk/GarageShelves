@@ -46,7 +46,7 @@ function Comment(props) {
         </Row>
         <Row>
           <Col>
-            <ReactMarkdown className="border" source={props.comment.message} />
+            <ReactMarkdown className="border">{props.comment.message}</ReactMarkdown>
           </Col>
         </Row>
         <Row>

@@ -110,7 +110,7 @@ export default class CollectionView extends Component {
               </div>
               <Row>
                 <Col>
-                  <ReactMarkdown source={ this.state.collection.description } />
+                  <ReactMarkdown>{ this.state.collection.description }</ReactMarkdown>
                 </Col>
               </Row>
               <Tabs defaultActiveKey={this.state.pages[0].title} transition={false}>

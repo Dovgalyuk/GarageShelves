@@ -23,7 +23,7 @@ export function Collection(props) {
               { props.collection.count } item{ props.collection.count > 1 && "s"}
             </span>
           </p>
-          <ReactMarkdown source={ props.collection.description } />
+          <ReactMarkdown>{ props.collection.description }</ReactMarkdown>
         </Col>
       </Row>
     );
