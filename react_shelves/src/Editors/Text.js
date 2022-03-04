@@ -151,7 +151,7 @@ export default class EditText extends Component {
                     <FontAwesomeIcon icon={faEdit} />
                   </Button>);
       }
-      return <ReactMarkdown escapeHtml={false} source={ val } />;
+      return <ReactMarkdown escapeHtml={false}>{ val }</ReactMarkdown>;
     } else {
       return (<Fragment>
                 {this.props.prefix || ""}
