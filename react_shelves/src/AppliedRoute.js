@@ -1,6 +1,7 @@
 import React from "react";
 import { Route } from "react-router-dom";
 
-export default ({ component: C, props: cProps, ...rest }) =>
+const applied_route = ({ component: C, props: cProps, ...rest }) =>
   <Route {...rest} render={props => <C {...props} {...cProps}
          key={props.match.url} />} />;
+export default applied_route
