@@ -4,6 +4,8 @@ import Button from 'react-bootstrap/Button'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw'
+import rehypeSanitize from 'rehype-sanitize'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faTimes, faEdit } from '@fortawesome/free-solid-svg-icons'
 
@@ -151,7 +153,7 @@ export default class EditText extends Component {
                     <FontAwesomeIcon icon={faEdit} />
                   </Button>);
       }
-      return <ReactMarkdown escapeHtml={false}>{ val }</ReactMarkdown>;
+      return <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSanitize]}>{ val }</ReactMarkdown>;
     } else {
       return (<Fragment>
                 {this.props.prefix || ""}

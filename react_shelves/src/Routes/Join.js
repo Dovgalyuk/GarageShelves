@@ -4,6 +4,8 @@ import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 import Alert from 'react-bootstrap/Alert'
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw'
+import rehypeSanitize from 'rehype-sanitize'
 import fetchBackend, { postBackend } from '../Backend'
 import FormCatalogSelect from '../Forms/CatalogSelect'
 import { Logo } from "../Catalog/Logo";
@@ -85,7 +87,7 @@ class CatalogProps extends Component {
                     <h5>Descrption</h5>
                 </Row>
                 <Row>
-                    <ReactMarkdown escapeHtml={false}>{ cat.description }</ReactMarkdown>
+                    <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSanitize]}>{ cat.description }</ReactMarkdown>
                 </Row>
                 <Button onClick={this.handleFormOpen}>Select catalog item</Button>
                 <FormCatalogSelect
