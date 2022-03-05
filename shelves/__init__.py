@@ -21,8 +21,7 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
     app.config.update(SESSION_COOKIE_SAMESITE='None')
-    if app.env == 'production':
-        app.config.update(SESSION_COOKIE_SECURE=True)
+    app.config.update(SESSION_COOKIE_SECURE=True)
 
     # init all after config
 
