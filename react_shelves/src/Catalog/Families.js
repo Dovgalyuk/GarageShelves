@@ -62,23 +62,10 @@ export class PlatformButtons extends Component {
         super(props);
         this.state = {
             platforms: [],
-            showForm: false,
-            filter: {},
-            formTitle: "",
-            path: "",
         };
     }
     componentDidMount() {
         this.handleUpdate();
-    }
-    handleDelete = (family, relation) => {
-        postBackend('catalog/_relation_remove', {},
-            { id2: this.props.id, id1: family, rel: relation }
-        )
-            .catch(e => { })
-            .finally((e) => {
-                this.handleUpdate();
-            });
     }
     handleUpdate = () => {
         fetchBackend('catalog/_included_rec',
@@ -93,7 +80,7 @@ export class PlatformButtons extends Component {
 
     render() {
         return (<CategoryButtons categories={this.state.platforms}
-            handleDelete={(id) => this.handleDelete(id, "compatible")}
+            handleDelete={this.props.handleDelete}
             canDelete={this.props.canDelete}
             header={this.props.header}
             tiny={this.props.tiny}/>);
@@ -109,6 +96,51 @@ PlatformButtons.defaultProps = {
 PlatformButtons.propTypes = {
     id: PropTypes.number.isRequired,
     tiny: PropTypes.bool.isRequired,
+    handleDelete: PropTypes.func,
+    canDelete: PropTypes.bool,
+    header: PropTypes.string,
+};
+
+export class CompanyButtons extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            companies: [],
+        };
+    }
+    componentDidMount() {
+        this.handleUpdate();
+    }
+    handleUpdate = () => {
+        fetchBackend('catalog/_filtered_list',
+            { includes: this.props.id, child_rel: "produced", type: "company" }
+        )
+            .then(response => response.json())
+            .then(data => {
+                this.setState({ companies: data.map(obj => ({...obj, own: true}) ) });
+            })
+            .catch(e => {});
+    }
+
+    render() {
+        return (<CategoryButtons categories={this.state.companies}
+            handleDelete={this.props.handleDelete}
+            canDelete={this.props.canDelete}
+            header={this.props.header}
+            tiny={this.props.tiny}/>);
+    }
+};
+
+CompanyButtons.defaultProps = {
+    tiny: false,
+    canDelete: false,
+    header: "",
+};
+
+CompanyButtons.propTypes = {
+    id: PropTypes.number.isRequired,
+    tiny: PropTypes.bool.isRequired,
+    handleDelete: PropTypes.func,
     canDelete: PropTypes.bool,
     header: PropTypes.string,
 };
@@ -137,6 +169,7 @@ export class CatalogFamilies extends Component {
             })
             .catch(e => {});
         this.platformsRef.handleUpdate();
+        this.companiesRef.handleUpdate();
     }
     handleDelete = (family, relation) => {
         postBackend('catalog/_relation_remove', {},
@@ -153,6 +186,11 @@ export class CatalogFamilies extends Component {
             filter: {
                 parent: this.props.root, parent_rel: "root",
                 type: "abstract", notype:true} });
+    }
+    handleAddCompany = () => {
+        this.setState({ showForm: true, formTitle: "Add new company",
+            path: "produced",
+            filter: {type: "company", notype:true} });
     }
     handleAddPlatform = () => {
         this.setState({ showForm: true, path: "compatible", formTitle: "Add target platform",
@@ -173,15 +211,26 @@ export class CatalogFamilies extends Component {
         return (<Fragment>
             <ButtonToolbar>
                 <Button size="sm" variant="light"
+                    onClick={this.handleAddCompany}
+                    disabled={!this.props.auth.isAuthenticated}>
+                    Companies
+                </Button>
+                &nbsp;
+                <CompanyButtons ref={(ref) => {this.companiesRef = ref;}}
+                        id={this.props.id}
+                        handleDelete={(id) => this.handleDelete(id, "produced")}
+                        canDelete={this.props.auth.isAuthenticated}
+                        header="Manufactured by"/>
+                <Button size="sm" variant="light"
                     onClick={this.handleAddFamily}
                     disabled={!this.props.auth.isAuthenticated}>
                     Families
                 </Button>
                 &nbsp;
                 <CategoryButtons categories={this.state.families}
-                         handleDelete={(id) => this.handleDelete(id, "includes")}
-                         canDelete={this.props.auth.isAuthenticated}
-                         header="Belongs to"/>
+                        handleDelete={(id) => this.handleDelete(id, "includes")}
+                        canDelete={this.props.auth.isAuthenticated}
+                        header="Belongs to"/>
                 <Button size="sm" variant="light"
                     onClick={this.handleAddPlatform}
                     disabled={!this.props.auth.isAuthenticated}>
@@ -190,6 +239,7 @@ export class CatalogFamilies extends Component {
                 &nbsp;
                 <PlatformButtons ref={(ref) => {this.platformsRef = ref;}}
                         id={this.props.id}
+                        handleDelete={(id) => this.handleDelete(id, "compatible")}
                         canDelete={this.props.auth.isAuthenticated}
                         header="Compatible with"/>
             </ButtonToolbar>

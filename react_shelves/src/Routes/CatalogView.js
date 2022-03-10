@@ -45,11 +45,6 @@ export default class CatalogView extends Component {
             {field:field, value:value});
     }
 
-    handleEditCompany = (value) => {
-      postBackend('catalog/_company_set', {},
-          {id1:value, id2:this.props.match.params.id});
-    }
-
     canEdit = () => {
         return this.props.auth.isAuthenticated && !this.state.loading
           && this.state.catalog.root_title;
@@ -174,23 +169,14 @@ export default class CatalogView extends Component {
                                         canEdit = {this.canEdit}
                                         onSave={v => this.handleEditField("year", v)}/>
                             </span>
-                            &nbsp;by&nbsp;
-                            <EditDropDown value={catalog.company_id}
-                                          name={catalog.company}
-                                          hint={"Company name"}
-                                          defaultValue={-1}
-                                          defaultName="Unknown"
-                                          canEdit = {() => this.canEdit() && this.props.auth.isAuthenticated}
-                                          onLoadList={this.handleLoadCompanies}
-                                          onSave={v => this.handleEditCompany(v)}
-                                          onRender={this.handleCompanyRender}
-                            />
                         </div>
 
                         <CatalogFamilies
                             id={catalog.id}
                             root={catalog.root}
-                            auth={this.props.auth}/>
+                            auth={this.props.auth}
+                            company_id={catalog.company_id}
+                            company={catalog.company}/>
                       </> : <div/> }
                     </Col>
                     <Col xs={2} className="align-self-top">

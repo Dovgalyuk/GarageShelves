@@ -949,6 +949,8 @@ def _relation_remove():
         rel_id = Relation.REL_INCLUDES
     elif rel == 'compatible':
         rel_id = Relation.REL_COMPATIBLE
+    elif rel == 'produced':
+        rel_id = Relation.REL_PRODUCED
     else:
         abort(403)
     cursor = get_db_cursor()
@@ -1004,10 +1006,9 @@ def _relation_add():
     elif rel == Relation.REL_ROOT:
         return error("can't set root relation")
     elif rel == Relation.REL_PRODUCED:
-        return error("can't set produced relation")
-        # TODO use _company_set for now
-        # if t1 != Type.TYPE_COMPANY or t2 == Type.TYPE_COMPANY:
-        #     abort(403)
+        # first one is company
+        if t1 != Type.TYPE_COMPANY or t2 == Type.TYPE_COMPANY:
+            return error("first one should be company, and second one not")
 
     # check loops
     if not check_parent_loops(id1, id2) or id1 == id2:
@@ -1019,24 +1020,6 @@ def _relation_add():
 
     return success()
 
-
-@bp.route('/_company_set', methods=('POST',))
-@login_required
-def _company_set():
-    id1 = int(request.json['id1'])
-    id2 = int(request.json['id2'])
-
-    # assert the ids
-    cat = get_catalog(id2)
-
-    cursor = get_db_cursor()
-    if cat['company_id']:
-        delete_relation(cursor, cat['company_id'], id2, Relation.REL_PRODUCED)
-    if id1 != -1:
-        get_catalog(id1)
-        create_relation(cursor, id1, id2, Relation.REL_PRODUCED)
-    db_commit()
-    return jsonify(result='success')
 
 @bp.route('/_set_logo', methods=('POST',))
 @login_required
