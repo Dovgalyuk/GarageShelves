@@ -36,6 +36,6 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "ws": "5.2.4"
+    "ws": "5.2.5"
   }
 }
